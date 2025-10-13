@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Spielabend Details</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary: #7c3aed;
+        --accent: #fbbf24;
+        --secondary: #2dd4bf;
+        --bg: #f9fafb;
+        --text: #1f2937;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Poppins", sans-serif;
+        background-color: var(--bg);
+        color: var(--text);
+      }
+
+      header {
+        padding: 1rem;
+        background-color: var(--primary);
+        color: white;
+        text-align: center;
+        font-size: 1.2rem;
+      }
+
+      .container {
+        padding: 1rem;
+        padding-bottom: 4rem;
+      }
+
+      .group-photo {
+        width: 100%;
+        border-radius: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .section {
+        margin-bottom: 2rem;
+      }
+
+      .section h2 {
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .game-card {
+        background: white;
+        border-radius: 1rem;
+        padding: 1rem;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        margin-bottom: 1rem;
+      }
+
+      .game-card img {
+        width: 100%;
+        border-radius: 0.5rem;
+        margin-top: 0.5rem;
+      }
+
+      .score-list {
+        list-style: none;
+        padding: 0;
+        margin: 0.5rem 0;
+      }
+
+      .score-list li {
+        padding: 0.25rem 0;
+        display: flex;
+        justify-content: space-between;
+        border-bottom: 1px solid #eee;
+      }
+
+      .winner-highlight {
+        background: var(--accent);
+        padding: 0.5rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        text-align: center;
+      }
+
+      .add-button {
+        background: var(--secondary);
+        color: white;
+        padding: 0.75rem 1rem;
+        border: none;
+        border-radius: 1rem;
+        font-weight: 600;
+        font-size: 1rem;
+        width: 100%;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <header>Spielabend vom 06. Oktober 2025</header>
+
+    <div class="container">
+      <!-- Gruppenfoto -->
+      <img src="gruppenfoto.jpg" alt="Gruppenfoto" class="group-photo" />
+
+      <!-- Tagessieger -->
+      <div class="section">
+        <h2>Tagessieger</h2>
+        <div class="winner-highlight">Max (24 Punkte)</div>
+      </div>
+
+      <!-- Spiele -->
+      <div class="section">
+        <h2>Gespielte Spiele</h2>
+
+        <!-- Spiel 1 -->
+        <div class="game-card">
+          <h3>Uno</h3>
+          <ul class="score-list">
+            <li><span>Max</span><span>10</span></li>
+            <li><span>Anna</span><span>5</span></li>
+            <li><span>Lisa</span><span>2</span></li>
+          </ul>
+          <img src="uno.jpg" alt="Bild vom Spiel Uno" />
+        </div>
+
+        <!-- Spiel 2 -->
+        <div class="game-card">
+          <h3>Codenames</h3>
+          <ul class="score-list">
+            <li><span>Lisa</span><span>8</span></li>
+            <li><span>Max</span><span>6</span></li>
+            <li><span>Anna</span><span>4</span></li>
+          </ul>
+          <img src="codenames.jpg" alt="Bild vom Spiel Codenames" />
+        </div>
+      </div>
+
+      <!-- Spiel hinzufügen (nur Admin/Spielleiter sichtbar) -->
+      <button class="add-button">+ Spiel hinzufügen</button>
+    </div>
+  </body>
+</html>
