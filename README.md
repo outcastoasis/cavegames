@@ -60,18 +60,19 @@ Die Spielabend-App soll einer privaten Gruppe von Freunden ermöglichen, gemeins
 
 ## 👥 Rollen & Berechtigungen
 
-| Rolle        | Rechte |
-|--------------|--------|
-| **Admin**    | Alles: Benutzer verwalten, Abende bearbeiten, Punkte erfassen, Jahr beenden |
-| **Spielleiter** | Darf Spiele + Punkte beim ihm zugewiesenen Abend bearbeiten |
-| **Spieler**  | Darf Punkte und Ergebnisse einsehen, an Umfragen teilnehmen |
-| **Gast**     | Sichtrechte, evtl. Abstimmen, kein Login nötig (später optional) |
+| Rolle           | Rechte                                                                      |
+| --------------- | --------------------------------------------------------------------------- |
+| **Admin**       | Alles: Benutzer verwalten, Abende bearbeiten, Punkte erfassen, Jahr beenden |
+| **Spielleiter** | Darf Spiele + Punkte beim ihm zugewiesenen Abend bearbeiten                 |
+| **Spieler**     | Darf Punkte und Ergebnisse einsehen, an Umfragen teilnehmen                 |
+| **Gast**        | Sichtrechte, evtl. Abstimmen, kein Login nötig (später optional)            |
 
 ---
 
 ## 🧩 Datenbankmodelle (MongoDB)
 
 ### 🧑 `users`
+
 ```json
 {
   "_id": "ObjectId",
@@ -84,6 +85,7 @@ Die Spielabend-App soll einer privaten Gruppe von Freunden ermöglichen, gemeins
 ```
 
 ### 🎲 `games`
+
 ```json
 {
   "_id": "ObjectId",
@@ -97,6 +99,7 @@ Die Spielabend-App soll einer privaten Gruppe von Freunden ermöglichen, gemeins
 ```
 
 ### 📅 `evenings`
+
 ```json
 {
   "_id": "ObjectId",
@@ -124,7 +127,8 @@ Die Spielabend-App soll einer privaten Gruppe von Freunden ermöglichen, gemeins
 }
 ```
 
-### (Optional) 🧮 `userStats` *(vorgerechnet)*
+### (Optional) 🧮 `userStats` _(vorgerechnet)_
+
 ```json
 {
   "userId": "user123",
@@ -137,14 +141,84 @@ Die Spielabend-App soll einer privaten Gruppe von Freunden ermöglichen, gemeins
 
 ---
 
+## 🔄 Spielabend-Workflow (finale Version mit nur einem offenen Abend)
+
+### 🧩 Phasenübersicht
+
+1. 🛠️ **Planung durch Admin**
+2. 📊 **Umfrage durch Spielleiter**
+3. 📆 **Fixierung & Teilnahme durch Spieler**
+4. 🎲 **Durchführung & Punkteerfassung**
+5. ✅ **Abschluss & Archivierung**
+
+---
+
+### 1. 🛠️ Admin erstellt einen neuen Abend
+
+- Nur **ein offener Abend** gleichzeitig erlaubt
+- Wird einem **Spieljahr** zugeordnet
+- Ort wird eingetragen (Bsp. Bei User "Anna")
+- **Spielleiter** wird eingetragen, Datum bleibt leer
+- Status: `offen`
+- Spielleiter erhält Meldung: _„Dir wurde ein neuer Abend zur Koordination zugeteilt.“_
+
+---
+
+### 2. 📊 Spielleiter erstellt Umfrage
+
+- Legt mehrere Terminvorschläge an
+- Alle Spieler erhalten Benachrichtigung _„Neue Termin-Umfrage verfügbar“_
+- Spieler dürfen für **einen oder mehrere Termine abstimmen**
+- Nach Entscheidung durch Spielleiter wird Termin fixiert → Status: `fixiert`
+
+---
+
+### 3. 📆 Spieler bestätigen Teilnahme
+
+- Nach Fixierung sehen alle Spieler: **Datum, Uhrzeit, Ort**
+- Spieler klicken „Ich nehme teil“ (Eintrag in Teilnehmerliste)
+- Optionale Vorab-Spielvorschläge möglich
+
+---
+
+### 4. 🎲 Durchführung & Bearbeitung durch Spielleiter
+
+- Am Abend oder danach:
+  - Teilnehmerliste bearbeiten
+  - Spiele mit Punkten eintragen (Achtung: Gleichstand von Spieler möglich -> in Auswertung berücksichtigen)
+  - Gruppenfoto hochladen
+- Abend wird manuell auf `abgeschlossen` gesetzt
+- Sieger wird automatisch ermittelt (höchste Punktzahl)
+
+---
+
+### 5. ✅ Abschluss durch Admin
+
+- Admin prüft und **sperrt den Abend**
+- Abend wird in die **Historie** übernommen
+- Jahresstatistik (`userStats`, `gameStats`) wird aktualisiert (Achtung: Gleichstand von Spieler möglich -> Berücksichtigen)
+
+---
+
+### 🔐 Status-Übersicht
+
+| Status          | Beschreibung                       | Verantwortlich    |
+| --------------- | ---------------------------------- | ----------------- |
+| `offen`         | Abend angelegt, Umfrage ausstehend | Admin/Spielleiter |
+| `fixiert`       | Datum steht fest, Teilnahme läuft  | Spielleiter       |
+| `abgeschlossen` | Abend durchgeführt, Punkte erfasst | Spielleiter       |
+| `gesperrt`      | Final archiviert                   | Admin             |
+
+---
+
 ## 📌 Noch zu definieren / offen:
 
 - [ ] Datenmodell für **Umfragen** (Terminplanung)
 - [ ] Datenmodell für **Spieljahre** (z. B. Abschluss, Ranking-Cache)
 - [ ] Berechnung von **Live-Statistiken** (Leaderboard API, Tageswertung, etc.)
 - [ ] Spezifikation der **API-Routen** (z. B. `/api/abend/:id/spiel`)
-- [ ] Auswertungshandling: Punkte manuell anpassbar? Spiele editierbar?
 - [ ] Upload-/Speicherstrategie für Bilder (Spiele & Gruppenfotos)
+- [ ] Optionale **Benachrichtigungen** (z. B. neue Umfrage, Punkte fehlen)
 
 ---
 
