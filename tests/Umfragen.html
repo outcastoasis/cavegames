@@ -8,15 +8,12 @@
       href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap"
       rel="stylesheet"
     />
-    <script
-      src="https://kit.fontawesome.com/a076d05399.js"
-      crossorigin="anonymous"
-    ></script>
     <style>
       :root {
         --primary: #7c3aed;
         --accent: #fbbf24;
         --secondary: #2dd4bf;
+        --highlight: #d8b4fe;
         --bg: #f9fafb;
         --text: #1f2937;
       }
@@ -29,11 +26,34 @@
       }
 
       header {
-        padding: 1rem;
+        padding: 0.5rem;
         background-color: var(--primary);
         color: white;
         text-align: center;
         font-size: 1.2rem;
+      }
+
+      .header-bar {
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .header-title {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+
+      .header-icon {
+        color: white;
+        font-size: 1.5rem;
+        text-decoration: none;
+      }
+
+      .header-icon:hover {
+        opacity: 0.8;
       }
 
       .content {
@@ -44,22 +64,24 @@
       .poll-card {
         background: white;
         border-radius: 1rem;
-        padding: 1rem;
+        padding: 1.2rem;
         margin-bottom: 1.5rem;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+        border: 2px solid var(--highlight);
       }
 
       .poll-card h2 {
         font-size: 1rem;
         margin-top: 0;
+        color: var(--primary);
       }
 
       .option {
         display: flex;
         justify-content: space-between;
-        padding: 0.5rem;
-        background: #f3f4f6;
-        border-radius: 0.5rem;
+        padding: 0.6rem 0.8rem;
+        background: var(--bg);
+        border-radius: 0.6rem;
         margin-top: 0.5rem;
         cursor: pointer;
         transition: background 0.2s;
@@ -72,6 +94,7 @@
       .option.voted {
         background: var(--secondary);
         color: white;
+        font-weight: 600;
       }
 
       .vote-button {
@@ -88,7 +111,7 @@
       }
 
       .past-poll {
-        opacity: 0.7;
+        opacity: 0.8;
       }
 
       footer {
@@ -102,26 +125,23 @@
         justify-content: space-around;
         align-items: center;
         padding: 0.5rem 0;
-        box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+        z-index: 100;
+      }
+
+      .SymbolTest {
+        font-size: 1.2rem;
       }
 
       .nav-item {
         display: flex;
         flex-direction: column;
         align-items: center;
+        justify-content: center;
+        gap: 0.1rem;
         font-size: 0.75rem;
         color: var(--text);
         text-decoration: none;
-        padding: 0.5rem;
-      }
-
-      .nav-item i {
-        font-size: 1.2rem;
-        margin-bottom: 0.2rem;
-      }
-
-      .nav-item.active {
-        color: var(--primary);
       }
 
       .nav-item.active i {
@@ -133,7 +153,13 @@
     </style>
   </head>
   <body>
-    <header>Umfragen</header>
+    <header>
+      <div class="header-bar">
+        <a href="#" class="header-icon" title="Profil">👤</a>
+        <span class="header-title">Umfragen</span>
+        <a href="#" class="header-icon admin-link" title="Adminbereich">⚙️</a>
+      </div>
+    </header>
 
     <div class="content">
       <!-- Aktive Umfrage -->
@@ -162,20 +188,24 @@
 
     <footer>
       <a href="#" class="nav-item">
-        <i class="fas fa-home"></i>
+        <div class="SymbolTest">📜</div>
+        <span>Historie</span>
+      </a>
+      <a href="#" class="nav-item active">
+        <div class="SymbolTest">🎲</div>
+        <span>Abende</span>
+      </a>
+      <a href="#" class="nav-item">
+        <div class="SymbolTest">🏠</div>
         <span>Home</span>
       </a>
       <a href="#" class="nav-item">
-        <i class="fas fa-gamepad"></i>
-        <span>Abende</span>
-      </a>
-      <a href="#" class="nav-item active">
-        <i class="fas fa-poll"></i>
+        <div class="SymbolTest">📊</div>
         <span>Umfragen</span>
       </a>
       <a href="#" class="nav-item">
-        <i class="fas fa-user"></i>
-        <span>Profil</span>
+        <div class="SymbolTest">🧑‍🏫</div>
+        <span>Host</span>
       </a>
     </footer>
   </body>
