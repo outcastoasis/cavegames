@@ -60,12 +60,12 @@ Die Spielabend-App soll einer privaten Gruppe von Freunden ermöglichen, gemeins
 
 ## 👥 Rollen & Berechtigungen
 
-| Rolle           | Rechte                                                                      |
-| --------------- | --------------------------------------------------------------------------- |
-| **Admin**       | Alles: Benutzer verwalten, Abende bearbeiten, Punkte erfassen, Jahr beenden |
-| **Spielleiter** | Darf Spiele + Punkte beim ihm zugewiesenen Abend bearbeiten                 |
-| **Spieler**     | Darf Punkte und Ergebnisse einsehen, an Umfragen teilnehmen                 |
-| **Gast**        | Sichtrechte, evtl. Abstimmen, kein Login nötig (später optional)            |
+| Rolle           | Rechte                                                                                 |
+| --------------- | -------------------------------------------------------------------------------------- |
+| **Admin**       | Alles: Benutzer verwalten, Abende bearbeiten, Punkte erfassen, Jahr beenden            |
+| **Spielleiter** | Darf Spiele + Punkte beim ihm zugewiesenen Abend bearbeiten und neue Spiele hinzufügen |
+| **Spieler**     | Darf Punkte und Ergebnisse einsehen, an Umfragen teilnehmen                            |
+| **Gast**        | Sichtrechte, evtl. Abstimmen, kein Login nötig (später optional)                       |
 
 ---
 
@@ -77,6 +77,7 @@ Die Spielabend-App soll einer privaten Gruppe von Freunden ermöglichen, gemeins
 {
   "_id": "ObjectId",
   "username": "Max",
+  "displayName": "Max Mustermann",
   "passwordHash": "hashed_pw",
   "role": "admin",
   "createdAt": "...",
@@ -90,6 +91,7 @@ Die Spielabend-App soll einer privaten Gruppe von Freunden ermöglichen, gemeins
 {
   "_id": "ObjectId",
   "name": "Uno",
+  "category": "Kartenspiel",
   "imageUrl": "https://...",
   "description": "...",
   "createdBy": "user123",
@@ -109,6 +111,7 @@ Die Spielabend-App soll einer privaten Gruppe von Freunden ermöglichen, gemeins
   "participantIds": ["user123", "user456"],
   "spieljahr": 2025,
   "status": "open",
+  "pollId": "poll123",
 
   "games": [
     {
@@ -127,15 +130,61 @@ Die Spielabend-App soll einer privaten Gruppe von Freunden ermöglichen, gemeins
 }
 ```
 
-### (Optional) 🧮 `userStats` _(vorgerechnet)_
+### 🧮 `userStats` _(automatisch, pro Spieljahr)_
 
 ```json
 {
+  "_id": "ObjectId",
   "userId": "user123",
   "spieljahr": 2025,
   "totalPoints": 187,
   "totalWins": 5,
   "eveningsAttended": 9
+}
+```
+
+### 📊 `polls` (Termin-Umfragen)
+
+```json
+{
+  "_id": "ObjectId",
+  "eveningId": "evening123",
+  "createdBy": "user456",
+  "options": [
+    { "date": "2025-10-15T19:00:00Z", "votedBy": ["user123", "user456"] },
+    { "date": "2025-10-17T19:00:00Z", "votedBy": ["user789"] }
+  ],
+  "finalDate": null,
+  "status": "open",
+  "createdAt": "...",
+  "updatedAt": "..."
+}
+```
+
+### 🗓️ `spieljahre`
+
+```json
+{
+  "_id": "ObjectId",
+  "jahr": 2025,
+  "eveningIds": ["abend001", "abend002"],
+  "winnerIds": ["user123", "user789"],
+  "archivedAt": "...",
+  "createdAt": "..."
+}
+```
+
+### 🔔 (Optional) `notifications`
+
+```json
+{
+  "_id": "ObjectId",
+  "userId": "user123",
+  "type": "new_poll" | "vote_reminder" | "evening_ready" | "points_missing",
+  "abendId": "evening123",
+  "message": "Neue Termin-Umfrage verfügbar",
+  "read": false,
+  "createdAt": "..."
 }
 ```
 
@@ -157,7 +206,7 @@ Die Spielabend-App soll einer privaten Gruppe von Freunden ermöglichen, gemeins
 
 - Nur **ein offener Abend** gleichzeitig erlaubt
 - Wird einem **Spieljahr** zugeordnet
-- Ort wird eingetragen (Bsp. Bei User "Anna")
+- Ort wird automatisch durch den Organisator bestimmt
 - **Spielleiter** wird eingetragen, Datum bleibt leer
 - Status: `offen`
 - Spielleiter erhält Meldung: _„Dir wurde ein neuer Abend zur Koordination zugeteilt.“_
@@ -185,7 +234,7 @@ Die Spielabend-App soll einer privaten Gruppe von Freunden ermöglichen, gemeins
 
 - Am Abend oder danach:
   - Teilnehmerliste bearbeiten
-  - Spiele mit Punkten eintragen (Achtung: Gleichstand von Spieler möglich -> in Auswertung berücksichtigen)
+  - Spiele mit Punkten eintragen (mit Dropdown + „Neues Spiel hinzufügen“)
   - Gruppenfoto hochladen
 - Abend wird manuell auf `abgeschlossen` gesetzt
 - Sieger wird automatisch ermittelt (höchste Punktzahl)
@@ -196,7 +245,7 @@ Die Spielabend-App soll einer privaten Gruppe von Freunden ermöglichen, gemeins
 
 - Admin prüft und **sperrt den Abend**
 - Abend wird in die **Historie** übernommen
-- Jahresstatistik (`userStats`, `gameStats`) wird aktualisiert (Achtung: Gleichstand von Spieler möglich -> Berücksichtigen)
+- Jahresstatistik (`userStats`, `gameStats`) wird aktualisiert (Achtung: Gleichstand möglich)
 
 ---
 
@@ -213,22 +262,20 @@ Die Spielabend-App soll einer privaten Gruppe von Freunden ermöglichen, gemeins
 
 ## 📌 Noch zu definieren / offen:
 
-- [ ] Datenmodell für **Umfragen** (Terminplanung)
-- [ ] Datenmodell für **Spieljahre** (z. B. Abschluss, Ranking-Cache)
+- [ ] Upload-/Speicherstrategie für Bilder (Spiele & Gruppenfotos)
 - [ ] Berechnung von **Live-Statistiken** (Leaderboard API, Tageswertung, etc.)
 - [ ] Spezifikation der **API-Routen** (z. B. `/api/abend/:id/spiel`)
-- [ ] Upload-/Speicherstrategie für Bilder (Spiele & Gruppenfotos)
 - [ ] Optionale **Benachrichtigungen** (z. B. neue Umfrage, Punkte fehlen)
 
 ---
 
 ## ✅ Nächste empfohlene Schritte
 
-1. 🔧 Datenmodell `polls` (Umfragen) entwerfen
-2. ⚙️ Spieljahr-Verwaltung (Abschluss, Archivierung, Gewinnerfreigabe)
+1. 🔧 Implementierung des `polls`-Modells (Umfragen)
+2. ⚙️ Umsetzung der Spieljahr-Verwaltung
 3. 🧪 API-Definition & Mock-Daten erstellen
 4. 🧱 Backend-Setup & Testdaten einfügen
-5. 🎨 Skizzierung / Umsetzung weiterer Seiten nach Bedarf
+5. 🎨 HTML-Demoseiten finalisieren
 
 ---
 

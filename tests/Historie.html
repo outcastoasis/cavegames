@@ -26,12 +26,34 @@
       }
 
       header {
-        padding: 1rem;
-        background: var(--primary);
+        padding: 0.5rem;
+        background-color: var(--primary);
         color: white;
-        font-size: 1.2rem;
         text-align: center;
-        font-weight: 600;
+        font-size: 1.2rem;
+      }
+
+      .header-bar {
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .header-title {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+
+      .header-icon {
+        color: white;
+        font-size: 1.5rem;
+        text-decoration: none;
+      }
+
+      .header-icon:hover {
+        opacity: 0.8;
       }
 
       .content {
@@ -115,31 +137,41 @@
         justify-content: space-around;
         align-items: center;
         padding: 0.5rem 0;
-        box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
         z-index: 100;
+      }
+
+      .SymbolTest {
+        font-size: 1.2rem;
       }
 
       .nav-item {
         display: flex;
         flex-direction: column;
         align-items: center;
+        justify-content: center;
+        gap: 0.1rem;
         font-size: 0.75rem;
         color: var(--text);
         text-decoration: none;
       }
 
-      .nav-item .icon {
-        font-size: 1.5rem;
-        margin-bottom: 0.2rem;
-      }
-
-      .nav-item.active {
-        color: var(--primary);
+      .nav-item.active i {
+        background: var(--primary);
+        color: white;
+        padding: 0.4rem;
+        border-radius: 50%;
       }
     </style>
   </head>
   <body>
-    <header>📜 Historie – Spieljahre</header>
+    <header>
+      <div class="header-bar">
+        <a href="#" class="header-icon" title="Profil">👤</a>
+        <span class="header-title">Historie</span>
+        <a href="#" class="header-icon admin-link" title="Adminbereich">⚙️</a>
+      </div>
+    </header>
 
     <div class="content">
       <!-- Jahr-Auswahl -->
@@ -178,21 +210,25 @@
     </div>
 
     <footer>
-      <a href="#" class="nav-item">
-        <div class="icon">🏠</div>
-        <span>Home</span>
+      <a href="#" class="nav-item active">
+        <div class="SymbolTest">📜</div>
+        <span>Historie</span>
       </a>
-      <a href="#" class="nav-item">
-        <div class="icon">🎲</div>
+      <a href="#" class="nav-item active">
+        <div class="SymbolTest">🎲</div>
         <span>Abende</span>
       </a>
       <a href="#" class="nav-item">
-        <div class="icon">📊</div>
+        <div class="SymbolTest">🏠</div>
+        <span>Home</span>
+      </a>
+      <a href="#" class="nav-item">
+        <div class="SymbolTest">📊</div>
         <span>Umfragen</span>
       </a>
-      <a href="#" class="nav-item active">
-        <div class="icon">📜</div>
-        <span>Historie</span>
+      <a href="#" class="nav-item">
+        <div class="SymbolTest">🧑‍🏫</div>
+        <span>Host</span>
       </a>
     </footer>
   </body>
