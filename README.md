@@ -260,9 +260,79 @@ Die Spielabend-App soll einer privaten Gruppe von Freunden ermöglichen, gemeins
 
 ---
 
+### 🖼️ Upload-Handling (Bilder für Gruppenfotos & Spiele)
+
+In der Spielabend-App werden Bilder für **Gruppenfotos** und **Spielbilder** benötigt. Diese sollen nicht in der Datenbank gespeichert werden, sondern über einen spezialisierten Cloud-Dienst verwaltet werden.
+
+---
+
+### ✅ Warum **Cloudinary** + **MongoDB Atlas**?
+
+- Die eigentlichen Bilder (z. B. Fotos) werden in **Cloudinary** gespeichert.
+- In **MongoDB Atlas** wird **nur die URL** des Bildes gespeichert.
+- Vorteile:
+
+  - Sehr gute Performance durch weltweite Auslieferung über CDN
+  - Keine Speicherung großer Base64-Daten in MongoDB
+  - Zusätzliche Bildbearbeitungsfunktionen direkt über Cloudinary-URL
+
+Beispiel für gespeichertes Spielobjekt in MongoDB:
+
+```json
+{
+  "name": "Uno",
+  "category": "Kartenspiel",
+  "imageUrl": "https://res.cloudinary.com/spielabend/image/upload/v1699912345/uno_card.jpg"
+}
+```
+
+---
+
+### 📁 Upload-Strategie (Empfehlung)
+
+| Element               | Speicherort | Hochgeladen von            | Zugriff für           |
+| --------------------- | ----------- | -------------------------- | --------------------- |
+| Gruppenfoto           | Cloudinary  | Spielleiter                | Alle Spieler          |
+| Spielbild             | Cloudinary  | Spielleiter/Admin          | Alle Spieler          |
+| Profilbild (optional) | Cloudinary  | Benutzer selbst (optional) | Nur eingeloggter User |
+
+---
+
+### 🔒 Sicherheit & Validierung
+
+- Nur eingeloggte und berechtigte Benutzer dürfen hochladen
+- Bildvalidierung im Frontend & Backend:
+
+  - Dateigröße (z. B. max. 2 MB)
+  - Dateityp (nur JPG, PNG)
+
+- Optional: Alte Bilder bei Änderung automatisch in Cloudinary löschen
+
+---
+
+### 📦 Vorteile von Cloudinary
+
+- 🚀 Schnelle Auslieferung über CDN
+- 🖼️ Automatische Bildoptimierung (Größe, Qualität, Format)
+- 🧰 Transformationen (Thumbnails, Cropping, etc.)
+- 🔗 Direkte URL-Rückgabe
+- 🆓 Kostenloser Plan für kleine private Apps
+
+---
+
+### 📌 Zusammenfassung
+
+- Bilder werden **nicht** in MongoDB gespeichert
+- Nur die Bild-URL wird in den Datenmodellen verwendet
+- Upload erfolgt per Multer und Cloudinary im Backend
+- React-Komponenten ermöglichen Bildvorschau und Upload im Frontend
+- Die Lösung ist performant, datensparsam und einfach skalierbar
+
+---
+
 ## 📌 Noch zu definieren / offen:
 
-- [ ] Upload-/Speicherstrategie für Bilder (Spiele & Gruppenfotos)
+- [x] Upload-/Speicherstrategie für Bilder (Spiele & Gruppenfotos)
 - [ ] Berechnung von **Live-Statistiken** (Leaderboard API, Tageswertung, etc.)
 - [ ] Spezifikation der **API-Routen** (z. B. `/api/abend/:id/spiel`)
 - [ ] Optionale **Benachrichtigungen** (z. B. neue Umfrage, Punkte fehlen)
