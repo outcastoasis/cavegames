@@ -1,92 +1,118 @@
-# Spielabend App – Konzeption & Systemüberblick
+# 🎲 Spielabend App – Konzeption & Systemüberblick
 
 ## 🎯 Ziel der Anwendung
 
-Die Spielabend-App soll einer privaten Gruppe von Freunden ermöglichen, gemeinsame Spieleabende (Brettspiele, Kartenspiele etc.) übers Jahr hinweg zu planen, Punkte zu erfassen und einen Jahresgewinner zu küren. Sie ist mobiloptimiert, modern gestaltet, datenschutzfreundlich und wird nur von einer kleinen festen Benutzergruppe verwendet.
+Die **Spielabend-App** ermöglicht einer privaten Freundesgruppe, gemeinsame Spieleabende (Brettspiele, Kartenspiele etc.) zu planen, Punkte zu erfassen und am Jahresende automatisch den Gewinner zu küren.  
+Die Anwendung ist **mobiloptimiert**, **modern gestaltet**, **datenschutzfreundlich** und wird ausschließlich von einer kleinen, geschlossenen Benutzergruppe verwendet.
 
 ---
 
 ## ✅ Kernfunktionen
 
 - 🧑‍🤝‍🧑 Benutzerverwaltung (Admin, Spieler, Spielleiter, Gäste)
-- 📅 Planung von Spieleabenden mit Terminabstimmungen (Doodle-artig)
-- 🎮 Eintragen gespielter Spiele & individueller Punkte
-- 🏆 Tagesgewinner & Jahresgewinner automatisch berechnet
-- 🗃️ Spielarchiv mit Detailansicht und Gruppenfotos
+- 📅 Planung von Spieleabenden mit Termin-Umfragen (ähnlich Doodle)
+- 🎮 Erfassen gespielter Spiele & individueller Punkte
+- 🏆 Automatische Berechnung von Tages- und Jahresgewinnern
+- 🗃️ Archivierung von Abenden mit Detailansicht & Gruppenfoto
 - 🏅 Jahresrückblick & Hall of Fame
-- 🔐 Login über Benutzernamen & Passwort (ohne E-Mail)
-- 📱 Mobiloptimierte Web-App im „Friendly Play“-Stil (inspiriert von Kahoot)
+- 🔐 Login über Benutzername & Passwort (ohne E-Mail)
+- 📱 Mobiloptimierte Oberfläche im „Friendly Play“-Stil (inspiriert von Kahoot)
 
 ---
 
 ## 🧱 Technischer Stack
 
-- **Frontend:** React (Poppins Font, eigener CSS-Stil)
+- **Frontend:** React (mit eigener CSS-Architektur & Poppins-Font)
 - **Backend:** Node.js + Express
 - **Datenbank:** MongoDB Atlas (Cloud)
-- **Deployment:** Frontend auf Vercel, Backend auf Railway/Render
+- **Deployment:** Frontend über Vercel, Backend über Railway/Render
+- **Bildspeicher:** Cloudinary (CDN + URL-Referenzen)
 
 ---
 
 ## 🗺️ Sitemap / Seitenstruktur
 
 - **Startseite / Dashboard**
-  - Begrüßung + aktuelles Spieljahr
-  - Nächster Abend (Countdown, Details, Abstimmen)
-  - Letzter Abend (Datum, Tagessieger, Bild, Button zur Detailansicht)
-- **Abende (Liste)** → Neueste oben, mit Datum, Ort, Sieger
-- **Abend-Details** → Spiele, Punkte, Bilder, Spielleiter, Gruppenfoto
-- **Punkte eintragen** → Nur für Spielleiter/Admin
-- **Umfragen** → Terminabstimmungen sichtbar & abstimmbar
-- **Jahresrückblick / Hall of Fame** → Gewinner pro Jahr
-- **Profilseite (optional)** → Eigene Statistiken, Teilnahmen, Siege
+  - Begrüßung & aktuelles Spieljahr
+  - Nächster Abend (Countdown, Details, Abstimmung)
+  - Letzter Abend (Datum, Sieger, Gruppenfoto)
+- **Abende (Liste)** → sortiert nach Datum, mit Ort & Siegern
+- **Abend-Details** → Spiele, Punkte, Fotos, Spielleiter, Teilnehmer
+- **Punkte erfassen** → nur Spielleiter/Admin
+- **Umfragen** → Terminabstimmungen mit Auswahl
+- **Jahresrückblick / Hall of Fame**
+- **Profilseite (optional)** → persönliche Statistiken, Siege, Teilnahmen
 - **Adminbereich**
-  - Benutzer verwalten
-  - Spieljahr abschließen
-  - Rollen zuweisen (Spielleiter pro Abend)
-  - Daten exportieren
+  - Benutzerverwaltung & Rollen
+  - Jahresabschluss
+  - Datenexport
 
 ---
 
 ## 🎨 Designkonzept
 
-- **Stil:** „Friendly Play“, inspiriert von Kahoot & Duolingo
-- **Farben:** Violett (Primary), Türkis (Secondary), Gelb (Accent), Hellgrau (BG)
-- **Font:** [Poppins](https://fonts.google.com/specimen/Poppins)
-- **Navigation:** Bottom-Navigation auf Mobilgeräten (Icons + Labels)
-- **UI-Komponenten:** Runde Karten, große Buttons, Bild-Uploads pro Abend
+- **Stil:** „Friendly Play“ (angelehnt an Kahoot & Duolingo)
+- **Farben:** Violett (Primary) • Türkis (Secondary) • Gelb (Accent) • Hellgrau (Background)
+- **Schrift:** [Poppins](https://fonts.google.com/specimen/Poppins)
+- **Navigation:** Bottom-Navigation mit Lucide-Icons
+- **UI:** Runde Karten, große Buttons, Bild-Uploads mit Vorschau
 
 ---
 
 ## 👥 Rollen & Berechtigungen
 
-| Rolle           | Rechte                                                                                 |
-| --------------- | -------------------------------------------------------------------------------------- |
-| **Admin**       | Alles: Benutzer verwalten, Abende bearbeiten, Punkte erfassen, Jahr beenden            |
-| **Spielleiter** | Darf Spiele + Punkte beim ihm zugewiesenen Abend bearbeiten und neue Spiele hinzufügen |
-| **Spieler**     | Darf Punkte und Ergebnisse einsehen, an Umfragen teilnehmen                            |
-| **Gast**        | Sichtrechte, evtl. Abstimmen, kein Login nötig (später optional)                       |
+### Globale Rollen (Systemweit)
+| Rolle | Beschreibung | Beispielrechte |
+|--------|---------------|----------------|
+| **Admin** | Vollzugriff, Jahresabschluss, Benutzerverwaltung | `canManageUsers`, `canLockEvenings` |
+| **Spieler** | Teilnahme an Abenden, Punkte & Ergebnisse sehen | `canViewStats`, `canVote` |
+| **Gast** | Nur Lesezugriff, kein Login nötig (optional) | `canViewPublic` |
+
+### Abend-spezifische Rollen (pro Evening)
+| Lokale Rolle | Beschreibung |
+|---------------|--------------|
+| **Spielleiter** | Vom Admin oder beim Anlegen des Abends zugewiesen. Darf Spiele & Punkte beim zugewiesenen Abend verwalten. |
+
+**Beispiel:**
+- User A → nur „Spieler“  
+- User B → „Admin“ und „Spieler“  
+- User C → „Spieler“, aber „Spielleiter“ bei mehreren Abenden
+
+Die Spielleiter-Zuweisung erfolgt im jeweiligen `evenings`-Dokument über das Feld `spielleiterId`.
+
+---
+
+## 🔐 Authentifizierung & Autorisierung
+
+- **Token-Art:** JWT (JSON Web Token)
+- **Gültigkeit:** 12 Stunden, danach automatisches Logout
+- **Middleware:** `checkAuth` prüft Token, `checkRole()` prüft Berechtigung
+- **Erstinstallation:** Der erste registrierte Benutzer wird manuell in MongoDB zu `role: "admin"` geändert.
+
+**Middleware-Beispiel (Express):**
+```js
+app.post("/api/evenings", checkAuth, checkRole("admin"), createEvening);
+app.patch("/api/evenings/:id/games", checkAuth, checkRole("spielleiter"), updateGames);
+```
 
 ---
 
 ## 🧩 Datenbankmodelle (MongoDB)
 
 ### 🧑 `users`
-
 ```json
 {
   "_id": "ObjectId",
   "username": "Max",
   "displayName": "Max Mustermann",
   "passwordHash": "hashed_pw",
-  "role": "admin",
+  "role": "spieler",
   "createdAt": "...",
   "active": true
 }
 ```
 
 ### 🎲 `games`
-
 ```json
 {
   "_id": "ObjectId",
@@ -101,7 +127,6 @@ Die Spielabend-App soll einer privaten Gruppe von Freunden ermöglichen, gemeins
 ```
 
 ### 📅 `evenings`
-
 ```json
 {
   "_id": "ObjectId",
@@ -112,7 +137,6 @@ Die Spielabend-App soll einer privaten Gruppe von Freunden ermöglichen, gemeins
   "spieljahr": 2025,
   "status": "open",
   "pollId": "poll123",
-
   "games": [
     {
       "gameId": "game456",
@@ -123,15 +147,13 @@ Die Spielabend-App soll einer privaten Gruppe von Freunden ermöglichen, gemeins
       "notes": "Zweimal UNO gespielt"
     }
   ],
-
   "groupPhotoUrl": "https://...",
   "createdAt": "...",
   "updatedAt": "..."
 }
 ```
 
-### 🧮 `userStats` _(automatisch, pro Spieljahr)_
-
+### 🧮 `userStats` (automatisch, pro Spieljahr)
 ```json
 {
   "_id": "ObjectId",
@@ -143,50 +165,33 @@ Die Spielabend-App soll einer privaten Gruppe von Freunden ermöglichen, gemeins
 }
 ```
 
-### 📊 `polls` (Termin-Umfragen)
+---
 
-```json
-{
-  "_id": "ObjectId",
-  "eveningId": "evening123",
-  "createdBy": "user456",
-  "options": [
-    { "date": "2025-10-15T19:00:00Z", "votedBy": ["user123", "user456"] },
-    { "date": "2025-10-17T19:00:00Z", "votedBy": ["user789"] }
-  ],
-  "finalDate": null,
-  "status": "open",
-  "createdAt": "...",
-  "updatedAt": "..."
-}
-```
+## 🧮 Punktelogik & Statistik-Regeln
 
-### 🗓️ `spieljahre`
+### Abendwertung
+- Jeder Abend kann mehrere Spiele enthalten.
+- Punkte jedes Spielers werden pro Abend **aufsummiert**.
+- Nach dem Schließen des Abends werden die Gesamtsummen fixiert.
 
-```json
-{
-  "_id": "ObjectId",
-  "jahr": 2025,
-  "eveningIds": ["abend001", "abend002"],
-  "winnerIds": ["user123", "user789"],
-  "archivedAt": "...",
-  "createdAt": "..."
-}
-```
+### Tagessieger
+- Der Spieler mit der höchsten Punktzahl am Abend ist Tagessieger.
+- Bei Gleichstand gibt es mehrere Sieger.
 
-### 🔔 (Optional) `notifications`
+### Jahreswertung
+- Wird erst nach Abschluss **aller Abende** eines Jahres erstellt.
+- Die Gesamtpunkte aller Abende werden pro Spieler summiert.
+- Der Spieler mit den meisten Punkten ist Jahressieger.
+- Gleichstände sind möglich und werden gemeinsam angezeigt.
+- Siege zählen nur als Statistikwert.
 
-```json
-{
-  "_id": "ObjectId",
-  "userId": "user123",
-  "type": "new_poll" | "vote_reminder" | "evening_ready" | "points_missing",
-  "abendId": "evening123",
-  "message": "Neue Termin-Umfrage verfügbar",
-  "read": false,
-  "createdAt": "..."
-}
-```
+### Statistische Felder
+| Feld | Beschreibung |
+|------|---------------|
+| `totalPoints` | Summe aller Punkte eines Jahres |
+| `totalWins` | Anzahl gewonnener Abende |
+| `eveningsAttended` | Anzahl besuchter Abende |
+| `rank` | Platz im Jahresranking |
 
 ---
 
@@ -249,106 +254,60 @@ Die Spielabend-App soll einer privaten Gruppe von Freunden ermöglichen, gemeins
 
 ---
 
-### 🔐 Status-Übersicht
-
-| Status          | Beschreibung                       | Verantwortlich    |
-| --------------- | ---------------------------------- | ----------------- |
-| `offen`         | Abend angelegt, Umfrage ausstehend | Admin/Spielleiter |
-| `fixiert`       | Datum steht fest, Teilnahme läuft  | Spielleiter       |
-| `abgeschlossen` | Abend durchgeführt, Punkte erfasst | Spielleiter       |
-| `gesperrt`      | Final archiviert                   | Admin             |
-
----
-
-### 🖼️ Upload-Handling (Bilder für Gruppenfotos & Spiele)
-
-In der Spielabend-App werden Bilder für **Gruppenfotos** und **Spielbilder** benötigt. Diese sollen nicht in der Datenbank gespeichert werden, sondern über einen spezialisierten Cloud-Dienst verwaltet werden.
+### Status-Phasen
+| Status | Beschreibung | Verantwortlich |
+|---------|---------------|----------------|
+| `offen` | Abend angelegt, Umfrage ausstehend | Admin / Spielleiter |
+| `fixiert` | Datum steht fest, Teilnahme läuft | Spielleiter |
+| `abgeschlossen` | Spiele & Punkte eingetragen | Spielleiter |
+| `gesperrt` | Final archiviert | Admin |
 
 ---
 
-### ✅ Warum **Cloudinary** + **MongoDB Atlas**?
+## 🖼️ Upload-Handling (Bilder)
 
-- Die eigentlichen Bilder (z. B. Fotos) werden in **Cloudinary** gespeichert.
-- In **MongoDB Atlas** wird **nur die URL** des Bildes gespeichert.
-- Vorteile:
+- Bilder werden **nicht** in MongoDB gespeichert.
+- Speicherung erfolgt in **Cloudinary**, nur URL in der DB.
+- Maximale Dateigröße: 2 MB (nur JPG/PNG).
 
-  - Sehr gute Performance durch weltweite Auslieferung über CDN
-  - Keine Speicherung großer Base64-Daten in MongoDB
-  - Zusätzliche Bildbearbeitungsfunktionen direkt über Cloudinary-URL
-
-Beispiel für gespeichertes Spielobjekt in MongoDB:
-
-```json
-{
-  "name": "Uno",
-  "category": "Kartenspiel",
-  "imageUrl": "https://res.cloudinary.com/spielabend/image/upload/v1699912345/uno_card.jpg"
-}
-```
+| Typ | Hochgeladen von | Zugriff |
+|------|----------------|----------|
+| Gruppenfoto | Spielleiter | Alle Spieler |
+| Spielbild | Spielleiter/Admin | Alle Spieler |
+| Profilbild | Benutzer selbst (optional) | Nur eingeloggter User |
 
 ---
 
-### 📁 Upload-Strategie (Empfehlung)
+## 📦 Vorteile von Cloudinary
 
-| Element               | Speicherort | Hochgeladen von            | Zugriff für           |
-| --------------------- | ----------- | -------------------------- | --------------------- |
-| Gruppenfoto           | Cloudinary  | Spielleiter                | Alle Spieler          |
-| Spielbild             | Cloudinary  | Spielleiter/Admin          | Alle Spieler          |
-| Profilbild (optional) | Cloudinary  | Benutzer selbst (optional) | Nur eingeloggter User |
-
----
-
-### 🔒 Sicherheit & Validierung
-
-- Nur eingeloggte und berechtigte Benutzer dürfen hochladen
-- Bildvalidierung im Frontend & Backend:
-
-  - Dateigröße (z. B. max. 2 MB)
-  - Dateityp (nur JPG, PNG)
-
-- Optional: Alte Bilder bei Änderung automatisch in Cloudinary löschen
+- 🚀 CDN-Auslieferung weltweit
+- 🖼️ Automatische Optimierung & Thumbnails
+- 🧰 Transformationen via URL
+- 🆓 Kostenloser Plan für kleine Projekte
 
 ---
 
-### 📦 Vorteile von Cloudinary
+## 📊 Sicherheit & Validierung
 
-- 🚀 Schnelle Auslieferung über CDN
-- 🖼️ Automatische Bildoptimierung (Größe, Qualität, Format)
-- 🧰 Transformationen (Thumbnails, Cropping, etc.)
-- 🔗 Direkte URL-Rückgabe
-- 🆓 Kostenloser Plan für kleine private Apps
-
----
-
-### 📌 Zusammenfassung
-
-- Bilder werden **nicht** in MongoDB gespeichert
-- Nur die Bild-URL wird in den Datenmodellen verwendet
-- Upload erfolgt per Multer und Cloudinary im Backend
-- React-Komponenten ermöglichen Bildvorschau und Upload im Frontend
-- Die Lösung ist performant, datensparsam und einfach skalierbar
+- Nur authentifizierte Benutzer dürfen Daten ändern
+- Bildvalidierung über Backend (Größe, Typ)
+- Passwörter mit **bcrypt** gehasht
+- JWT wird nach 12h automatisch ungültig
+- Rate-Limiting für Login-Endpunkte
 
 ---
 
-## 📌 Noch zu definieren / offen:
+## ✅ Nächste Schritte
 
-- [x] Upload-/Speicherstrategie für Bilder (Spiele & Gruppenfotos)
-- [ ] Berechnung von **Live-Statistiken** (Leaderboard API, Tageswertung, etc.)
-- [ ] Spezifikation der **API-Routen** (z. B. `/api/abend/:id/spiel`)
-- [ ] Optionale **Benachrichtigungen** (z. B. neue Umfrage, Punkte fehlen)
-
----
-
-## ✅ Nächste empfohlene Schritte
-
-1. 🔧 Implementierung des `polls`-Modells (Umfragen)
-2. ⚙️ Umsetzung der Spieljahr-Verwaltung
-3. 🧪 API-Definition & Mock-Daten erstellen
-4. 🧱 Backend-Setup & Testdaten einfügen
-5. 🎨 HTML-Demoseiten finalisieren
+1. Implementierung der Umfragen (`polls`)
+2. Umsetzung der Jahresverwaltung
+3. Definition & Test der Leaderboard-API
+4. Backend-Basis & Mock-Daten
+5. HTML-Demoseiten & UI-Feinschliff
 
 ---
 
 ## 📂 Lizenz & Hinweise
 
-Private Freizeit-App, nicht für öffentliche Nutzung vorgesehen. Copyright beim Entwickler.
+Private Freizeit-App, nicht für öffentliche Nutzung vorgesehen.  
+© 2025 – Spielabend App | Alle Rechte beim Entwickler.
