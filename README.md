@@ -29,6 +29,88 @@ Die Anwendung ist **mobiloptimiert**, **modern gestaltet**, **datenschutzfreundl
 - **Bildspeicher:** Cloudinary (CDN + URL-Referenzen)
 
 ---
+## 🧱 Strukturvorlage (Beispiel)
+
+```
+spielabend-app/
+│
+├── backend/
+│   ├── controllers/
+│   ├── models/
+│   ├── routes/
+│   ├── middleware/
+│   ├── config/
+│   ├── utils/
+│   ├── server.js
+│   ├── .env
+│   ├── package.json
+│   ├── README.md
+│   
+│
+├── frontend/
+│   ├── public/
+│   │   ├── index.html
+│   │   ├── manifest.json
+│   │   └── icons/
+│   │
+│   ├── src/
+│   │   ├── assets/
+│   │   │   ├── images/
+│   │   │   └── fonts/
+│   │   │
+│   │   ├── components/
+│   │   │   ├── ui/
+│   │   │   ├── forms/
+│   │   │   ├── charts/
+│   │   │   └── common/
+│   │   │
+│   │   ├── pages/
+│   │   │   ├── Home.jsx
+│   │   │   ├── Evenings.jsx
+│   │   │   ├── EveningDetail.jsx
+│   │   │   ├── Polls.jsx
+│   │   │   ├── Leaderboard.jsx
+│   │   │   ├── Admin.jsx
+│   │   │   ├── Login.jsx
+│   │   │   └── Register.jsx
+│   │   │
+│   │   ├── layouts/
+│   │   │   ├── DashboardLayout.jsx
+│   │   │   ├── AdminLayout.jsx
+│   │   │   └── AuthLayout.jsx
+│   │   │
+│   │   ├── context/
+│   │   │   ├── AuthContext.jsx
+│   │   │   └── ThemeContext.jsx
+│   │   │
+│   │   ├── hooks/
+│   │   │   ├── useAuth.js
+│   │   │   ├── useFetch.js
+│   │   │   └── useModal.js
+│   │   │
+│   │   ├── styles/
+│   │   │   ├── variables.css
+│   │   │   ├── global.css
+│   │   │   ├── components/
+│   │   │   └── pages/
+│   │   │
+│   │   ├── services/
+│   │   │   ├── api.js
+│   │   │   └── endpoints.js
+│   │   │
+│   │   ├── App.jsx
+│   │   ├── index.js
+│   │   └── router.js
+│   │
+│   ├── .env
+│   ├── package.json
+│   ├── vite.config.js
+│   └── README.md
+│
+└── README.md (Hauptprojekt)
+```
+
+---
 
 ## 🗺️ Sitemap / Seitenstruktur
 
