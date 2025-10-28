@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login – Spielabend App</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap");
+
+      :root {
+        --primary: #7c3aed;
+        --secondary: #2dd4bf;
+        --accent: #fbbf24;
+        --bg: #f9fafb;
+        --text: #1f2937;
+        --card-radius: 1rem;
+        --border-radius-sm: 0.5rem;
+        --border-radius-full: 999px;
+        --shadow-s: inset 0 1px 2px #ffffff30, 0 1px 2px #00000030,
+          0 2px 4px #00000015;
+        --shadow-m: inset 0 1px 2px #ffffff50, 0 2px 4px #00000030,
+          0 4px 8px #00000015;
+        --shadow-l: inset 0 2px 3px #ffffff70, 0 2px 6px #00000030,
+          0 6px 10px #00000015;
+        --font-family: "Poppins", sans-serif;
+        --font-size-base: 1rem;
+        --font-size-small: 0.875rem;
+        --font-size-large: 1.25rem;
+        --spacing-xs: 0.25rem;
+        --spacing-s: 0.5rem;
+        --spacing-m: 1rem;
+        --spacing-l: 2rem;
+        --transition-fast: 0.1s ease-in-out;
+        --transition-medium: 0.3s ease-in-out;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: var(--font-family);
+        background-color: var(--bg);
+        color: var(--text);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        padding: var(--spacing-m);
+      }
+
+      .login-card {
+        background: white;
+        border-radius: var(--card-radius);
+        box-shadow: var(--shadow-l);
+        padding: var(--spacing-l);
+        width: 100%;
+        max-width: 400px;
+      }
+
+      .login-card h2 {
+        text-align: center;
+        margin-bottom: var(--spacing-l);
+        color: var(--primary);
+      }
+
+      .input {
+        width: 100%;
+        padding: var(--spacing-s);
+        border-radius: var(--border-radius-sm);
+        border: 1px solid #ccc;
+        margin-bottom: var(--spacing-m);
+        font-size: var(--font-size-base);
+        font-family: inherit;
+      }
+
+      .button {
+        width: 100%;
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: var(--spacing-s) var(--spacing-m);
+        border-radius: var(--border-radius-full);
+        font-weight: 600;
+        cursor: pointer;
+        font-size: var(--font-size-base);
+        box-shadow: var(--shadow-m);
+      }
+
+      .button:hover {
+        transform: translateY(-2px);
+      }
+
+      .icon-input {
+        display: flex;
+        align-items: center;
+        border: 1px solid #ccc;
+        border-radius: var(--border-radius-sm);
+        padding: 0.4rem 0.8rem;
+        margin-bottom: var(--spacing-m);
+        background: #fff;
+      }
+
+      .icon-input i {
+        width: 20px;
+        height: 20px;
+        margin-right: 0.6rem;
+        stroke: var(--text);
+      }
+
+      .icon-input input {
+        border: none;
+        outline: none;
+        flex: 1;
+        font-size: var(--font-size-base);
+        font-family: inherit;
+      }
+
+      .text-small {
+        text-align: center;
+        font-size: var(--font-size-small);
+        margin-top: var(--spacing-s);
+        opacity: 0.8;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+      }
+
+      .login-wrapper {
+        height: 100vh;
+        width: 100%;
+        background-color: var(--primary);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: start;
+        padding: var(--spacing-l) var(--spacing-m);
+      }
+
+      .login-header {
+        margin-bottom: var(--spacing-m);
+      }
+
+      .login-header img {
+        width: 200px;
+        height: 200px;
+        object-fit: contain;
+        border-radius: 50%;
+        background: white;
+        padding: var(--spacing-xs);
+        box-shadow: var(--shadow-m);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="login-wrapper">
+      <div class="login-header">
+        <img src="Design/Logo_Cavegames.png" alt="Cavegames Logo" />
+      </div>
+
+      <div class="login-card">
+        <h2><i data-lucide="log-in"></i> Login</h2>
+
+        <form>
+          <div class="icon-input">
+            <i data-lucide="user"></i>
+            <input type="text" placeholder="Benutzername" required />
+          </div>
+
+          <div class="icon-input">
+            <i data-lucide="lock"></i>
+            <input type="password" placeholder="Passwort" required />
+          </div>
+
+          <button type="submit" class="button">Einloggen</button>
+          <p class="text-small">Noch kein Zugang? Kontaktiere den Admin.</p>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      lucide.createIcons();
+    </script>
+  </body>
+</html>

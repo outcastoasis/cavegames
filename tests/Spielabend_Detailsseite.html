@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Spieleabend Details</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary: #7c3aed;
+        --accent: #fbbf24;
+        --secondary: #2dd4bf;
+        --highlight: #d8b4fe;
+        --bg: #f9fafb;
+        --text: #1f2937;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Poppins", sans-serif;
+        background-color: var(--bg);
+        color: var(--text);
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+
+      header {
+        padding: 0.5rem;
+        background-color: var(--primary);
+        color: white;
+        text-align: center;
+        font-size: 1.2rem;
+      }
+
+      .header-bar {
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .header-title {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+
+      .header-icon {
+        color: white;
+        font-size: 1.5rem;
+        text-decoration: none;
+      }
+
+      .header-icon:hover {
+        opacity: 0.8;
+      }
+
+      .content {
+        padding: 1rem;
+        padding-bottom: 6rem;
+      }
+
+      .abend-details {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.2rem;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+      }
+
+      .abend-details h2 {
+        margin-top: 0;
+        color: var(--primary);
+      }
+
+      .detail-section {
+        margin-top: 1.5rem;
+      }
+
+      .detail-section h3 {
+        font-size: 1rem;
+        margin-bottom: 0.6rem;
+        color: var(--text);
+      }
+
+      .detail-section ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .detail-section li {
+        background: var(--bg);
+        border-radius: 0.6rem;
+        padding: 0.6rem 0.8rem;
+        margin-bottom: 0.4rem;
+      }
+
+      .spiel-card {
+        background: #ffffff;
+        border: 2px solid var(--highlight);
+        border-radius: 1rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      }
+
+      .spiel-card h4 {
+        margin: 0 0 0.5rem;
+        font-size: 1rem;
+        color: var(--primary);
+      }
+
+      .spiel-card .info {
+        font-size: 0.9rem;
+        margin-bottom: 0.3rem;
+      }
+
+      .spiel-card ul {
+        list-style: none;
+        padding: 0;
+        margin: 0.3rem 0 0;
+      }
+
+      .spiel-card li {
+        padding: 0.3rem 0.6rem;
+        background: var(--bg);
+        border-radius: 0.5rem;
+        margin-bottom: 0.3rem;
+      }
+
+      .image-preview {
+        width: 100%;
+        height: auto;
+        border-radius: 1rem;
+        margin-top: 0.8rem;
+      }
+
+      .tagessieger {
+        background: var(--secondary);
+        color: var(--text);
+        padding: 0.4rem 0.8rem;
+        border-radius: 1rem;
+        display: inline-block;
+        font-weight: 600;
+        margin-top: 0.6rem;
+      }
+
+      footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: white;
+        border-top: 1px solid #ddd;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding: 0.5rem 0;
+        box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+        z-index: 100;
+      }
+
+      .SymbolTest {
+        font-size: 1.2rem;
+      }
+
+      .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.1rem;
+        font-size: 0.75rem;
+        color: var(--text);
+        text-decoration: none;
+      }
+
+      .nav-item.active {
+        color: var(--primary);
+      }
+
+      .back-bar {
+        background: #ede9fe;
+        padding: 0.75rem 1rem;
+        text-align: left;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      }
+
+      .back-bar button {
+        background: var(--primary);
+        color: white;
+        font-weight: 600;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 1.5rem;
+        font-size: 0.9rem;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="header-bar">
+        <a href="#" class="header-icon" title="Profil">👤</a>
+        <span class="header-title">Abend-Details</span>
+        <a href="#" class="header-icon admin-link" title="Adminbereich">⚙️</a>
+      </div>
+    </header>
+    <div class="back-bar">
+      <button onclick="history.back()">⬅️ Zurück zur Übersicht</button>
+    </div>
+    <div class="content">
+      <div class="abend-details">
+        <h2>🎲 Spieleabend – 14. Oktober 2025</h2>
+        <p><strong>Spielleiter:</strong> Max</p>
+        <p><strong>Ort:</strong> Bei Anna</p>
+        <p><strong>Status:</strong> Abgeschlossen</p>
+        <span class="tagessieger">🏆 Tagessieger: Lisa (24 Punkte)</span>
+
+        <div class="detail-section">
+          <h3>🧑‍🤝‍🧑 Teilnehmer</h3>
+          <ul>
+            <li>Lisa</li>
+            <li>Max</li>
+            <li>Anna</li>
+            <li>Tom</li>
+            <li>Sarah</li>
+          </ul>
+        </div>
+
+        <div class="detail-section">
+          <h3>🎮 Gespielte Spiele</h3>
+
+          <div class="spiel-card">
+            <h4>Uno</h4>
+            <p class="info">Sieger: Lisa</p>
+            <p class="info">Max. Punkte: 10</p>
+            <ul>
+              <li>Lisa – 10 Punkte</li>
+              <li>Max – 7 Punkte</li>
+              <li>Tom – 5 Punkte</li>
+              <li>Anna – 3 Punkte</li>
+              <li>Sarah – 2 Punkte</li>
+            </ul>
+          </div>
+
+          <div class="spiel-card">
+            <h4>Codenames</h4>
+            <p class="info">Sieger: Max</p>
+            <p class="info">Max. Punkte: 8</p>
+            <ul>
+              <li>Max – 8 Punkte</li>
+              <li>Lisa – 6 Punkte</li>
+              <li>Tom – 5 Punkte</li>
+              <li>Sarah – 4 Punkte</li>
+              <li>Anna – 3 Punkte</li>
+            </ul>
+          </div>
+
+          <div class="spiel-card">
+            <h4>Just One</h4>
+            <p class="info">Sieger: Tom</p>
+            <p class="info">Max. Punkte: 6</p>
+            <ul>
+              <li>Tom – 6 Punkte</li>
+              <li>Sarah – 5 Punkte</li>
+              <li>Lisa – 5 Punkte</li>
+              <li>Anna – 4 Punkte</li>
+              <li>Max – 3 Punkte</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h3>📸 Gruppenfoto</h3>
+          <img
+            src="gruppenfoto.jpg"
+            alt="Gruppenfoto vom Spieleabend"
+            class="image-preview"
+          />
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <a href="#" class="nav-item">
+        <div class="SymbolTest">📜</div>
+        <span>Historie</span>
+      </a>
+      <a href="#" class="nav-item active">
+        <div class="SymbolTest">🎲</div>
+        <span>Abende</span>
+      </a>
+      <a href="#" class="nav-item">
+        <div class="SymbolTest">🏠</div>
+        <span>Home</span>
+      </a>
+      <a href="#" class="nav-item">
+        <div class="SymbolTest">📊</div>
+        <span>Umfragen</span>
+      </a>
+      <a href="#" class="nav-item">
+        <div class="SymbolTest">🧑‍🏫</div>
+        <span>Host</span>
+      </a>
+    </footer>
+  </body>
+</html>

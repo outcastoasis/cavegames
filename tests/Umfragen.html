@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Umfragen – Spielabend App</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary: #7c3aed;
+        --accent: #fbbf24;
+        --secondary: #2dd4bf;
+        --highlight: #d8b4fe;
+        --bg: #f9fafb;
+        --text: #1f2937;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Poppins", sans-serif;
+        background-color: var(--bg);
+        color: var(--text);
+      }
+
+      header {
+        padding: 0.5rem;
+        background-color: var(--primary);
+        color: white;
+        text-align: center;
+        font-size: 1.2rem;
+      }
+
+      .header-bar {
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .header-title {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+
+      .header-icon {
+        color: white;
+        font-size: 1.5rem;
+        text-decoration: none;
+      }
+
+      .header-icon:hover {
+        opacity: 0.8;
+      }
+
+      .content {
+        padding: 1rem;
+        padding-bottom: 4rem;
+      }
+
+      .poll-card {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.2rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+        border: 2px solid var(--highlight);
+      }
+
+      .poll-card h2 {
+        font-size: 1rem;
+        margin-top: 0;
+        color: var(--primary);
+      }
+
+      .option {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.6rem 0.8rem;
+        background: var(--bg);
+        border-radius: 0.6rem;
+        margin-top: 0.5rem;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+
+      .option:hover {
+        background: #e5e7eb;
+      }
+
+      .option.voted {
+        background: var(--secondary);
+        color: white;
+        font-weight: 600;
+      }
+
+      .vote-button {
+        margin-top: 1rem;
+        width: 100%;
+        padding: 0.75rem;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 1rem;
+      }
+
+      .past-poll {
+        opacity: 0.8;
+      }
+
+      footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: white;
+        border-top: 1px solid #ddd;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding: 0.5rem 0;
+        box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+        z-index: 100;
+      }
+
+      .SymbolTest {
+        font-size: 1.2rem;
+      }
+
+      .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.1rem;
+        font-size: 0.75rem;
+        color: var(--text);
+        text-decoration: none;
+      }
+
+      .nav-item.active i {
+        background: var(--primary);
+        color: white;
+        padding: 0.4rem;
+        border-radius: 50%;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="header-bar">
+        <a href="#" class="header-icon" title="Profil">👤</a>
+        <span class="header-title">Umfragen</span>
+        <a href="#" class="header-icon admin-link" title="Adminbereich">⚙️</a>
+      </div>
+    </header>
+
+    <div class="content">
+      <!-- Aktive Umfrage -->
+      <div class="poll-card">
+        <h2>Wann soll der nächste Abend stattfinden?</h2>
+        <div class="option">
+          🗓️ Freitag, 18. Okt – 19:00 Uhr <span>2 Stimmen</span>
+        </div>
+        <div class="option voted">
+          🗓️ Samstag, 19. Okt – 18:30 Uhr <span>5 Stimmen</span>
+        </div>
+        <div class="option">
+          🗓️ Sonntag, 20. Okt – 17:00 Uhr <span>1 Stimme</span>
+        </div>
+        <button class="vote-button">Abstimmen</button>
+      </div>
+
+      <!-- Vergangene Umfrage -->
+      <div class="poll-card past-poll">
+        <h2>Termin für Oktoberabend</h2>
+        <div class="option">🗓️ 06. Oktober – Gewählt mit 6 Stimmen</div>
+        <div class="option">🗓️ 07. Oktober – 2 Stimmen</div>
+        <div class="option">🗓️ 08. Oktober – 1 Stimme</div>
+      </div>
+    </div>
+
+    <footer>
+      <a href="#" class="nav-item">
+        <div class="SymbolTest">📜</div>
+        <span>Historie</span>
+      </a>
+      <a href="#" class="nav-item">
+        <div class="SymbolTest">🎲</div>
+        <span>Abende</span>
+      </a>
+      <a href="#" class="nav-item">
+        <div class="SymbolTest">🏠</div>
+        <span>Home</span>
+      </a>
+      <a href="#" class="nav-item active">
+        <div class="SymbolTest">📊</div>
+        <span>Umfragen</span>
+      </a>
+      <a href="#" class="nav-item">
+        <div class="SymbolTest">🧑‍🏫</div>
+        <span>Host</span>
+      </a>
+    </footer>
+  </body>
+</html>

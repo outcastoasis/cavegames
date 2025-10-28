@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Spielabend App – Dashboard</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary: #7c3aed;
+        --accent: #fbbf24;
+        --secondary: #2dd4bf;
+        --bg: #f9fafb;
+        --text: #1f2937;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Poppins", sans-serif;
+        background-color: var(--bg);
+        color: var(--text);
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+
+      header {
+        padding: 0.5rem;
+        background-color: var(--primary);
+        color: rgb(255, 255, 255);
+        text-align: center;
+        font-size: 1.2rem;
+      }
+
+      /* Erweitere dein bestehendes <style> um diese Zeilen: */
+
+      .header-bar {
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .header-title {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+
+      .header-icon {
+        color: white;
+        font-size: 1.5rem;
+        text-decoration: none;
+      }
+
+      .header-icon:hover {
+        opacity: 0.8;
+      }
+
+      .header-icon-wrapper {
+        background: rgba(255, 255, 255, 0.2);
+        border: 2px solid white; /* optische Trennung */
+        border-radius: 50%;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        cursor: pointer;
+      }
+
+      .header-icon-wrapper:hover {
+        background: rgba(255, 255, 255, 0.3);
+      }
+
+      .header-icon-wrapper i {
+        width: 20px;
+        height: 20px;
+        color: rgb(0, 0, 0);
+      }
+
+      /* Optional: Nur für Admin sichtbar (dynamisch per JS oder CSS-Klasse) */
+      .admin-link {
+        display: inline-block; /* oder: none, wenn nicht sichtbar */
+      }
+
+      .content {
+        padding: 1rem;
+        flex: 1;
+        margin-bottom: 4.5rem;
+      }
+
+      .card {
+        background: white;
+        border-radius: 1rem;
+        padding: 1rem;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        margin-bottom: 1.5rem;
+      }
+
+      .card h2 {
+        margin-top: 0;
+        font-size: 1rem;
+      }
+
+      .current-year {
+        text-align: center;
+        font-size: 0.9rem;
+        margin: 0.5rem 0 1rem 0;
+        color: var(--text);
+        opacity: 0.8;
+      }
+
+      .countdown {
+        font-size: 1.5rem;
+        color: var(--primary);
+        font-weight: 600;
+      }
+
+      .button {
+        background: var(--secondary);
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 0.5rem;
+        display: inline-block;
+      }
+
+      .button.accent {
+        background: var(--accent);
+        margin-left: 0.5rem;
+      }
+
+      .image-preview {
+        width: 100%;
+        height: auto;
+        border-radius: 0.5rem;
+        margin-top: 0.5rem;
+      }
+
+      .alert {
+        background: var(--accent);
+        padding: 1rem;
+        border-radius: 1rem;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 1.5rem;
+      }
+
+      footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: white;
+        border-top: 1px solid #ddd;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding: 0.5rem 0;
+        box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+        z-index: 100;
+      }
+
+      .SymbolTest {
+        font-size: 1.2rem;
+      }
+
+      .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.1rem;
+        font-size: 0.75rem;
+        color: var(--text);
+        text-decoration: none;
+      }
+
+      .nav-item i {
+        font-size: 1.2rem;
+        margin-bottom: 0.2rem;
+      }
+
+      .nav-item.active {
+        color: var(--primary);
+      }
+
+      .nav-item.active i {
+        background: var(--primary);
+        color: rgb(255, 255, 255);
+        padding: 0.4rem;
+        border-radius: 50%;
+      }
+      footer.navbar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: white;
+        border-top: 1px solid #ddd;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding: 0.2rem 0;
+        height: 60px;
+        box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+        z-index: 100;
+      }
+
+      .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        color: var(--text);
+        text-decoration: none;
+      }
+
+      .nav-item i {
+        width: 22px;
+        height: 22px;
+        stroke-width: 2.2;
+      }
+
+      .nav-item.active {
+        color: var(--primary);
+      }
+
+      /* 🔹 Zentrale Schaltfläche (wie bei Kahoot) */
+      .center-button {
+        position: relative;
+        transform: translateY(-1rem);
+        text-align: center;
+      }
+
+      .center-icon {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        border-radius: 50%;
+        width: 52px;
+        height: 52px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+        border: 3px solid white; /* optische Trennung */
+        transition: transform 0.15s ease-in-out;
+      }
+
+      .center-icon:hover {
+        transform: scale(1.05);
+      }
+
+      /* Beschriftung darunter */
+      .center-button span {
+        font-weight: 600;
+        color: var(--primary);
+        font-size: 0.75rem;
+      }
+      .alert .icon {
+        width: 20px;
+        height: 20px;
+        stroke-width: 2;
+        flex-shrink: 0;
+      }
+    </style>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  </head>
+  <body>
+    <header>
+      <div class="header-bar">
+        <div class="header-icon-wrapper">
+          <i data-lucide="user"></i>
+        </div>
+        <span class="header-title">Cavegames</span>
+        <div class="header-icon-wrapper">
+          <i data-lucide="settings"></i>
+        </div>
+      </div>
+    </header>
+
+    <div class="content">
+      <!-- Spielleiter-Meldung -->
+      <div class="alert">
+        <i data-lucide="alert-triangle" class="icon"></i> Dir wurde ein
+        Spieleabend zur Koordination zugeteilt.
+        <br />
+        <button class="button" style="margin-top: 0.5rem">
+          Abend organisieren
+        </button>
+      </div>
+
+      <!-- Umfrage ausstehend -->
+      <div class="card">
+        <h2><i data-lucide="clipboard-list"></i> Umfrage ausstehend</h2>
+        <p>Der nächste Spieleabend wartet auf Terminvorschläge.</p>
+        <button class="button">Jetzt abstimmen!</button>
+      </div>
+
+      <!-- Nächster fixierter Abend -->
+      <div class="card">
+        <div class="current-year">
+          <p><strong>Spieljahr:</strong> 2025</p>
+        </div>
+        <h2>Nächster Spieleabend</h2>
+        <p><strong>Bei:</strong> Anna</p>
+        <p><strong>Datum:</strong> 14. Oktober 2025 – 19:00 Uhr</p>
+        <p class="countdown">Noch 3 Tage</p>
+        <button class="button">Ich nehme teil</button>
+        <button class="button accent">Details ansehen</button>
+      </div>
+
+      <!-- Letzter Abend -->
+      <div class="card">
+        <h2>Letzter Abend</h2>
+        <p><strong>Datum:</strong> 6. Oktober 2025</p>
+        <p><strong>Tagessieger:</strong> Max (24 Punkte)</p>
+        <img src="letzter_abend.jpg" alt="Gruppenfoto" class="image-preview" />
+        <button class="button">Abend ansehen</button>
+      </div>
+    </div>
+
+    <footer class="navbar">
+      <a href="#" class="nav-item">
+        <i data-lucide="book-open-check"></i>
+        <span>Historie</span>
+      </a>
+      <a href="#" class="nav-item">
+        <i data-lucide="gamepad-2"></i>
+        <span>Abende</span>
+      </a>
+
+      <!-- ZENTRALE SCHALTFLÄCHE -->
+      <a href="#" class="nav-item center-button">
+        <div class="center-icon">
+          <i data-lucide="home"></i>
+        </div>
+        <span>Home</span>
+      </a>
+
+      <a href="#" class="nav-item">
+        <i data-lucide="clipboard-list"></i>
+        <span>Umfragen</span>
+      </a>
+      <a href="#" class="nav-item">
+        <i data-lucide="users"></i>
+        <span>Host</span>
+      </a>
+    </footer>
+    <script>
+      lucide.createIcons();
+    </script>
+  </body>
+</html>

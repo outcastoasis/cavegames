@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Spielabende Übersicht</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary: #7c3aed;
+        --accent: #fbbf24;
+        --secondary: #2dd4bf;
+        --highlight: #d8b4fe;
+        --bg: #f9fafb;
+        --text: #1f2937;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Poppins", sans-serif;
+        background-color: var(--bg);
+        color: var(--text);
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+
+      header {
+        padding: 0.5rem;
+        background-color: var(--primary);
+        color: rgb(255, 255, 255);
+        text-align: center;
+        font-size: 1.2rem;
+      }
+
+      /* Erweitere dein bestehendes <style> um diese Zeilen: */
+
+      .header-bar {
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .header-title {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+
+      .header-icon {
+        color: white;
+        font-size: 1.5rem;
+        text-decoration: none;
+      }
+
+      .header-icon:hover {
+        opacity: 0.8;
+      }
+
+      /* Optional: Nur für Admin sichtbar (dynamisch per JS oder CSS-Klasse) */
+      .admin-link {
+        display: inline-block; /* oder: none, wenn nicht sichtbar */
+      }
+
+      .content {
+        padding: 1rem;
+        padding-bottom: 5rem;
+      }
+
+      .filter-buttons {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 1rem;
+        gap: 1rem;
+      }
+
+      .filter-button {
+        background: var(--accent);
+        border: none;
+        border-radius: 1rem;
+        padding: 0.4rem 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        color: var(--text);
+      }
+
+      .abend-card {
+        background: white;
+        border-radius: 1rem;
+        padding: 1rem;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        margin-bottom: 1rem;
+        border-left: 8px solid transparent;
+      }
+
+      .abend-card h2 {
+        margin: 0 0 0.5rem;
+        font-size: 1rem;
+      }
+
+      .abend-card p {
+        margin: 0.25rem 0;
+        font-size: 0.9rem;
+      }
+
+      .abend-card button {
+        background: var(--secondary);
+        color: white;
+        border: none;
+        padding: 0.4rem 1rem;
+        border-radius: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 0.5rem;
+      }
+
+      .highlight-card {
+        border-left-color: var(--highlight);
+        background-color: #f5f3ff;
+      }
+
+      .search-bar {
+        margin: 1rem auto;
+        width: 100%;
+      }
+
+      .search-bar input {
+        width: 88%;
+        padding: 0.6rem 1rem;
+        font-size: 1rem;
+        border-radius: 1rem;
+        border: 1px solid #ccc;
+        outline: none;
+      }
+
+      footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: white;
+        border-top: 1px solid #ddd;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding: 0.5rem 0;
+        box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+        z-index: 100;
+      }
+
+      .SymbolTest {
+        font-size: 1.2rem;
+      }
+
+      .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.1rem;
+        font-size: 0.75rem;
+        color: var(--text);
+        text-decoration: none;
+      }
+
+      .nav-item i {
+        font-size: 1.2rem;
+        margin-bottom: 0.2rem;
+      }
+
+      .nav-item.active {
+        color: var(--primary);
+      }
+
+      .nav-item.active i {
+        background: var(--primary);
+        color: rgb(255, 255, 255);
+        padding: 0.4rem;
+        border-radius: 50%;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="header-bar">
+        <a href="#" class="header-icon" title="Profil">👤</a>
+        <span class="header-title">Spieleabende</span>
+        <a href="#" class="header-icon admin-link" title="Adminbereich">⚙️</a>
+      </div>
+    </header>
+
+    <div class="content">
+      <div class="search-bar">
+        <input type="text" placeholder="🔍 Abende durchsuchen..." />
+      </div>
+      <!-- Aktuelle Abende -->
+      <div id="current-abende">
+        <div class="abend-card highlight-card">
+          <h2>🎯 Nächster Spieleabend – 14. Oktober 2025</h2>
+          <p><strong>Spieljahr:</strong> 2025</p>
+          <p><strong>Spielleiter:</strong> Max</p>
+          <p><strong>Teilnehmer:</strong> 5</p>
+          <p><strong>Status:</strong> Geplant</p>
+          <button>Details ansehen</button>
+        </div>
+
+        <div class="abend-card">
+          <h2>6. Oktober 2025</h2>
+          <p><strong>Spieljahr:</strong> 2025</p>
+          <p><strong>Spielleiter:</strong> Lisa</p>
+          <p><strong>Teilnehmer:</strong> 6</p>
+          <p><strong>Tagessieger:</strong> Max</p>
+          <button>Abend anzeigen</button>
+        </div>
+
+        <div class="abend-card">
+          <h2>1. September 2025</h2>
+          <p><strong>Spieljahr:</strong> 2025</p>
+          <p><strong>Spielleiter:</strong> Anna</p>
+          <p><strong>Teilnehmer:</strong> 4</p>
+          <p><strong>Tagessieger:</strong> Lisa</p>
+          <button>Abend anzeigen</button>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <a href="#" class="nav-item">
+        <div class="SymbolTest">📜</div>
+        <span>Historie</span>
+      </a>
+      <a href="#" class="nav-item active">
+        <div class="SymbolTest">🎲</div>
+        <span>Abende</span>
+      </a>
+      <a href="#" class="nav-item">
+        <div class="SymbolTest">🏠</div>
+        <span>Home</span>
+      </a>
+      <a href="#" class="nav-item">
+        <div class="SymbolTest">📊</div>
+        <span>Umfragen</span>
+      </a>
+      <a href="#" class="nav-item">
+        <div class="SymbolTest">🧑‍🏫</div>
+        <span>Host</span>
+      </a>
+    </footer>
+  </body>
+</html>
