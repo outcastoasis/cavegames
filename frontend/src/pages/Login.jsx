@@ -3,6 +3,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import "../styles/pages/Login.css";
+import logo from "../assets/images/Logo_Cavegames.png";
+import { LogIn, User, Lock } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function Login() {
   const [username, setUsername] = useState("");
@@ -38,31 +42,52 @@ export default function Login() {
   };
 
   return (
-    <div style={{ maxWidth: 400, margin: "2rem auto" }}>
-      <h2>Login</h2>
-      <form onSubmit={handleSubmit}>
-        <label>
-          Benutzername:
-          <input
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-        </label>
-        <br />
-        <label>
-          Passwort:
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </label>
-        <br />
-        <button type="submit">Einloggen</button>
-      </form>
-      {error && <p style={{ color: "red" }}>{error}</p>}
+    <div className="login-wrapper">
+      <div className="login-header">
+        <img src={logo} alt="Logo" />
+      </div>
+
+      <div className="login-card">
+        <h2>
+          <LogIn size={20} /> Login
+        </h2>
+        <form onSubmit={handleSubmit}>
+          <div className="icon-input">
+            <User size={18} />
+            <input
+              type="text"
+              placeholder="Benutzername"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="icon-input">
+            <Lock size={18} />
+            <input
+              type="password"
+              placeholder="Passwort"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+
+          <button type="submit" className="button login-button">
+            Einloggen
+          </button>
+          {error && (
+            <p style={{ color: "red", marginTop: "0.5rem" }}>{error}</p>
+          )}
+          <p className="text-small">
+            Noch keinen Account? <br />
+            <Link to="/register" className="register-link">
+              Jetzt registrieren
+            </Link>
+          </p>
+        </form>
+      </div>
     </div>
   );
 }
