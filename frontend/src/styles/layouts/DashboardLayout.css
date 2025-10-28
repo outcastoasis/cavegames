@@ -1,0 +1,20 @@
+@import "../variables.css";
+
+.dashboard-main {
+  padding: var(--spacing-m);
+  margin-bottom: 4.5rem; /* Platz für Navbar */
+}
+
+.logout-container {
+  position: absolute;
+  top: 0.7rem;
+  right: 1rem;
+}
+
+.user-label {
+  margin-top: 0;
+  margin-bottom: var(--spacing-m);
+  font-size: var(--font-size-small);
+  color: var(--text);
+  opacity: 0.8;
+}

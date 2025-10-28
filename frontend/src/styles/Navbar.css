@@ -1,0 +1,61 @@
+/* 🎨 Navbar Styles – Spielabend App */
+@import "./variables.css";
+
+footer.navbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: white;
+  border-top: 1px solid #ddd;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 0.2rem 0;
+  height: 60px;
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+  z-index: 100;
+}
+
+/* Navigationseinträge */
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.7rem;
+  color: var(--text);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.nav-item svg {
+  width: 22px;
+  height: 22px;
+}
+
+.nav-item.active {
+  color: var(--primary);
+}
+
+/* Zentrale Schaltfläche */
+.center-button {
+  transform: translateY(-1rem);
+}
+
+.center-icon {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: white;
+  border-radius: 50%;
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+  border: 3px solid white;
+  transition: transform var(--transition-fast);
+}
+
+.center-icon:hover {
+  transform: scale(1.05);
+}
