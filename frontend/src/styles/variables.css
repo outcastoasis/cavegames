@@ -1,0 +1,158 @@
+/* 🎨 Spielabend App – Design Variablen */
+
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap");
+
+:root {
+  /* ==== Farben ==== */
+  --primary: #7c3aed;
+  --secondary: #2dd4bf;
+  --accent: #fbbf24;
+  --bg: #f9fafb;
+  --text: #1f2937;
+
+  /* ==== Layout & Elemente ==== */
+  --card-radius: 1rem;
+  --border-radius-sm: 0.5rem;
+  --border-radius-full: 999px;
+
+  /* ==== Schatten ==== */
+  --shadow-s: inset 0 1px 2px #ffffff30, 0 1px 2px #00000030,
+    0 2px 4px #00000015;
+  --shadow-m: inset 0 1px 2px #ffffff50, 0 2px 4px #00000030,
+    0 4px 8px #00000015;
+  --shadow-l: inset 0 2px 3px #ffffff70, 0 2px 6px #00000030,
+    0 6px 10px #00000015;
+
+  /* ==== Schrift ==== */
+  --font-family: "Poppins", sans-serif;
+  --font-size-base: 1rem;
+  --font-size-small: 0.875rem;
+  --font-size-large: 1.25rem;
+
+  /* ==== Abstände ==== */
+  --spacing-xs: 0.25rem;
+  --spacing-s: 0.5rem;
+  --spacing-m: 1rem;
+  --spacing-l: 2rem;
+
+  /* ==== Übergänge ==== */
+  --transition-fast: 0.1s ease-in-out;
+  --transition-medium: 0.3s ease-in-out;
+}
+
+/* ==== Globale Standardstile ==== */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg);
+  color: var(--text);
+  margin: 0;
+}
+
+/* ==== Buttons ==== */
+.button {
+  background: var(--secondary);
+  color: white;
+  border: none;
+  padding: var(--spacing-s) var(--spacing-m);
+  border-radius: var(--border-radius-full);
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--shadow-l);
+  transition: transform var(--transition-fast);
+}
+
+.button:hover {
+  transform: translateY(-2px);
+}
+
+.button.primary {
+  background: var(--primary);
+}
+
+.button.accent {
+  background: var(--accent);
+  color: black;
+}
+
+/* ==== Karten ==== */
+.card {
+  background: white;
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-m);
+  padding: var(--spacing-m);
+}
+
+/* ==== Alerts ==== */
+.alert {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-s);
+  background: var(--accent);
+  padding: var(--spacing-m);
+  border-radius: var(--card-radius);
+  font-weight: 600;
+  color: var(--text);
+  box-shadow: var(--shadow-m);
+}
+
+/* ==== Eingabefelder ==== */
+.input {
+  display: block;
+  width: 100%;
+  padding: var(--spacing-s);
+  border-radius: var(--border-radius-sm);
+  border: 1px solid #ccc;
+  font-family: inherit;
+  margin-bottom: var(--spacing-m);
+}
+
+/* ==== Tags ==== */
+.tag {
+  display: inline-block;
+  background: var(--primary);
+  color: white;
+  border-radius: var(--border-radius-full);
+  padding: 0.3rem 0.8rem;
+  font-size: 0.75rem;
+  box-shadow: var(--shadow-s);
+  margin: 0.2rem;
+}
+
+/* ==== Utility-Klassen ==== */
+.text-center {
+  text-align: center;
+}
+
+.shadow-s {
+  box-shadow: var(--shadow-s);
+}
+.shadow-m {
+  box-shadow: var(--shadow-m);
+}
+.shadow-l {
+  box-shadow: var(--shadow-l);
+}
+
+.rounded {
+  border-radius: var(--card-radius);
+}
+.bg-primary {
+  background-color: var(--primary);
+  color: white;
+}
+.bg-secondary {
+  background-color: var(--secondary);
+  color: white;
+}
+.bg-accent {
+  background-color: var(--accent);
+  color: black;
+}
+.bg-light {
+  background-color: var(--bg);
+  color: var(--text);
+}

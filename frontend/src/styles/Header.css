@@ -1,0 +1,40 @@
+/* 🎨 Header Styles – Spielabend App */
+@import "./variables.css";
+
+header {
+  padding: 0.5rem;
+  background-color: var(--primary);
+  color: white;
+  font-size: 1.2rem;
+}
+
+.header-bar {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-weight: 600;
+}
+
+.header-icon-wrapper {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid white;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.header-icon-wrapper:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
