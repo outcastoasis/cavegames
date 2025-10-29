@@ -1,17 +1,15 @@
-// frontend/src/layouts/DashboardLayout.jsx
+import { Outlet } from "react-router-dom";
 import Header from "../components/common/Header";
 import Navbar from "../components/common/Navbar";
-import LogoutButton from "../components/LogoutButton";
 import "../styles/layouts/DashboardLayout.css";
 
-export default function DashboardLayout({ title, children }) {
+export default function DashboardLayout({ title = "Spielabend App" }) {
   return (
     <>
       <Header title={title} />
-      <div className="logout-container">
-        <LogoutButton />
-      </div>
-      <main className="dashboard-main">{children}</main>
+      <main className="dashboard-main">
+        <Outlet />
+      </main>
       <Navbar />
     </>
   );
