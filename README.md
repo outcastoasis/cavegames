@@ -29,6 +29,7 @@ Die Anwendung ist **mobiloptimiert**, **modern gestaltet**, **datenschutzfreundl
 - **Bildspeicher:** Cloudinary (CDN + URL-Referenzen)
 
 ---
+
 ## 🧱 Strukturvorlage (Beispiel)
 
 ```
@@ -45,7 +46,7 @@ spielabend-app/
 │   ├── .env
 │   ├── package.json
 │   ├── README.md
-│   
+│
 │
 ├── frontend/
 │   ├── public/
@@ -124,10 +125,10 @@ spielabend-app/
 - **Umfragen** → Terminabstimmungen mit Auswahl
 - **Jahresrückblick / Hall of Fame**
 - **Profilseite (optional)** → persönliche Statistiken, Siege, Teilnahmen
-- **Adminbereich**
-  - Benutzerverwaltung & Rollen
-  - Jahresabschluss
-  - Datenexport
+  **Adminbereich**
+  - 👥 Benutzerverwaltung
+  - 📅 Jahre verwalten (inkl. Jahr abschließen)
+  - 📤 Datenexport (optional)
 
 ---
 
@@ -144,23 +145,41 @@ spielabend-app/
 ## 👥 Rollen & Berechtigungen
 
 ### Globale Rollen (Systemweit)
-| Rolle | Beschreibung | Beispielrechte |
-|--------|---------------|----------------|
-| **Admin** | Vollzugriff, Jahresabschluss, Benutzerverwaltung | `canManageUsers`, `canLockEvenings` |
-| **Spieler** | Teilnahme an Abenden, Punkte & Ergebnisse sehen | `canViewStats`, `canVote` |
-| **Gast** | Nur Lesezugriff, kein Login nötig (optional) | `canViewPublic` |
+
+| Rolle       | Beschreibung                                     | Beispielrechte                      |
+| ----------- | ------------------------------------------------ | ----------------------------------- |
+| **Admin**   | Vollzugriff, Jahresabschluss, Benutzerverwaltung | `canManageUsers`, `canLockEvenings` |
+| **Spieler** | Teilnahme an Abenden, Punkte & Ergebnisse sehen  | `canViewStats`, `canVote`           |
+| **Gast**    | Nur Lesezugriff, kein Login nötig (optional)     | `canViewPublic`                     |
 
 ### Abend-spezifische Rollen (pro Evening)
-| Lokale Rolle | Beschreibung |
-|---------------|--------------|
+
+| Lokale Rolle    | Beschreibung                                                                                               |
+| --------------- | ---------------------------------------------------------------------------------------------------------- |
 | **Spielleiter** | Vom Admin oder beim Anlegen des Abends zugewiesen. Darf Spiele & Punkte beim zugewiesenen Abend verwalten. |
 
 **Beispiel:**
-- User A → nur „Spieler“  
-- User B → „Admin“ und „Spieler“  
+
+- User A → nur „Spieler“
+- User B → „Admin“ und „Spieler“
 - User C → „Spieler“, aber „Spielleiter“ bei mehreren Abenden
 
 Die Spielleiter-Zuweisung erfolgt im jeweiligen `evenings`-Dokument über das Feld `spielleiterId`.
+
+---
+
+## 🛠️ Admin-Funktionen
+
+Admins verwalten zentrale Inhalte über ein eigenes Menü im Header (Zahnrad-Icon).  
+Die folgenden Seiten stehen nur für Admins zur Verfügung:
+
+- 👥 `/admin/users` – Benutzer und Rollen verwalten
+- 📅 `/admin/years` – Spieljahre erstellen & Jahresabschluss
+- 📤 `/admin/export` – CSV-Export und Bilder (optional)
+- 📆 `/abende` – Admins können direkt Abende erstellen und verwalten
+- 🧮 `/admin/years/:year` – Alle Abende eines Jahres einsehen & Jahr abschließen
+
+Die Admin-Funktionen sind über ein Dropdown-Menü im Header erreichbar, nicht über ein eigenes Dashboard.
 
 ---
 
@@ -172,9 +191,15 @@ Die Spielleiter-Zuweisung erfolgt im jeweiligen `evenings`-Dokument über das Fe
 - **Erstinstallation:** Der erste registrierte Benutzer wird manuell in MongoDB zu `role: "admin"` geändert.
 
 **Middleware-Beispiel (Express):**
+
 ```js
 app.post("/api/evenings", checkAuth, checkRole("admin"), createEvening);
-app.patch("/api/evenings/:id/games", checkAuth, checkRole("spielleiter"), updateGames);
+app.patch(
+  "/api/evenings/:id/games",
+  checkAuth,
+  checkRole("spielleiter"),
+  updateGames
+);
 ```
 
 ---
@@ -182,6 +207,7 @@ app.patch("/api/evenings/:id/games", checkAuth, checkRole("spielleiter"), update
 ## 🧩 Datenbankmodelle (MongoDB)
 
 ### 🧑 `users`
+
 ```json
 {
   "_id": "ObjectId",
@@ -195,6 +221,7 @@ app.patch("/api/evenings/:id/games", checkAuth, checkRole("spielleiter"), update
 ```
 
 ### 🎲 `games`
+
 ```json
 {
   "_id": "ObjectId",
@@ -209,6 +236,7 @@ app.patch("/api/evenings/:id/games", checkAuth, checkRole("spielleiter"), update
 ```
 
 ### 📅 `evenings`
+
 ```json
 {
   "_id": "ObjectId",
@@ -236,6 +264,7 @@ app.patch("/api/evenings/:id/games", checkAuth, checkRole("spielleiter"), update
 ```
 
 ### 🧮 `userStats` (automatisch, pro Spieljahr)
+
 ```json
 {
   "_id": "ObjectId",
@@ -252,15 +281,18 @@ app.patch("/api/evenings/:id/games", checkAuth, checkRole("spielleiter"), update
 ## 🧮 Punktelogik & Statistik-Regeln
 
 ### Abendwertung
+
 - Jeder Abend kann mehrere Spiele enthalten.
 - Punkte jedes Spielers werden pro Abend **aufsummiert**.
 - Nach dem Schließen des Abends werden die Gesamtsummen fixiert.
 
 ### Tagessieger
+
 - Der Spieler mit der höchsten Punktzahl am Abend ist Tagessieger.
 - Bei Gleichstand gibt es mehrere Sieger.
 
 ### Jahreswertung
+
 - Wird erst nach Abschluss **aller Abende** eines Jahres erstellt.
 - Die Gesamtpunkte aller Abende werden pro Spieler summiert.
 - Der Spieler mit den meisten Punkten ist Jahressieger.
@@ -268,12 +300,13 @@ app.patch("/api/evenings/:id/games", checkAuth, checkRole("spielleiter"), update
 - Siege zählen nur als Statistikwert.
 
 ### Statistische Felder
-| Feld | Beschreibung |
-|------|---------------|
-| `totalPoints` | Summe aller Punkte eines Jahres |
-| `totalWins` | Anzahl gewonnener Abende |
-| `eveningsAttended` | Anzahl besuchter Abende |
-| `rank` | Platz im Jahresranking |
+
+| Feld               | Beschreibung                    |
+| ------------------ | ------------------------------- |
+| `totalPoints`      | Summe aller Punkte eines Jahres |
+| `totalWins`        | Anzahl gewonnener Abende        |
+| `eveningsAttended` | Anzahl besuchter Abende         |
+| `rank`             | Platz im Jahresranking          |
 
 ---
 
@@ -337,12 +370,13 @@ app.patch("/api/evenings/:id/games", checkAuth, checkRole("spielleiter"), update
 ---
 
 ### Status-Phasen
-| Status | Beschreibung | Verantwortlich |
-|---------|---------------|----------------|
-| `offen` | Abend angelegt, Umfrage ausstehend | Admin / Spielleiter |
-| `fixiert` | Datum steht fest, Teilnahme läuft | Spielleiter |
-| `abgeschlossen` | Spiele & Punkte eingetragen | Spielleiter |
-| `gesperrt` | Final archiviert | Admin |
+
+| Status          | Beschreibung                       | Verantwortlich      |
+| --------------- | ---------------------------------- | ------------------- |
+| `offen`         | Abend angelegt, Umfrage ausstehend | Admin / Spielleiter |
+| `fixiert`       | Datum steht fest, Teilnahme läuft  | Spielleiter         |
+| `abgeschlossen` | Spiele & Punkte eingetragen        | Spielleiter         |
+| `gesperrt`      | Final archiviert                   | Admin               |
 
 ---
 
@@ -352,11 +386,11 @@ app.patch("/api/evenings/:id/games", checkAuth, checkRole("spielleiter"), update
 - Speicherung erfolgt in **Cloudinary**, nur URL in der DB.
 - Maximale Dateigröße: 2 MB (nur JPG/PNG).
 
-| Typ | Hochgeladen von | Zugriff |
-|------|----------------|----------|
-| Gruppenfoto | Spielleiter | Alle Spieler |
-| Spielbild | Spielleiter/Admin | Alle Spieler |
-| Profilbild | Benutzer selbst (optional) | Nur eingeloggter User |
+| Typ         | Hochgeladen von            | Zugriff               |
+| ----------- | -------------------------- | --------------------- |
+| Gruppenfoto | Spielleiter                | Alle Spieler          |
+| Spielbild   | Spielleiter/Admin          | Alle Spieler          |
+| Profilbild  | Benutzer selbst (optional) | Nur eingeloggter User |
 
 ---
 

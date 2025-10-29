@@ -8,6 +8,7 @@ Ziel ist eine strukturierte, nachvollziehbare Entwicklung mit stabilen Meilenste
 ## ⚙️ Phase 1 – Projektgrundlage & Setup
 
 ### Backend
+
 - Projektstruktur anlegen (`controllers/`, `models/`, `routes/`, `middleware/`)
 - `server.js` Grundsetup mit Express + CORS + JSON Parser
 - Verbindung zu MongoDB Atlas herstellen
@@ -15,6 +16,7 @@ Ziel ist eine strukturierte, nachvollziehbare Entwicklung mit stabilen Meilenste
 - Beispielroute `/api/test` zur Verbindungskontrolle
 
 ### Frontend
+
 - React-Projekt erstellen (z. B. via Vite)
 - Grundstruktur mit `src/pages/`, `src/components/`, `src/styles/`
 - `variables.css` + globale Farbpalette einbinden
@@ -25,6 +27,7 @@ Ziel ist eine strukturierte, nachvollziehbare Entwicklung mit stabilen Meilenste
 ## 🔐 Phase 2 – Authentifizierungssystem (JWT)
 
 ### Backend
+
 - `User`-Modell (username, displayName, passwordHash, role)
 - Auth-Routen:
   - `POST /api/auth/register`
@@ -37,6 +40,7 @@ Ziel ist eine strukturierte, nachvollziehbare Entwicklung mit stabilen Meilenste
 - Passwörter mit `bcrypt` hashen
 
 ### Frontend
+
 - Login- & Register-Seiten erstellen
 - AuthContext + Token-Speicherung (localStorage)
 - Geschützte Routen per React Router
@@ -47,6 +51,7 @@ Ziel ist eine strukturierte, nachvollziehbare Entwicklung mit stabilen Meilenste
 ## 🧑‍🤝‍🧑 Phase 3 – Benutzer & Rollenverwaltung
 
 ### Backend
+
 - CRUD-Endpunkte `/api/users`
 - Nur `admin` darf Benutzer und Rollen verwalten
 - Rollenlogik:
@@ -54,15 +59,36 @@ Ziel ist eine strukturierte, nachvollziehbare Entwicklung mit stabilen Meilenste
 - Optional: Admin kann Spielleiter pro Abend zuweisen
 
 ### Frontend
-- Adminbereich mit Benutzerliste & Rollenauswahl
+
+- Adminzugriff über Zahnrad-Button mit Popup-Menü (kein eigenes Dashboard)
 - Spielerübersicht & Rollenanzeige im Profil
 - Styling im bestehenden Design
 
 ---
 
-## 📅 Phase 4 – Abende & Spieljahr-Logik
+## 📅 Phase 4 – Jahresverwaltung & Abschluss (Admin)
 
 ### Backend
+
+- Modell `Year` oder direkte Ableitung aus `Evening.spieljahr`
+- `POST /api/years` – Neues Jahr erstellen
+- `GET /api/years` – Übersicht aller Jahre
+- `GET /api/years/:year` – Detailansicht eines Jahres
+- `POST /api/years/:year/close` – Jahr abschließen (nur Admin)
+- Aggregation `userStats` bei Abschluss
+
+### Frontend
+
+- Seite **Jahre verwalten** (Liste + Jahr erstellen)
+- Seite **Jahresdetails** mit allen Abenden eines Jahres
+- Button „Jahr abschließen“ wenn alle Abende abgeschlossen sind
+
+---
+
+## 📅 Phase 5 – Abende & Spieljahr-Logik
+
+### Backend
+
 - `Evening`-Modell:
   - `date`, `spielleiterId`, `participantIds`, `games[]`, `status`
 - CRUD-Endpunkte `/api/evenings`
@@ -71,16 +97,21 @@ Ziel ist eine strukturierte, nachvollziehbare Entwicklung mit stabilen Meilenste
 - Logik: Nur **ein offener Abend** pro Jahr zulässig
 
 ### Frontend
+
 - Seite **Abende** (Liste + Status)
 - Seite **Abend-Details** (Infos, Teilnehmer, Spiele)
 - Erstellung neuer Abende (Admin)
 - Fortschritt über Status-Icons anzeigen
+- Erstellung neuer Abende (Admin, direkt in Abendeliste)
+- Button „Abend sperren“ sichtbar nur für Admins in der Abenddetailseite
+- Verwaltung von Spieljahren ausgelagert in Phase 4
 
 ---
 
-## 📊 Phase 5 – Umfragen (Terminfindung)
+## 📊 Phase 6 – Umfragen (Terminfindung)
 
 ### Backend
+
 - Modell `Poll` (mit Datumsvorschlägen + Stimmen)
 - Verknüpfung mit Evening (`pollId`)
 - Endpunkte:
@@ -89,57 +120,64 @@ Ziel ist eine strukturierte, nachvollziehbare Entwicklung mit stabilen Meilenste
   - `PATCH /api/polls/:id/finalize`
 
 ### Frontend
+
 - Seite **Umfragen** (Anzeige + Abstimmung)
 - Abstimmung durch Spieler
 - Anzeige des Ergebnisses (fixierter Termin)
 
 ---
 
-## 🎮 Phase 6 – Spieleverwaltung & Punkteerfassung
+## 🎮 Phase 7 – Spieleverwaltung & Punkteerfassung
 
 ### Backend
+
 - Modell `Game` (Name, Kategorie, Bild, createdBy)
 - `PATCH /api/evenings/:id/games` → Punkte speichern
 - Automatische Punkteauswertung pro Abend
 - Gewinnerberechnung & Speicherung
 
 ### Frontend
+
 - Punkteformular pro Spieler
 - Anzeige des Tagessiegers (bei Abschluss)
 - Game-Dropdown + „Neues Spiel hinzufügen“
 
 ---
 
-## 🏆 Phase 7 – Jahreswertung & Leaderboard
+## 🏆 Phase 8 – Jahreswertung & Leaderboard
 
 ### Backend
+
 - `userStats` Modell automatisch updaten
 - Aggregation über alle Abende eines Jahres
 - API `/api/leaderboard/:year`
 - Gleichstände berücksichtigen
 
 ### Frontend
+
 - Seite **Leaderboard** (Rangliste mit Punkten & Siegen)
 - Jahresrückblick & Hall of Fame
 - Dynamische Auswahl nach Jahr
 
 ---
 
-## 🖼️ Phase 8 – Uploads & Bilder (Cloudinary)
+## 🖼️ Phase 9 – Uploads & Bilder (Cloudinary)
 
 ### Backend
+
 - Integration mit Cloudinary SDK
 - Middleware für Datei-Uploads (Multer)
 - Nur URL-Speicherung in MongoDB
 - Typprüfung (nur JPG/PNG, max 2 MB)
 
 ### Frontend
+
 - Upload-Komponente mit Vorschau
 - Gruppenfoto & Spielbild in Evening-Details
 
 ---
 
-## 🔔 Phase 9 – Feinschliff & Sicherheit
+## 🔔 Phase 10 – Feinschliff & Sicherheit
 
 - Rate-Limiting für Login
 - Input-Validation (Joi oder express-validator)
@@ -150,7 +188,7 @@ Ziel ist eine strukturierte, nachvollziehbare Entwicklung mit stabilen Meilenste
 
 ---
 
-## 🚀 Phase 10 – Deployment
+## 🚀 Phase 11 – Deployment
 
 - **Frontend:** Vercel (Production Build)
 - **Backend:** Railway oder Render

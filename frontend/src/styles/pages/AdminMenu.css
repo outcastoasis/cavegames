@@ -1,0 +1,21 @@
+.admin-menu-page {
+  padding: var(--spacing-m);
+  text-align: center;
+}
+
+.admin-menu-list {
+  list-style: none;
+  padding: 0;
+  margin-top: var(--spacing-m);
+}
+
+.admin-menu-list li {
+  margin-bottom: var(--spacing-m);
+  font-size: var(--font-size-large);
+}
+
+.admin-menu-list a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+}

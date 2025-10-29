@@ -38,3 +38,64 @@ header {
 .header-icon-wrapper:hover {
   background: rgba(255, 255, 255, 0.3);
 }
+
+.admin-popup-menu {
+  position: absolute;
+  top: 3.5rem;
+  right: 1rem;
+  background: white;
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-m);
+  padding: var(--spacing-s);
+  z-index: 100;
+  min-width: 220px;
+}
+
+.admin-popup-item {
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-s);
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.admin-popup-item:hover {
+  background: var(--bg);
+}
+
+.admin-popup-icon {
+  background: var(--secondary);
+  color: white;
+  border-radius: var(--border-radius-full);
+  padding: 0.4rem;
+  margin-right: var(--spacing-s);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-popup-texts {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--font-size-small);
+}
+
+.admin-popup-label {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.admin-popup-desc {
+  color: #666;
+  font-size: 0.75rem;
+}
+
+/* Optionaler Blur-Hintergrund */
+.admin-popup-blur {
+  position: fixed;
+  inset: 0;
+  backdrop-filter: blur(3px);
+  background-color: #00000010;
+  z-index: 99;
+}
