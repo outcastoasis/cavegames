@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { testAPI } from "../services/api";
+import API from "../services/api";
 import { useAuth } from "../context/AuthContext";
 
 export default function Home() {
@@ -8,8 +8,8 @@ export default function Home() {
   const { user } = useAuth();
 
   useEffect(() => {
-    testAPI()
-      .then((data) => setMessage(data.message))
+    API.get("/test")
+      .then((res) => setMessage(res.data.message))
       .catch(() => setError("API nicht erreichbar"));
   }, []);
 
