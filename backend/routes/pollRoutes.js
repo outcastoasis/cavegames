@@ -7,6 +7,7 @@ const checkRole = require("../middleware/checkRole");
 const {
   createPoll,
   getPoll,
+  getAllPolls,
   votePoll,
   finalizePoll,
   deletePoll,
@@ -25,5 +26,6 @@ router.get("/:id", getPoll); // Umfrage anzeigen
 router.patch("/:id/vote", votePoll); // Stimme abgeben
 router.patch("/:id/finalize", checkPollRole("spielleiter"), finalizePoll);
 router.delete("/:id", checkRole("admin"), deletePoll); // Löschen (Admin-only)
+router.get("/", getAllPolls);
 
 module.exports = router;

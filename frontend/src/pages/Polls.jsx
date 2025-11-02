@@ -1,85 +1,141 @@
 // frontend/src/pages/Polls.jsx
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import API from "../services/api";
+import { useAuth } from "../context/AuthContext";
+import { useOutletContext } from "react-router-dom";
+import { CalendarDays, CheckCircle2 } from "lucide-react";
 import "../styles/pages/Polls.css";
-import { CalendarClock } from "lucide-react";
 
 export default function Polls() {
-  const [evenings, setEvenings] = useState([]);
-  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { setTitle } = useOutletContext();
+  const [polls, setPolls] = useState([]);
+  const [selectedDates, setSelectedDates] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    API.get("/evenings")
-      .then((res) => setEvenings(res.data))
-      .catch((err) => console.error("Fehler beim Laden:", err));
+    setTitle("Umfragen");
+    fetchPolls();
   }, []);
 
-  const offeneUmfragen = evenings.filter(
-    (e) => e.status === "offen" && e.pollId
-  );
+  const fetchPolls = async () => {
+    try {
+      const res = await API.get("/polls");
+      setPolls(res.data);
+    } catch (err) {
+      console.error("Fehler beim Laden der Umfragen:", err);
+    }
+  };
 
-  const fixierteAbende = evenings.filter((e) => e.status === "fixiert");
+  const handleVote = async (pollId) => {
+    setSubmitting(true);
+    try {
+      await API.patch(`/polls/${pollId}/vote`, {
+        optionDates: selectedDates,
+      });
+      await fetchPolls();
+    } catch (err) {
+      alert("Fehler beim Abstimmen: " + err.response?.data?.error);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleToggle = (date) => {
+    setSelectedDates((prev) =>
+      prev.includes(date) ? prev.filter((d) => d !== date) : [...prev, date]
+    );
+  };
+
+  const activePoll = polls.find((p) => !p.finalizedOption);
+  const pastPolls = polls.filter((p) => p.finalizedOption);
 
   return (
     <div className="polls-page">
-      <h2>🗳️ Offene Umfragen</h2>
+      {activePoll && (
+        <div className="poll-card poll-active">
+          <h3>Wann soll der nächste Abend stattfinden?</h3>
+          <div className="poll-options">
+            {activePoll.options.map((opt, idx) => {
+              const iso = new Date(opt.date).toISOString();
+              const isSelected = selectedDates.includes(iso);
+              return (
+                <div
+                  key={idx}
+                  className={`poll-option ${isSelected ? "selected" : ""}`}
+                  onClick={() => handleToggle(iso)}
+                >
+                  <div className="option-date">
+                    <CalendarDays size={16} />
+                    {new Date(opt.date).toLocaleString("de-CH", {
+                      weekday: "long",
+                      day: "2-digit",
+                      month: "short",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </div>
+                  <div className="option-votes">
+                    {opt.votes.length} Stimme{opt.votes.length !== 1 && "n"}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <button
+            className="button primary"
+            onClick={() => handleVote(activePoll._id)}
+            disabled={submitting || selectedDates.length === 0}
+          >
+            {submitting ? "Speichern..." : "Abstimmen"}
+          </button>
+        </div>
+      )}
 
-      {offeneUmfragen.length === 0 ? (
-        <p className="info-text">Keine offenen Umfragen.</p>
-      ) : (
-        offeneUmfragen.map((abend) => (
-          <div key={abend._id} className="poll-card">
-            <h3>🗓️ Umfrage für Spieljahr {abend.spieljahr}</h3>
-            <ul className="option-liste">
-              {abend.pollId?.options?.map((opt, i) => (
-                <li key={i}>
-                  <CalendarClock size={14} />
+      {pastPolls.map((poll) => (
+        <div className="poll-card poll-finalized" key={poll._id}>
+          <h3>
+            Termin für Abend am{" "}
+            {new Date(poll.finalizedOption).toLocaleDateString("de-CH", {
+              weekday: "long",
+              day: "2-digit",
+              month: "long",
+            })}
+          </h3>
+          <div className="poll-options">
+            {poll.options.map((opt, idx) => (
+              <div
+                key={idx}
+                className={`poll-option finalized ${
+                  new Date(opt.date).toISOString() ===
+                  new Date(poll.finalizedOption).toISOString()
+                    ? "chosen"
+                    : ""
+                }`}
+              >
+                <div className="option-date">
+                  <CalendarDays size={16} />
                   {new Date(opt.date).toLocaleString("de-CH", {
-                    weekday: "long",
+                    weekday: "short",
                     day: "2-digit",
                     month: "short",
-                    hour: "2-digit",
-                    minute: "2-digit",
                   })}
-                  <span className="stimmen">
-                    {opt.votes?.length || 0} Stimme
-                    {opt.votes?.length === 1 ? "" : "n"}
-                  </span>
-                </li>
-              ))}
-            </ul>
-            <button
-              className="button primary"
-              onClick={() => navigate(`/umfragen/${abend.pollId._id}`)}
-            >
-              Abstimmen
-            </button>
+                </div>
+                <div className="option-votes">
+                  {opt.date === poll.finalizedOption ? (
+                    <>
+                      Gewählt mit {opt.votes.length} Stimme
+                      {opt.votes.length !== 1 && "n"} <CheckCircle2 size={14} />
+                    </>
+                  ) : (
+                    `${opt.votes.length} Stimmen`
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
-        ))
-      )}
-
-      <h2>📌 Fixierte Termine</h2>
-      {fixierteAbende.length === 0 ? (
-        <p className="info-text">Noch keine fixierten Termine.</p>
-      ) : (
-        fixierteAbende.map((abend) => (
-          <div key={abend._id} className="poll-card fixed">
-            <h3>Termin für {abend.spieljahr}</h3>
-            <p>
-              <CalendarClock size={14} />
-              {new Date(abend.date).toLocaleString("de-CH", {
-                weekday: "long",
-                day: "2-digit",
-                month: "long",
-                year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </p>
-          </div>
-        ))
-      )}
+        </div>
+      ))}
     </div>
   );
 }
