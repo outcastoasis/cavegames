@@ -1,0 +1,92 @@
+.admin-years-page {
+  padding: var(--spacing-l) var(--spacing-m);
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.year-header {
+  display: flex;
+  gap: var(--spacing-s);
+  margin-bottom: var(--spacing-m);
+  flex-wrap: nowrap;
+  align-items: stretch;
+}
+
+.year-input {
+  flex: 1;
+  height: 2.75rem;
+  font-size: var(--font-size-small);
+  padding: 0 var(--spacing-m);
+  border-radius: var(--border-radius-full);
+  border: 1px solid #ccc;
+}
+
+.button.year-add-button {
+  height: 2.75rem;
+  border-radius: var(--border-radius-full);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.year-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-m);
+}
+
+.year-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-m);
+  flex-wrap: wrap;
+  gap: var(--spacing-s);
+}
+
+.year-info {
+  flex: 1;
+  min-width: 200px;
+}
+
+.year-info h3 {
+  margin: 0;
+  font-size: var(--font-size-large);
+}
+
+.year-info p {
+  margin: 0.3rem 0;
+}
+
+.year-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-s);
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.badge {
+  padding: 0.3rem 0.8rem;
+  border-radius: var(--border-radius-full);
+  font-size: var(--font-size-small);
+  font-weight: bold;
+  text-transform: uppercase;
+  display: inline-block;
+}
+
+.badge.closed {
+  background-color: var(--primary);
+  color: white;
+}
+
+.badge.open {
+  background-color: var(--accent);
+  color: black;
+}
+
+.small {
+  font-size: var(--font-size-small);
+  color: #555;
+}

@@ -1,0 +1,49 @@
+.toast {
+  max-width: 320px;
+  min-width: 200px;
+  text-align: center;
+  white-space: nowrap;
+  position: fixed;
+  bottom: var(--spacing-l);
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--primary);
+  color: white;
+  padding: var(--spacing-s) var(--spacing-m);
+  border-radius: var(--border-radius-full);
+  font-weight: 600;
+  box-shadow: var(--shadow-m);
+  animation: toast-fade 2.5s ease-in-out forwards;
+  z-index: 9999;
+  opacity: 0;
+}
+
+@keyframes fadeSlide {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes toast-fade {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px);
+  }
+  10% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  90% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px);
+  }
+}

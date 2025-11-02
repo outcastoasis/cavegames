@@ -9,6 +9,9 @@
   --accent: #fbbf24;
   --bg: #f9fafb;
   --text: #1f2937;
+  --danger: #ef4444; /* Rot */
+  --neutral: #d1d5db; /* Hellgrau */
+  --neutral-text: #1f2937; /* Für neutrale Schrift */
 
   /* ==== Layout & Elemente ==== */
   --card-radius: 1rem;
@@ -76,6 +79,16 @@ body {
 .button.accent {
   background: var(--accent);
   color: black;
+}
+
+.button.danger {
+  background: var(--danger);
+  color: white;
+}
+
+.button.neutral {
+  background: var(--neutral);
+  color: var(--neutral-text);
 }
 
 /* ==== Karten ==== */

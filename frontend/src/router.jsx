@@ -6,6 +6,8 @@ import Register from "./pages/Register";
 import ProtectedRoute from "./components/ProtectedRoute";
 import DashboardLayout from "./layouts/DashboardLayout";
 import AdminUsers from "./pages/AdminUsers";
+import AdminYears from "./pages/AdminYears";
+import YearDetail from "./pages/YearDetail";
 
 export default function AppRouter() {
   return (
@@ -26,9 +28,11 @@ export default function AppRouter() {
         >
           {/* Standardseite */}
           <Route index element={<Home />} />
-
-          {/* Admin-Unterseite */}
+          {/* Admin-Unterseiten */}
           <Route path="admin/users" element={<AdminUsers />} />
+          <Route path="admin/years" element={<AdminYears />} />
+          <Route path="admin/years/:year" element={<YearDetail />} />{" "}
+          {/* 👈 HIER */}
         </Route>
       </Routes>
     </BrowserRouter>
