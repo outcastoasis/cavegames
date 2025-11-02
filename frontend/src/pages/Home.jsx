@@ -1,11 +1,18 @@
+// frontend/src/pages/Home.jsx
 import { useEffect, useState } from "react";
-import API from "../services/api";
 import { useAuth } from "../context/AuthContext";
+import { useOutletContext } from "react-router-dom";
+import API from "../services/api";
 
 export default function Home() {
+  const { user } = useAuth();
   const [message, setMessage] = useState("Warte auf Antwort...");
   const [error, setError] = useState("");
-  const { user } = useAuth();
+  const { setTitle } = useOutletContext();
+
+  useEffect(() => {
+    setTitle("Cavegames");
+  }, [setTitle]);
 
   useEffect(() => {
     API.get("/test")
