@@ -13,7 +13,11 @@ module.exports = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // enthält userId, username, role
+    req.user = {
+      _id: decoded.userId, // 🔥 wichtig für Mongoose-Kompatibilität
+      username: decoded.username,
+      role: decoded.role,
+    }; // enthält userId, username, role
     next();
   } catch (err) {
     console.error("Token ungültig:", err.message);

@@ -4,6 +4,7 @@ const Evening = require("../models/Evening");
 exports.getEvenings = async (req, res) => {
   try {
     const evenings = await Evening.find()
+      .populate("pollId") // ← WICHTIG!
       .populate("spielleiterId", "displayName")
       .populate("participantIds", "displayName")
       .sort({ date: -1 });

@@ -12,6 +12,7 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import "../styles/pages/AbendDetail.css";
+import PollCreateModal from "../components/forms/PollCreateModal";
 
 export default function AbendDetail() {
   const { id } = useParams();
@@ -19,6 +20,7 @@ export default function AbendDetail() {
   const { user } = useAuth();
   const [abend, setAbend] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showPollModal, setShowPollModal] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -125,12 +127,22 @@ export default function AbendDetail() {
             <button className="button secondary">
               <PlusCircle size={16} /> Spiel hinzufügen
             </button>
-            {isSpielleiter && abend.status === "offen" && (
-              <button className="button primary">
+            {isSpielleiter && abend.status === "offen" && !abend.pollId && (
+              <button
+                className="button primary"
+                onClick={() => setShowPollModal(true)}
+              >
                 <CalendarClock size={16} /> Umfrage erstellen
               </button>
             )}
           </div>
+        )}
+        {showPollModal && (
+          <PollCreateModal
+            eveningId={abend._id}
+            onClose={() => setShowPollModal(false)}
+            onSuccess={() => window.location.reload()} // optional
+          />
         )}
       </div>
     </div>

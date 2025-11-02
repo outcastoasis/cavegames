@@ -1,0 +1,62 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #00000066;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal {
+  max-width: 480px;
+  width: 90%;
+  padding: var(--spacing-l);
+  background: white;
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-l);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: var(--spacing-m);
+}
+
+.error-text {
+  color: var(--danger);
+  font-weight: bold;
+  margin-top: var(--spacing-s);
+}
+
+.poll-option-row {
+  position: relative;
+  margin-bottom: var(--spacing-s);
+  padding-right: 1.5rem; /* Platz für das X */
+}
+
+.poll-input-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-s);
+}
+
+.remove-option {
+  position: absolute;
+  top: 40%;
+  right: 0.2rem;
+  transform: translateY(-50%);
+  font-size: 1.2rem;
+  color: var(--danger);
+  font-weight: bold;
+  cursor: pointer;
+  line-height: 1;
+  transition: opacity var(--transition-fast);
+}
+
+.remove-option:hover {
+  opacity: 0.8;
+}

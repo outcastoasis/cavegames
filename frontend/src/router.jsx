@@ -10,6 +10,7 @@ import AdminYears from "./pages/AdminYears";
 import YearDetail from "./pages/YearDetail";
 import Abende from "./pages/Abende";
 import AbendDetail from "./pages/AbendDetail";
+import Polls from "./pages/Polls";
 
 export default function AppRouter() {
   return (
@@ -36,6 +37,7 @@ export default function AppRouter() {
           <Route path="admin/years/:year" element={<YearDetail />} />{" "}
           <Route path="abende" element={<Abende />} />
           <Route path="abende/:id" element={<AbendDetail />} />
+          <Route path="umfragen" element={<Polls />} />
         </Route>
       </Routes>
     </BrowserRouter>
