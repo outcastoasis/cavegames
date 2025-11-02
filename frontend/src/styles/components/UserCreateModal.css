@@ -1,0 +1,28 @@
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: var(--spacing-l);
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-l);
+  width: 90%;
+  max-width: 400px;
+}
+
+.user-form .input {
+  margin-bottom: var(--spacing-m);
+}
+
+.button-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-s);
+}
