@@ -1,0 +1,38 @@
+.polls-page {
+  padding: 1rem;
+}
+
+.poll-card {
+  border: 2px solid var(--primary-light);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  background: white;
+  box-shadow: var(--shadow);
+}
+
+.poll-card.fixed {
+  border-color: var(--accent);
+  background-color: #fffdf5;
+}
+
+.option-liste {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0;
+}
+
+.option-liste li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  padding: 0.5rem;
+  border: 1px solid var(--gray-light);
+  border-radius: 8px;
+  background: var(--gray-ultralight);
+}
+
+.stimmen {
+  font-weight: bold;
+}

@@ -4,6 +4,7 @@ const cors = require("cors");
 const connectDB = require("./config/db");
 const userRoutes = require("./routes/userRoutes");
 const authRoutes = require("./routes/auth");
+const pollRoutes = require("./routes/pollRoutes");
 
 require("dotenv").config();
 
@@ -35,7 +36,10 @@ app.use("/api/auth", authRoutes);
 // Admin-Routen
 app.use("/api/users", userRoutes);
 app.use("/api/years", require("./routes/yearRoutes"));
+
+//User Routen
 app.use("/api/evenings", require("./routes/eveningRoutes"));
+app.use("/api/polls", pollRoutes);
 
 // Server starten
 app.listen(PORT, () => {
