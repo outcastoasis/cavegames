@@ -1,0 +1,64 @@
+.year-detail-page {
+  padding: var(--spacing-l) var(--spacing-m);
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.year-detail-header {
+  margin-bottom: var(--spacing-m);
+}
+
+.year-status {
+  font-weight: 600;
+  margin: 0.5rem 0;
+}
+
+.year-status.closed {
+  color: var(--primary);
+}
+
+.year-status.open {
+  color: var(--accent);
+}
+
+.evening-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-m);
+}
+
+.evening-card {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--spacing-m);
+  flex-wrap: wrap;
+  gap: var(--spacing-s);
+}
+
+.badge {
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--border-radius-full);
+  font-size: var(--font-size-small);
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.badge.offen {
+  background: var(--accent);
+  color: black;
+}
+
+.badge.fixiert {
+  background: #fbbf24aa;
+  color: black;
+}
+
+.badge.abgeschlossen {
+  background: var(--primary);
+  color: white;
+}
+
+.badge.gesperrt {
+  background: #9ca3af;
+  color: white;
+}

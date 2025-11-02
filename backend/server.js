@@ -31,7 +31,11 @@ app.get("/api/test", (req, res) => {
 
 // Auth-Routen
 app.use("/api/auth", authRoutes);
+
+// Admin-Routen
 app.use("/api/users", userRoutes);
+app.use("/api/years", require("./routes/yearRoutes"));
+app.use("/api/evenings", require("./routes/eveningRoutes"));
 
 // Server starten
 app.listen(PORT, () => {

@@ -96,10 +96,14 @@ export default function UserEditModal({ user, onClose, onSuccess }) {
           {error && <div className="alert">{error}</div>}
 
           <div className="button-row">
-            <button type="button" className="button" onClick={onClose}>
+            <button
+              type="button"
+              className="button neutral"
+              onClick={onClose}
+            >
               Abbrechen
             </button>
-            <button type="submit" className="button primary" disabled={loading}>
+            <button type="submit" className="button" disabled={loading}>
               {loading ? "Speichern..." : "Speichern"}
             </button>
           </div>

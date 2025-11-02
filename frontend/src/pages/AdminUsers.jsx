@@ -5,6 +5,7 @@ import API from "../services/api";
 import "../styles/pages/AdminUsers.css";
 import UserCreateModal from "../components/forms/UserCreateModal";
 import UserEditModal from "../components/forms/UserEditModal";
+import Toast from "../components/ui/Toast";
 
 import { UserPlus, Pencil, Trash2, RotateCcw, Users } from "lucide-react";
 
@@ -15,6 +16,8 @@ export default function AdminUsers() {
   const { setTitle } = useOutletContext();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editUser, setEditUser] = useState(null);
+  const [toastMsg, setToastMsg] = useState("");
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     setTitle("Benutzerverwaltung");
@@ -49,6 +52,7 @@ export default function AdminUsers() {
       setUsers((prev) =>
         prev.map((u) => (u._id === userId ? { ...u, active: false } : u))
       );
+      setToastMsg("Benutzer deaktiviert");
     } catch (err) {
       console.error("Fehler beim Deaktivieren:", err);
     }
@@ -60,6 +64,7 @@ export default function AdminUsers() {
       setUsers((prev) =>
         prev.map((u) => (u._id === userId ? { ...u, active: true } : u))
       );
+      setToastMsg("Benutzer reaktiviert");
     } catch (err) {
       console.error("Fehler beim Reaktivieren:", err);
     }
@@ -82,56 +87,70 @@ export default function AdminUsers() {
         </button>
       </div>
 
+      <input
+        type="text"
+        className="input user-search"
+        placeholder="Benutzer suchen…"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
+
       {loading ? (
         <p>Lade Benutzer...</p>
       ) : users.length === 0 ? (
         <p>Keine Benutzer gefunden.</p>
       ) : (
         <div className="user-list">
-          {users.map((user) => (
-            <div key={user._id} className="card user-card">
-              <div className="user-main">
-                <div className="user-info">
-                  <strong>{user.displayName}</strong>
-                  <div className="username">({user.username})</div>
+          {users
+            .filter((u) =>
+              `${u.displayName} ${u.username}`
+                .toLowerCase()
+                .includes(search.toLowerCase())
+            )
+            .map((user) => (
+              <div key={user._id} className="card user-card">
+                <div className="user-main">
+                  <div className="user-info">
+                    <strong>{user.displayName}</strong>
+                    <div className="username">({user.username})</div>
+                  </div>
+                  <div className="user-tags">
+                    <span className={`role-tag ${user.role}`}>{user.role}</span>
+                    {!user.active && (
+                      <span className="inactive-tag">deaktiviert</span>
+                    )}
+                  </div>
                 </div>
-                <div className="user-tags">
-                  <span className={`role-tag ${user.role}`}>{user.role}</span>
-                  {!user.active && (
-                    <span className="inactive-tag">deaktiviert</span>
+
+                <div className="user-actions">
+                  <button
+                    className="icon-button"
+                    onClick={() => setEditUser(user)}
+                    title="Bearbeiten"
+                  >
+                    <Pencil size={18} />
+                  </button>
+
+                  {user.active ? (
+                    <button
+                      className="icon-button"
+                      onClick={() => handleDeactivate(user._id)}
+                      title="Deaktivieren"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  ) : (
+                    <button
+                      className="icon-button"
+                      onClick={() => handleReactivate(user._id)}
+                      title="Reaktivieren"
+                    >
+                      <RotateCcw size={18} />
+                    </button>
                   )}
                 </div>
               </div>
-
-              <div className="user-actions">
-                <button
-                  className="icon-button"
-                  onClick={() => setEditUser(user)}
-                  title="Bearbeiten"
-                >
-                  <Pencil size={18} />
-                </button>
-
-                {user.active ? (
-                  <button
-                    className="icon-button"
-                    onClick={() => handleDeactivate(user._id)}
-                    title="Deaktivieren"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                ) : (
-                  <button
-                    className="icon-button"
-                    onClick={() => handleReactivate(user._id)}
-                    title="Reaktivieren"
-                  >
-                    <RotateCcw size={18} />
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
+            ))}
         </div>
       )}
       {showCreateModal && (
@@ -160,6 +179,7 @@ export default function AdminUsers() {
           }}
         />
       )}
+      {toastMsg && <Toast message={toastMsg} onClose={() => setToastMsg("")} />}
     </div>
   );
 }
