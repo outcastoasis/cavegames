@@ -155,3 +155,19 @@ exports.deletePoll = async (req, res) => {
     });
   }
 };
+
+// 📋 Alle Umfragen abrufen
+exports.getAllPolls = async (req, res) => {
+  try {
+    const polls = await Poll.find()
+      .populate("eveningId", "date status")
+      .populate("options.votes", "displayName");
+
+    res.json(polls);
+  } catch (err) {
+    res.status(500).json({
+      error: "Fehler beim Laden der Umfragen",
+      details: err.message,
+    });
+  }
+};

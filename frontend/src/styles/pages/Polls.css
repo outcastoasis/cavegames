@@ -1,38 +1,89 @@
+/* Polls.css */
+
 .polls-page {
-  padding: 1rem;
+  padding: var(--spacing-l) var(--spacing-m);
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-l);
 }
 
 .poll-card {
-  border: 2px solid var(--primary-light);
-  border-radius: 12px;
-  padding: 1rem;
-  margin-bottom: 1.5rem;
-  background: white;
-  box-shadow: var(--shadow);
+  border: 2px solid var(--primary);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-m);
+  background-color: white;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.05);
 }
 
-.poll-card.fixed {
+.poll-card.active {
   border-color: var(--accent);
-  background-color: #fffdf5;
+  background-color: #fdfdfd;
 }
 
-.option-liste {
-  list-style: none;
-  padding: 0;
-  margin: 1rem 0;
+.poll-title {
+  font-weight: 600;
+  font-size: var(--font-size-large);
+  color: var(--primary);
+  margin-bottom: var(--spacing-s);
 }
 
-.option-liste li {
+.poll-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-s);
+  margin-bottom: var(--spacing-m);
+}
+
+.poll-option {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.5rem;
-  padding: 0.5rem;
-  border: 1px solid var(--gray-light);
-  border-radius: 8px;
-  background: var(--gray-ultralight);
+  padding: var(--spacing-s) var(--spacing-m);
+  border-radius: var(--border-radius);
+  background-color: var(--bg-light);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 
-.stimmen {
-  font-weight: bold;
+.poll-option:hover {
+  background-color: #f3f4f6;
+}
+
+.poll-option.selected {
+  background-color: var(--secondary);
+  color: white;
+  font-weight: 600;
+}
+
+.poll-option-icon {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.poll-option-votes {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.poll-finalized {
+  background-color: #f0fdf4;
+  border-left: 4px solid var(--secondary);
+  padding: var(--spacing-s) var(--spacing-m);
+  border-radius: var(--border-radius);
+  margin-top: var(--spacing-s);
+}
+
+.poll-buttons {
+  display: flex;
+  gap: var(--spacing-s);
+  flex-wrap: wrap;
+}
+
+.poll-info {
+  font-size: var(--font-size-small);
+  color: var(--text-muted);
+  margin-top: var(--spacing-xs);
 }
