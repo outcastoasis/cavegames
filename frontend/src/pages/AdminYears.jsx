@@ -48,7 +48,7 @@ export default function AdminYears() {
       await API.post(`/years/${year}/close`);
       fetchYears();
     } catch (err) {
-      alert(err.response?.data?.error || "Fehler beim Abschließen");
+      alert(err.response?.data?.error || "Fehler beim Abschliessen");
     }
   };
 
@@ -117,7 +117,7 @@ export default function AdminYears() {
                     className="button danger"
                     onClick={() => handleCloseYear(year.year)}
                   >
-                    Jahr abschließen
+                    Jahr abschliessen
                   </button>
                 )}
               </div>

@@ -3,7 +3,7 @@
 ## 🎯 Ziel der Anwendung
 
 Die **Spielabend-App** ermöglicht einer privaten Freundesgruppe, gemeinsame Spieleabende (Brettspiele, Kartenspiele etc.) zu planen, Punkte zu erfassen und am Jahresende automatisch den Gewinner zu küren.  
-Die Anwendung ist **mobiloptimiert**, **modern gestaltet**, **datenschutzfreundlich** und wird ausschließlich von einer kleinen, geschlossenen Benutzergruppe verwendet.
+Die Anwendung ist **mobiloptimiert**, **modern gestaltet**, **datenschutzfreundlich** und wird ausschliesslich von einer kleinen, geschlossenen Benutzergruppe verwendet.
 
 ---
 
@@ -116,7 +116,7 @@ spielabend-app/
 ## 🗺️ Sitemap / Seitenstruktur
 
 - **Startseite / Dashboard**
-  - Begrüßung & aktuelles Spieljahr
+  - Begrüssung & aktuelles Spieljahr
   - Nächster Abend (Countdown, Details, Abstimmung)
   - Letzter Abend (Datum, Sieger, Gruppenfoto)
 - **Abende (Liste)** → sortiert nach Datum, mit Ort & Siegern
@@ -127,7 +127,7 @@ spielabend-app/
 - **Profilseite (optional)** → persönliche Statistiken, Siege, Teilnahmen
   **Adminbereich**
   - 👥 Benutzerverwaltung
-  - 📅 Jahre verwalten (inkl. Jahr abschließen)
+  - 📅 Jahre verwalten (inkl. Jahr abschliessen)
   - 📤 Datenexport (optional)
 
 ---
@@ -138,7 +138,7 @@ spielabend-app/
 - **Farben:** Violett (Primary) • Türkis (Secondary) • Gelb (Accent) • Hellgrau (Background)
 - **Schrift:** [Poppins](https://fonts.google.com/specimen/Poppins)
 - **Navigation:** Bottom-Navigation mit Lucide-Icons
-- **UI:** Runde Karten, große Buttons, Bild-Uploads mit Vorschau
+- **UI:** Runde Karten, grosse Buttons, Bild-Uploads mit Vorschau
 
 ---
 
@@ -177,7 +177,7 @@ Die folgenden Seiten stehen nur für Admins zur Verfügung:
 - 📅 `/admin/years` – Spieljahre erstellen & Jahresabschluss
 - 📤 `/admin/export` – CSV-Export und Bilder (optional)
 - 📆 `/abende` – Admins können direkt Abende erstellen und verwalten
-- 🧮 `/admin/years/:year` – Alle Abende eines Jahres einsehen & Jahr abschließen
+- 🧮 `/admin/years/:year` – Alle Abende eines Jahres einsehen & Jahr abschliessen
 
 Die Admin-Funktionen sind über ein Dropdown-Menü im Header erreichbar, nicht über ein eigenes Dashboard.
 
@@ -284,7 +284,7 @@ app.patch(
 
 - Jeder Abend kann mehrere Spiele enthalten.
 - Punkte jedes Spielers werden pro Abend **aufsummiert**.
-- Nach dem Schließen des Abends werden die Gesamtsummen fixiert.
+- Nach dem Schliessen des Abends werden die Gesamtsummen fixiert.
 
 ### Tagessieger
 
@@ -384,7 +384,7 @@ app.patch(
 
 - Bilder werden **nicht** in MongoDB gespeichert.
 - Speicherung erfolgt in **Cloudinary**, nur URL in der DB.
-- Maximale Dateigröße: 2 MB (nur JPG/PNG).
+- Maximale Dateigrösse: 2 MB (nur JPG/PNG).
 
 | Typ         | Hochgeladen von            | Zugriff               |
 | ----------- | -------------------------- | --------------------- |
@@ -406,7 +406,7 @@ app.patch(
 ## 📊 Sicherheit & Validierung
 
 - Nur authentifizierte Benutzer dürfen Daten ändern
-- Bildvalidierung über Backend (Größe, Typ)
+- Bildvalidierung über Backend (Grösse, Typ)
 - Passwörter mit **bcrypt** gehasht
 - JWT wird nach 12h automatisch ungültig
 - Rate-Limiting für Login-Endpunkte

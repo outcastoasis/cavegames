@@ -1,7 +1,6 @@
 @import "../variables.css";
 
 .dashboard-main {
-  padding: var(--spacing-m);
   margin-bottom: 4.5rem; /* Platz für Navbar */
 }
 
