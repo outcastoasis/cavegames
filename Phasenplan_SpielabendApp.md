@@ -74,14 +74,14 @@ Ziel ist eine strukturierte, nachvollziehbare Entwicklung mit stabilen Meilenste
 - `POST /api/years` – Neues Jahr erstellen
 - `GET /api/years` – Übersicht aller Jahre
 - `GET /api/years/:year` – Detailansicht eines Jahres
-- `POST /api/years/:year/close` – Jahr abschließen (nur Admin)
+- `POST /api/years/:year/close` – Jahr abschliessen (nur Admin)
 - Aggregation `userStats` bei Abschluss
 
 ### Frontend
 
 - Seite **Jahre verwalten** (Liste + Jahr erstellen)
 - Seite **Jahresdetails** mit allen Abenden eines Jahres
-- Button „Jahr abschließen“ wenn alle Abende abgeschlossen sind
+- Button „Jahr abschliessen“ wenn alle Abende abgeschlossen sind
 
 ---
 

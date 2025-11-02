@@ -1,10 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import {
-  User,
-  Settings,
-  Users,
-  CalendarCheck,
-} from "lucide-react";
+import { User, Settings, Users, CalendarCheck } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import "../../styles/Header.css";
@@ -35,7 +30,7 @@ export default function Header({ title = "Spielabend App" }) {
     navigate(path);
   };
 
-  // Schließen beim Klick außerhalb
+  // Schliessen beim Klick ausserhalb
   useEffect(() => {
     function handleClickOutside(event) {
       if (menuRef.current && !menuRef.current.contains(event.target)) {

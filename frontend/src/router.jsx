@@ -8,6 +8,8 @@ import DashboardLayout from "./layouts/DashboardLayout";
 import AdminUsers from "./pages/AdminUsers";
 import AdminYears from "./pages/AdminYears";
 import YearDetail from "./pages/YearDetail";
+import Abende from "./pages/Abende";
+import AbendDetail from "./pages/AbendDetail";
 
 export default function AppRouter() {
   return (
@@ -32,7 +34,8 @@ export default function AppRouter() {
           <Route path="admin/users" element={<AdminUsers />} />
           <Route path="admin/years" element={<AdminYears />} />
           <Route path="admin/years/:year" element={<YearDetail />} />{" "}
-          {/* 👈 HIER */}
+          <Route path="abende" element={<Abende />} />
+          <Route path="abende/:id" element={<AbendDetail />} />
         </Route>
       </Routes>
     </BrowserRouter>

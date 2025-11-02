@@ -1,31 +1,110 @@
+// backend/controllers/eveningController.js
 const Evening = require("../models/Evening");
 
 exports.getEvenings = async (req, res) => {
   try {
-    const evenings = await Evening.find().sort({ date: -1 });
-    res.json(evenings);
+    const evenings = await Evening.find()
+      .populate("spielleiterId", "displayName")
+      .populate("participantIds", "displayName")
+      .sort({ date: -1 });
+
+    // Einheitliches Frontend-Mapping
+    const response = evenings.map((e) => ({
+      ...e.toObject(),
+      spielleiterRef: e.spielleiterId,
+      participantRefs: e.participantIds,
+    }));
+
+    res.json(response);
   } catch (err) {
+    console.error("Fehler beim Laden der Abende:", err.message);
     res.status(500).json({ error: "Fehler beim Laden der Abende" });
   }
 };
 
 exports.createEvening = async (req, res) => {
   try {
-    const evening = new Evening(req.body);
-    await evening.save();
-    res.status(201).json(evening);
+    const { spieljahr, spielleiterId } = req.body;
+
+    if (!spieljahr || !spielleiterId) {
+      return res
+        .status(400)
+        .json({ error: "Spieljahr und Spielleiter sind erforderlich." });
+    }
+
+    // Nur 1 offener Abend pro Jahr zulässig
+    const existing = await Evening.findOne({ spieljahr, status: "offen" });
+    if (existing) {
+      return res.status(400).json({
+        error: "Es existiert bereits ein offener Abend in diesem Jahr.",
+      });
+    }
+
+    const newEvening = new Evening({
+      spieljahr,
+      spielleiterId,
+      organizerId: req.user.id,
+      participantIds: [spielleiterId],
+      status: "offen",
+      date: null,
+    });
+
+    await newEvening.save();
+
+    // Optional: Notification erstellen (wenn unterstützt)
+    // await Notification.create({
+    //   userId: spielleiterId,
+    //   message: "Du wurdest einem neuen Abend zugeteilt. Bitte erstelle eine Umfrage.",
+    //   type: "info",
+    // });
+
+    // Populate für direkte Frontend-Nutzung
+    const populated = await Evening.findById(newEvening._id)
+      .populate("spielleiterId", "displayName")
+      .populate("participantIds", "displayName");
+
+    const response = {
+      ...populated.toObject(),
+      spielleiterRef: populated.spielleiterId,
+      participantRefs: populated.participantIds,
+    };
+
+    res.status(201).json(response);
   } catch (err) {
+    console.error("Fehler beim Erstellen:", err);
     res.status(500).json({ error: "Fehler beim Erstellen des Abends" });
   }
 };
 
 exports.getEveningById = async (req, res) => {
   try {
-    const evening = await Evening.findById(req.params.id);
-    if (!evening)
+    const evening = await Evening.findById(req.params.id)
+      .populate("spielleiterId", "displayName")
+      .populate("participantIds", "displayName")
+      .populate("games.scores.userId", "displayName");
+
+    if (!evening) {
       return res.status(404).json({ error: "Abend nicht gefunden" });
-    res.json(evening);
+    }
+
+    // Backend → Frontend Mapping
+    const response = {
+      ...evening.toObject(),
+      spielleiterRef: evening.spielleiterId,
+      participantRefs: evening.participantIds,
+      games: evening.games.map((g) => ({
+        ...g.toObject(),
+        scores: g.scores.map((s) => ({
+          userId: s.userId?._id,
+          userName: s.userId?.displayName,
+          points: s.points,
+        })),
+      })),
+    };
+
+    res.json(response);
   } catch (err) {
+    console.error("Fehler beim Laden des Abends:", err.message);
     res.status(500).json({ error: "Fehler beim Laden des Abends" });
   }
 };
@@ -34,11 +113,22 @@ exports.updateEvening = async (req, res) => {
   try {
     const updated = await Evening.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
-    });
+    })
+      .populate("spielleiterId", "displayName")
+      .populate("participantIds", "displayName");
+
     if (!updated)
       return res.status(404).json({ error: "Abend nicht gefunden" });
-    res.json(updated);
+
+    const response = {
+      ...updated.toObject(),
+      spielleiterRef: updated.spielleiterId,
+      participantRefs: updated.participantIds,
+    };
+
+    res.json(response);
   } catch (err) {
+    console.error("Fehler beim Aktualisieren:", err.message);
     res.status(500).json({ error: "Fehler beim Aktualisieren" });
   }
 };
@@ -50,6 +140,7 @@ exports.deleteEvening = async (req, res) => {
       return res.status(404).json({ error: "Abend nicht gefunden" });
     res.json({ message: "Abend gelöscht" });
   } catch (err) {
+    console.error("Fehler beim Löschen:", err.message);
     res.status(500).json({ error: "Fehler beim Löschen" });
   }
 };
@@ -63,8 +154,10 @@ exports.changeEveningStatus = async (req, res) => {
 
     evening.status = status;
     await evening.save();
+
     res.json({ message: "Status geändert", evening });
   } catch (err) {
+    console.error("Fehler beim Statuswechsel:", err.message);
     res.status(500).json({ error: "Fehler beim Statuswechsel" });
   }
 };

@@ -31,7 +31,7 @@ Die Spielabend-App soll einer privaten Gruppe von Freunden ermöglichen, gemeins
 ## 🗺️ Sitemap / Seitenstruktur
 
 - **Startseite / Dashboard**
-  - Begrüßung + aktuelles Spieljahr
+  - Begrüssung + aktuelles Spieljahr
   - Nächster Abend (Countdown, Details, Abstimmen)
   - Letzter Abend (Datum, Tagessieger, Bild, Button zur Detailansicht)
 - **Abende (Liste)** → Neueste oben, mit Datum, Ort, Sieger
@@ -42,7 +42,7 @@ Die Spielabend-App soll einer privaten Gruppe von Freunden ermöglichen, gemeins
 - **Profilseite (optional)** → Eigene Statistiken, Teilnahmen, Siege
 - **Adminbereich**
   - Benutzer verwalten
-  - Spieljahr abschließen
+  - Spieljahr abschliessen
   - Rollen zuweisen (Spielleiter pro Abend)
   - Daten exportieren
 
@@ -54,7 +54,7 @@ Die Spielabend-App soll einer privaten Gruppe von Freunden ermöglichen, gemeins
 - **Farben:** Violett (Primary), Türkis (Secondary), Gelb (Accent), Hellgrau (BG)
 - **Font:** [Poppins](https://fonts.google.com/specimen/Poppins)
 - **Navigation:** Bottom-Navigation auf Mobilgeräten (Icons + Labels)
-- **UI-Komponenten:** Runde Karten, große Buttons, Bild-Uploads pro Abend
+- **UI-Komponenten:** Runde Karten, grosse Buttons, Bild-Uploads pro Abend
 
 ---
 
@@ -273,7 +273,7 @@ In der Spielabend-App werden Bilder für **Gruppenfotos** und **Spielbilder** be
 - Vorteile:
 
   - Sehr gute Performance durch weltweite Auslieferung über CDN
-  - Keine Speicherung großer Base64-Daten in MongoDB
+  - Keine Speicherung grosser Base64-Daten in MongoDB
   - Zusätzliche Bildbearbeitungsfunktionen direkt über Cloudinary-URL
 
 Beispiel für gespeichertes Spielobjekt in MongoDB:
@@ -303,7 +303,7 @@ Beispiel für gespeichertes Spielobjekt in MongoDB:
 - Nur eingeloggte und berechtigte Benutzer dürfen hochladen
 - Bildvalidierung im Frontend & Backend:
 
-  - Dateigröße (z. B. max. 2 MB)
+  - Dateigrösse (z. B. max. 2 MB)
   - Dateityp (nur JPG, PNG)
 
 - Optional: Alte Bilder bei Änderung automatisch in Cloudinary löschen
@@ -313,7 +313,7 @@ Beispiel für gespeichertes Spielobjekt in MongoDB:
 ### 📦 Vorteile von Cloudinary
 
 - 🚀 Schnelle Auslieferung über CDN
-- 🖼️ Automatische Bildoptimierung (Größe, Qualität, Format)
+- 🖼️ Automatische Bildoptimierung (Grösse, Qualität, Format)
 - 🧰 Transformationen (Thumbnails, Cropping, etc.)
 - 🔗 Direkte URL-Rückgabe
 - 🆓 Kostenloser Plan für kleine private Apps

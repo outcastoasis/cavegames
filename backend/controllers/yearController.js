@@ -67,6 +67,6 @@ exports.closeYear = async (req, res) => {
 
     res.json({ message: "Jahr erfolgreich abgeschlossen", year: yearDoc });
   } catch (err) {
-    res.status(500).json({ error: "Fehler beim Abschließen des Jahres" });
+    res.status(500).json({ error: "Fehler beim Abschliessen des Jahres" });
   }
 };
