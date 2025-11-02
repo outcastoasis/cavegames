@@ -1,5 +1,5 @@
-// frontend/src/context/AuthContext.jsx
 import { createContext, useContext, useEffect, useState } from "react";
+import { jwtDecode } from "jwt-decode";
 
 const AuthContext = createContext();
 
@@ -14,9 +14,23 @@ export function AuthProvider({ children }) {
     const savedUser = localStorage.getItem("user");
 
     if (savedToken && savedUser) {
-      setToken(savedToken);
-      setUser(JSON.parse(savedUser));
+      try {
+        const decoded = jwtDecode(savedToken);
+        const now = Date.now() / 1000;
+
+        if (decoded.exp < now) {
+          console.warn("🔒 Token abgelaufen – Benutzer wird ausgeloggt");
+          logout();
+        } else {
+          setToken(savedToken);
+          setUser(JSON.parse(savedUser));
+        }
+      } catch (err) {
+        console.error("❌ Fehler beim Token-Dekodieren:", err.message);
+        logout();
+      }
     }
+
     setLoading(false);
   }, []);
 
@@ -34,6 +48,7 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("user");
     setToken("");
     setUser(null);
+    window.location.href = "/login"; // <— sofort weiterleiten
   };
 
   return (
@@ -43,7 +58,7 @@ export function AuthProvider({ children }) {
   );
 }
 
-// Custom Hook für bequemen Zugriff
+// Custom Hook
 export function useAuth() {
   return useContext(AuthContext);
 }

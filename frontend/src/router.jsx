@@ -5,6 +5,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ProtectedRoute from "./components/ProtectedRoute";
 import DashboardLayout from "./layouts/DashboardLayout";
+import AdminUsers from "./pages/AdminUsers";
 
 export default function AppRouter() {
   return (
@@ -26,7 +27,8 @@ export default function AppRouter() {
           {/* Standardseite */}
           <Route index element={<Home />} />
 
-          {/* weitere Seiten wie /admin/users etc. folgen hier */}
+          {/* Admin-Unterseite */}
+          <Route path="admin/users" element={<AdminUsers />} />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -1,7 +1,17 @@
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import axios from "axios";
 
-export async function testAPI() {
-  const res = await fetch(`${BASE_URL}/test`);
-  if (!res.ok) throw new Error("Fehler beim API-Test");
-  return res.json();
-}
+const API = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL,
+  withCredentials: true, // wichtig, damit Cookies / Tokens übertragen werden
+});
+
+// JWT-Token aus localStorage automatisch mitsenden
+API.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+export default API;
