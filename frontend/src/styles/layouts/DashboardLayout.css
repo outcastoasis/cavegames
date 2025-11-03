@@ -1,6 +1,7 @@
 @import "../variables.css";
 
 .dashboard-main {
+  margin-top: 2.5rem; /* Höhe des Headers */
   margin-bottom: 4.5rem; /* Platz für Navbar */
 }
 
