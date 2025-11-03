@@ -92,7 +92,7 @@ export default function EveningCreateModal({ onClose, onSuccess }) {
           {error && <div className="alert">{error}</div>}
 
           <div className="button-row">
-            <button type="button" className="button" onClick={onClose}>
+            <button type="button" className="button neutral" onClick={onClose}>
               Abbrechen
             </button>
             <button type="submit" className="button primary" disabled={loading}>

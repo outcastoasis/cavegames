@@ -2,32 +2,28 @@
 const Evening = require("../models/Evening");
 const Poll = require("../models/Poll");
 
+// middleware/checkEveningRole.js
 function checkEveningRole(role) {
   return async (req, res, next) => {
-    const { eveningId } = req.body;
-    let abend; // <-- hier definieren, damit sie auch nach dem try bekannt ist
+    // Abend-ID entweder aus Body oder URL-Param
+    const eveningId = req.body?.eveningId || req.params.id;
 
     if (!eveningId) {
       return res.status(400).json({
         error: "Abend-ID fehlt",
-        details: "Für diese Aktion muss ein eveningId übermittelt werden.",
+        details:
+          "Für diese Aktion muss ein eveningId im Body oder URL-Parameter übermittelt werden.",
       });
     }
 
     try {
-      abend = await Evening.findById(eveningId);
-
+      const abend = await Evening.findById(eveningId);
       if (!abend) {
-        console.error("❌ Abend nicht gefunden:", eveningId);
-        return res.status(404).json({
-          error: "Abend nicht gefunden",
-          details: `Kein Abend mit der ID ${eveningId}`,
-        });
+        return res.status(404).json({ error: "Abend nicht gefunden" });
       }
 
       if (role === "spielleiter") {
         if (abend.spielleiterId.toString() !== req.user._id.toString()) {
-          console.error("❌ Zugriff verweigert für Benutzer:", req.user);
           return res.status(403).json({
             error: "Zugriff verweigert",
             details: "Nur der Spielleiter dieses Abends darf das.",
@@ -35,17 +31,13 @@ function checkEveningRole(role) {
         }
       }
 
-      // Abend-Objekt für spätere Verwendung mitgeben
       req.evening = abend;
-
-      console.log("✅ checkEveningRole durchlaufen:", abend._id, req.user);
       next();
     } catch (err) {
       console.error("❌ Fehler in checkEveningRole:", err);
-      return res.status(500).json({
-        error: "Middleware-Fehler",
-        details: err.message,
-      });
+      res
+        .status(500)
+        .json({ error: "Middleware-Fehler", details: err.message });
     }
   };
 }

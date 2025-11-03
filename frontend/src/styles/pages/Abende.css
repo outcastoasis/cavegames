@@ -107,7 +107,7 @@
 /* ===== Teilnahme-Buttons ===== */
 .abend-actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start;
   margin-top: var(--spacing-s);
   gap: var(--spacing-s);
 }

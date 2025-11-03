@@ -82,6 +82,7 @@ exports.getEveningById = async (req, res) => {
     const evening = await Evening.findById(req.params.id)
       .populate("spielleiterId", "displayName")
       .populate("participantIds", "displayName")
+      .populate("games.gameId", "name category") // <-- FEHLTE
       .populate("games.scores.userId", "displayName");
 
     if (!evening) {
@@ -218,5 +219,104 @@ exports.removeParticipant = async (req, res) => {
   } catch (err) {
     console.error("Fehler bei removeParticipant:", err.message);
     res.status(500).json({ error: "Fehler beim Entfernen der Teilnahme" });
+  }
+};
+
+// 🎮 Spiele eines Abends abrufen
+exports.getEveningGames = async (req, res) => {
+  try {
+    const evening = await Evening.findById(req.params.id)
+      .populate("games.gameId", "name category")
+      .populate("games.scores.userId", "displayName");
+
+    if (!evening) {
+      return res.status(404).json({ error: "Abend nicht gefunden" });
+    }
+
+    res.json(evening.games);
+  } catch (err) {
+    console.error("Fehler bei getEveningGames:", err.message);
+    res.status(500).json({ error: "Fehler beim Laden der Spiele" });
+  }
+};
+
+// 🎲 Neues Spiel mit Punkten hinzufügen
+exports.addEveningGame = async (req, res) => {
+  try {
+    const { gameId, notes } = req.body;
+    const evening = await Evening.findById(req.params.id).populate(
+      "participantIds",
+      "displayName"
+    );
+
+    if (!evening) {
+      return res.status(404).json({ error: "Abend nicht gefunden" });
+    }
+
+    // Initial Scores: alle Teilnehmer starten mit 0 Punkten
+    const scores = evening.participantIds.map((p) => ({
+      userId: p._id,
+      points: 0,
+    }));
+
+    evening.games.push({ gameId, scores, notes });
+    await evening.save();
+
+    const updated = await Evening.findById(req.params.id)
+      .populate("games.gameId", "name category")
+      .populate("games.scores.userId", "displayName");
+
+    res.status(201).json(updated.games);
+  } catch (err) {
+    console.error("Fehler bei addEveningGame:", err.message);
+    res.status(500).json({ error: "Fehler beim Hinzufügen des Spiels" });
+  }
+};
+
+// ✏️ Spiel-Eintrag bearbeiten
+exports.updateEveningGame = async (req, res) => {
+  try {
+    const { gameEntryId } = req.params;
+    const { scores, notes } = req.body;
+
+    const evening = await Evening.findById(req.params.id);
+    if (!evening) {
+      return res.status(404).json({ error: "Abend nicht gefunden" });
+    }
+
+    const entry = evening.games.id(gameEntryId);
+    if (!entry) {
+      return res.status(404).json({ error: "Spieleintrag nicht gefunden" });
+    }
+
+    if (scores) entry.scores = scores;
+    if (notes) entry.notes = notes;
+    await evening.save();
+
+    res.json({ message: "Spiel aktualisiert", game: entry });
+  } catch (err) {
+    console.error("Fehler bei updateEveningGame:", err.message);
+    res.status(500).json({ error: "Fehler beim Aktualisieren des Spiels" });
+  }
+};
+
+// 🗑️ Spiel aus Abend löschen
+exports.deleteEveningGame = async (req, res) => {
+  try {
+    const { gameEntryId } = req.params;
+    const evening = await Evening.findById(req.params.id);
+    if (!evening) {
+      return res.status(404).json({ error: "Abend nicht gefunden" });
+    }
+
+    evening.games = evening.games.filter(
+      (g) => g._id.toString() !== gameEntryId.toString()
+    );
+    await evening.save();
+
+    res.json({ message: "Spiel gelöscht" });
+  } catch (err) {
+    console.error("Fehler bei deleteEveningGame:", err.message);
+    res.status(500).json({ error: "Fehler beim Löschen des Spiels" });
   }
 };

@@ -1,110 +1,231 @@
-.abend-detail-page {
-  padding: var(--spacing-m) var(--spacing-m);
-  max-width: 800px;
+/* 📄 styles/pages/AbendDetail.css – mobile-optimiert & verbessert */
+
+.abenddetail-container {
+  padding: var(--spacing-m);
+  max-width: 900px;
   margin: 0 auto;
 }
 
-.back-button {
-  background: none;
-  border: none;
-  color: var(--primary);
-  display: flex;
+.abenddetail-backbutton {
+  display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
-  font-weight: 600;
+  gap: var(--spacing-s);
   margin-bottom: var(--spacing-m);
-  cursor: pointer;
 }
 
-.abend-details {
+/* === Hauptkarte === */
+.abenddetail-card {
   padding: var(--spacing-l);
-  border-radius: var(--radius-l);
-  background: var(--white);
-  box-shadow: var(--shadow-sm);
+  margin-bottom: var(--spacing-l);
 }
 
-.abend-title {
-  margin-top: 0;
-  margin-bottom: var(--spacing-m);
-  color: var(--primary);
+.abenddetail-title {
+  font-size: var(--font-size-large);
+  margin-bottom: var(--spacing-s);
 }
 
-.badge {
+/* === Statusanzeige === */
+.abenddetail-status {
   display: inline-block;
-  padding: 0.2rem 0.6rem;
-  border-radius: 1rem;
-  font-size: 0.8rem;
   font-weight: 600;
-  background: var(--gray-light);
-  color: var(--text);
+  padding: var(--spacing-xs) var(--spacing-m);
+  border-radius: var(--border-radius-full);
+  text-transform: capitalize;
+  box-shadow: var(--shadow-s);
+  margin: var(--spacing-xs) 0;
 }
 
-.status-offen {
+.abenddetail-status.offen {
+  background-color: var(--secondary);
+  color: white;
+}
+
+.abenddetail-status.fixiert {
   background-color: var(--accent);
   color: black;
 }
-.status-fixiert {
-  background-color: #fbbf24aa;
-  color: black;
-}
-.status-abgeschlossen {
+
+.abenddetail-status.abgeschlossen {
   background-color: var(--primary);
   color: white;
 }
-.status-gesperrt {
-  background-color: #9ca3af;
-  color: white;
+
+/* === Teilnahme-Buttons === */
+.abenddetail-teilnahme {
+  margin: var(--spacing-m) 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-s);
 }
 
-.detail-section {
+/* === Tagessieger === */
+.abenddetail-winner {
+  margin: var(--spacing-m) 0;
+}
+
+/* === Sektionen === */
+.abenddetail-section {
   margin-top: var(--spacing-l);
 }
 
-.teilnehmer-liste,
-.punkte-liste {
+.abenddetail-section h3 {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-s);
+  margin-bottom: var(--spacing-s);
+}
+
+/* === Teilnehmerliste === */
+.abenddetail-list {
   list-style: none;
   padding-left: 0;
+  margin-top: var(--spacing-s);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-s);
+}
+
+.abenddetail-list li {
+  background-color: #e5e7eb; /* etwas heller als var(--neutral) */
+  padding: var(--spacing-s) var(--spacing-m);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-small);
+  font-weight: 500;
+  color: var(--text);
+  box-shadow: var(--shadow-s);
+}
+
+/* === Spiele === */
+.abenddetail-game {
+  margin-top: var(--spacing-m);
+  padding: var(--spacing-m);
+}
+
+.abenddetail-game-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-s);
+  align-items: flex-start;
+  margin-bottom: var(--spacing-s);
+}
+
+/* Spieletitel betont */
+.abenddetail-game-header h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--primary);
+  text-shadow: 0 1px 2px #00000015;
   margin: 0;
 }
-.teilnehmer-liste li,
-.punkte-liste li {
-  background: var(--gray-light);
-  padding: 0.4rem 0.8rem;
-  border-radius: var(--radius-s);
-  margin-bottom: 0.3rem;
+
+.abenddetail-game-actions {
+  display: flex;
+  gap: var(--spacing-s);
+  flex-wrap: wrap;
 }
 
-.spiel-card {
-  margin-bottom: var(--spacing-m);
-  padding: var(--spacing-m);
-  background: var(--bg);
-  border-radius: var(--radius-m);
-  border: 1px solid var(--highlight);
+/* === Punkte === */
+.abenddetail-score-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
-.image-preview {
-  max-width: 100%;
-  border-radius: var(--radius-m);
+.abenddetail-score-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-s) 0;
+  border-bottom: 1px solid var(--neutral);
+}
+
+.abenddetail-score-item span:last-child {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--primary);
+}
+
+.abenddetail-score-item input {
+  width: 80px;
+  text-align: right;
+  font-weight: bold;
+  border: 1px solid var(--neutral);
+  border-radius: var(--border-radius-sm);
+  padding: var(--spacing-xs);
+}
+
+/* === Gruppenfoto === */
+.abenddetail-photo {
+  width: 100%;
+  max-height: 400px;
+  object-fit: cover;
+  border-radius: var(--border-radius-sm);
   margin-top: var(--spacing-s);
+  box-shadow: var(--shadow-s);
 }
 
-.tagessieger {
-  display: inline-block;
-  margin-top: var(--spacing-m);
-  background: var(--secondary);
-  color: white;
-  font-weight: 600;
-  padding: 0.4rem 0.8rem;
-  border-radius: 1rem;
-}
-
-.abend-detail-actions {
+/* === Footer-Buttons === */
+.abenddetail-actions {
   margin-top: var(--spacing-l);
   display: flex;
-  gap: var(--spacing-m);
+  flex-wrap: wrap;
+  gap: var(--spacing-s);
 }
 
-.info-text {
-  opacity: 0.7;
-  font-style: italic;
+/* === Ladezustand & Fehler === */
+.abenddetail-loading,
+.abenddetail-error {
+  text-align: center;
+  font-weight: bold;
+  margin-top: var(--spacing-l);
+}
+
+/* === Mobile Anpassungen === */
+@media (max-width: 600px) {
+  .abenddetail-card {
+    padding: var(--spacing-m);
+  }
+
+  .abenddetail-game-header {
+    align-items: stretch;
+  }
+
+  .abenddetail-game-actions {
+    flex-direction: column;
+    gap: var(--spacing-xs);
+  }
+
+  .abenddetail-teilnahme {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .abenddetail-actions {
+    flex-direction: column;
+    gap: var(--spacing-s);
+  }
+
+  .abenddetail-score-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+  }
+
+  .abenddetail-score-item input {
+    width: 100%;
+  }
+
+  .abenddetail-list {
+    flex-direction: column;
+    gap: var(--spacing-xs);
+  }
+
+  .abenddetail-backbutton {
+    font-size: var(--font-size-small);
+    padding: var(--spacing-xs) var(--spacing-s);
+  }
+
+  .abenddetail-score-item span:last-child {
+    font-size: 1.1rem;
+  }
 }

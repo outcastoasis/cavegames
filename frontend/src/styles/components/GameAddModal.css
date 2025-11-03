@@ -1,0 +1,37 @@
+@import "../variables.css";
+
+.game-add-modal {
+  max-width: 420px;
+}
+
+label {
+  display: block;
+  margin-top: var(--spacing-s);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.input {
+  width: 100%;
+  padding: 0.4rem 0.6rem;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--neutral);
+  margin-top: 0.3rem;
+}
+
+select.input {
+  background-color: var(--bg);
+}
+
+.error-text {
+  color: var(--error);
+  margin-top: var(--spacing-s);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-s);
+  margin-top: var(--spacing-m);
+}
+
