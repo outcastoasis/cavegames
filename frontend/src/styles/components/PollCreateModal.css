@@ -44,9 +44,18 @@
   gap: var(--spacing-s);
 }
 
+.input-poll {
+  width: 100%;
+  padding: 0.4rem 0.6rem;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--neutral);
+  margin-top: 0.2rem;
+  margin-bottom: 0.3rem;
+}
+
 .remove-option {
   position: absolute;
-  top: 40%;
+  top: 50%;
   right: 0.2rem;
   transform: translateY(-50%);
   font-size: 1.2rem;
