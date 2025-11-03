@@ -98,7 +98,7 @@
   border-radius: 1rem;
 }
 
-.abend-actions {
+.abend-detail-actions {
   margin-top: var(--spacing-l);
   display: flex;
   gap: var(--spacing-m);

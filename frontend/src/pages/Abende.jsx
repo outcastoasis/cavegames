@@ -2,6 +2,15 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import API from "../services/api";
+import {
+  CalendarDays,
+  Users,
+  Gamepad2,
+  UserCircle,
+  Trophy,
+  CheckCircle2,
+  XCircle,
+} from "lucide-react";
 import "../styles/pages/Abende.css";
 import EveningCreateModal from "../components/forms/EveningCreateModal";
 
@@ -13,6 +22,7 @@ export default function Abende() {
   const [evenings, setEvenings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     setTitle("Abende");
@@ -33,20 +43,33 @@ export default function Abende() {
     }
   };
 
-  const handleCreateEvening = async () => {
+  const handleJoin = async (eveningId) => {
+    if (busy) return;
+    setBusy(true);
     try {
-      const res = await API.post("/evenings", {
-        spieljahr: new Date().getFullYear(),
-        organizerId: user._id,
-        spielleiterId: user._id,
-        participantIds: [user._id],
-        status: "offen",
-        // kein Datum → bleibt leer
-      });
-
-      navigate(`/abende/${res.data._id}`);
+      await API.post(`/evenings/${eveningId}/participants`);
+      await fetchEvenings();
     } catch (err) {
-      alert(err.response?.data?.error || "Fehler beim Erstellen des Abends");
+      alert(
+        "Fehler beim Beitreten: " + (err.response?.data?.error || err.message)
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleLeave = async (eveningId) => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await API.delete(`/evenings/${eveningId}/participants/${user._id}`);
+      await fetchEvenings();
+    } catch (err) {
+      alert(
+        "Fehler beim Verlassen: " + (err.response?.data?.error || err.message)
+      );
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -66,31 +89,87 @@ export default function Abende() {
         <p>Keine Abende gefunden.</p>
       ) : (
         <div className="abend-list">
-          {evenings.map((abend) => (
-            <div
-              key={abend._id}
-              className="card abend-card"
-              onClick={() => navigate(`/abende/${abend._id}`)}
-            >
-              <div className="abend-main">
-                <strong className={!abend.date ? "date-placeholder" : ""}>
-                  {abend.date
-                    ? new Date(abend.date).toLocaleDateString("de-CH")
-                    : "Umfrage läuft..."}
-                </strong>
-                <span className={`badge-abende status-${abend.status}`}>
-                  {abend.status.toUpperCase()}
-                </span>
+          {evenings.map((abend) => {
+            const isFixiert = abend.status === "fixiert";
+            const isTeilnehmer = abend.participantRefs?.some(
+              (p) => p._id === user._id
+            );
+
+            return (
+              <div
+                key={abend._id}
+                className={`card abend-card status-${abend.status}`}
+                onClick={(e) => {
+                  // Klick auf Buttons soll Karte nicht öffnen
+                  if (e.target.closest(".abend-actions")) return;
+                  navigate(`/abende/${abend._id}`);
+                }}
+              >
+                <div className="abend-card-header">
+                  <div className="abend-date">
+                    <CalendarDays size={16} />
+                    {abend.date
+                      ? new Date(abend.date).toLocaleDateString("de-CH", {
+                          weekday: "short",
+                          day: "2-digit",
+                          month: "short",
+                        })
+                      : "Datum offen"}
+                  </div>
+                  <span className={`badge-abende status-${abend.status}`}>
+                    {abend.status.toUpperCase()}
+                  </span>
+                </div>
+
+                <div className="abend-meta">
+                  <div className="meta-item">
+                    <UserCircle size={16} />
+                    {abend.spielleiterRef?.displayName || "—"}
+                  </div>
+                  <div className="meta-item">
+                    <Users size={16} />
+                    {abend.participantRefs?.length ??
+                      abend.participantIds.length}{" "}
+                    Teilnehmer
+                  </div>
+                  <div className="meta-item">
+                    <Gamepad2 size={16} />
+                    {abend.games?.length ?? 0} Spiele
+                  </div>
+                  <div className="meta-item">
+                    <Trophy size={16} />
+                    Jahr {abend.spieljahr}
+                  </div>
+                </div>
+
+                {/* Teilnahme-Buttons nur bei fixiertem Abend */}
+                {isFixiert && (
+                  <div className="abend-actions">
+                    {isTeilnehmer ? (
+                      <button
+                        className="button danger small"
+                        onClick={() => handleLeave(abend._id)}
+                        disabled={busy}
+                      >
+                        <XCircle size={14} /> Ich bin weg
+                      </button>
+                    ) : (
+                      <button
+                        className="button primary small"
+                        onClick={() => handleJoin(abend._id)}
+                        disabled={busy}
+                      >
+                        <CheckCircle2 size={14} /> Ich nehme teil
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
-              <div className="abend-info">
-                <p>Jahr: {abend.spieljahr}</p>
-                <p>Teilnehmer: {abend.participantIds.length}</p>
-                <p>Spiele: {abend.games.length}</p>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
+
       {showModal && (
         <EveningCreateModal
           onClose={() => setShowModal(false)}

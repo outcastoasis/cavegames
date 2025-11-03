@@ -1,3 +1,5 @@
+// backend/controllers/pollController.js
+
 const Poll = require("../models/Poll");
 const Evening = require("../models/Evening");
 
@@ -160,11 +162,13 @@ exports.deletePoll = async (req, res) => {
 exports.getAllPolls = async (req, res) => {
   try {
     const polls = await Poll.find()
-      .populate("eveningId", "date status")
-      .populate("options.votes", "displayName");
+      .populate("eveningId", "date status spielleiterId") // Spielleiter + Status + Datum
+      .populate("createdBy", "displayName role") // Ersteller der Umfrage
+      .populate("options.votes", "displayName"); // Stimmenanzeige (Namen)
 
     res.json(polls);
   } catch (err) {
+    console.error("Fehler beim Laden der Umfragen:", err.message);
     res.status(500).json({
       error: "Fehler beim Laden der Umfragen",
       details: err.message,
