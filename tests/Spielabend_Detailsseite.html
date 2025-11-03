@@ -101,7 +101,6 @@
 
       .spiel-card {
         background: #ffffff;
-        border: 2px solid var(--highlight);
         border-radius: 1rem;
         padding: 1rem;
         margin-bottom: 1rem;
@@ -141,6 +140,16 @@
 
       .tagessieger {
         background: var(--secondary);
+        color: var(--text);
+        padding: 0.4rem 0.8rem;
+        border-radius: 1rem;
+        display: inline-block;
+        font-weight: 600;
+        margin-top: 0.6rem;
+      }
+
+      .status {
+        background: var(--accent);
         color: var(--text);
         padding: 0.4rem 0.8rem;
         border-radius: 1rem;
@@ -215,25 +224,25 @@
     </div>
     <div class="content">
       <div class="abend-details">
-        <h2>🎲 Spieleabend – 14. Oktober 2025</h2>
+        <h2>
+          Spieleabend vom: <br />
+          14. Oktober 2025
+        </h2>
         <p><strong>Spielleiter:</strong> Max</p>
         <p><strong>Ort:</strong> Bei Anna</p>
-        <p><strong>Status:</strong> Abgeschlossen</p>
-        <span class="tagessieger">🏆 Tagessieger: Lisa (24 Punkte)</span>
+        <div class="status"><strong>Status:</strong> Abgeschlossen</div>
+        <span class="tagessieger">Tagessieger: Lisa (24 Punkte)</span>
 
         <div class="detail-section">
-          <h3>🧑‍🤝‍🧑 Teilnehmer</h3>
+          <h3>Teilnehmer</h3>
           <ul>
             <li>Lisa</li>
             <li>Max</li>
-            <li>Anna</li>
-            <li>Tom</li>
-            <li>Sarah</li>
           </ul>
         </div>
 
         <div class="detail-section">
-          <h3>🎮 Gespielte Spiele</h3>
+          <h3>Gespielte Spiele</h3>
 
           <div class="spiel-card">
             <h4>Uno</h4>

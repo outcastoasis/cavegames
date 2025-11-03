@@ -6,10 +6,10 @@ import {
   CalendarDays,
   Users,
   Gamepad2,
-  UserCircle,
-  Trophy,
+  Calendar,
   CheckCircle2,
   XCircle,
+  MapPinHouse,
 } from "lucide-react";
 import "../styles/pages/Abende.css";
 import EveningCreateModal from "../components/forms/EveningCreateModal";
@@ -32,9 +32,19 @@ export default function Abende() {
   const fetchEvenings = async () => {
     try {
       const res = await API.get("/evenings");
-      const sorted = res.data.sort(
-        (a, b) => new Date(b.date) - new Date(a.date)
-      );
+
+      const sorted = res.data.sort((a, b) => {
+        const aHasDate = !!a.date;
+        const bHasDate = !!b.date;
+
+        if (!aHasDate && bHasDate) return -1; // a ohne Datum zuerst
+        if (aHasDate && !bHasDate) return 1; // b ohne Datum zuerst
+        if (!aHasDate && !bHasDate) return 0; // beide ohne Datum → gleich
+
+        // Beide haben ein Datum → sortiere absteigend (neu zu alt)
+        return new Date(b.date) - new Date(a.date);
+      });
+
       setEvenings(sorted);
     } catch (err) {
       console.error("Fehler beim Laden der Abende:", err);
@@ -123,7 +133,7 @@ export default function Abende() {
 
                 <div className="abend-meta">
                   <div className="meta-item">
-                    <UserCircle size={16} />
+                    <MapPinHouse size={16} />
                     {abend.spielleiterRef?.displayName || "—"}
                   </div>
                   <div className="meta-item">
@@ -137,7 +147,7 @@ export default function Abende() {
                     {abend.games?.length ?? 0} Spiele
                   </div>
                   <div className="meta-item">
-                    <Trophy size={16} />
+                    <Calendar size={16} />
                     Jahr {abend.spieljahr}
                   </div>
                 </div>
