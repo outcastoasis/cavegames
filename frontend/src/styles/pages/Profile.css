@@ -1,0 +1,27 @@
+@import "../variables.css";
+
+.profile-page {
+  padding: var(--spacing-l);
+  margin-top: 60px; /* Platz für fixierten Header */
+  margin-bottom: 4.5rem; /* Platz für Navbar */
+  text-align: center;
+}
+
+.profile-title {
+  font-size: var(--font-size-large);
+  margin-bottom: var(--spacing-m);
+}
+
+.profile-card {
+  background: white;
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-m);
+  padding: var(--spacing-m);
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.profile-info {
+  margin: var(--spacing-s) 0;
+  font-size: var(--font-size-base);
+}
