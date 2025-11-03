@@ -46,7 +46,10 @@ export default function Header({ title = "Spielabend App" }) {
   return (
     <header className="header">
       <div className="header-bar">
-        <div className="header-icon-wrapper">
+        <div
+          className="header-icon-wrapper"
+          onClick={() => navigate("/profil")}
+        >
           <User size={20} strokeWidth={2} />
         </div>
         <span className="header-title">{title}</span>
