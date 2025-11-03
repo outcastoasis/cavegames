@@ -16,7 +16,6 @@ import {
   Trash2,
 } from "lucide-react";
 import "../styles/pages/AbendDetail.css";
-import PollCreateModal from "../components/forms/PollCreateModal";
 import GameAddModal from "../components/forms/GameAddModal";
 
 export default function AbendDetail() {
@@ -26,7 +25,6 @@ export default function AbendDetail() {
 
   const [abend, setAbend] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [showPollModal, setShowPollModal] = useState(false);
   const [showGameModal, setShowGameModal] = useState(false);
   const [busy, setBusy] = useState(false);
   const [editScores, setEditScores] = useState(null);
@@ -327,12 +325,6 @@ export default function AbendDetail() {
               </button>
             )}
 
-            {isSpielleiter && abend.status === "offen" && !abend.pollId && (
-              <button className="button" onClick={() => setShowPollModal(true)}>
-                <CalendarClock size={16} /> Umfrage erstellen
-              </button>
-            )}
-
             {isSpielleiter && abend.status === "fixiert" && (
               <button className="button primary" onClick={handleFinishEvening}>
                 <Trophy size={16} /> Abend abschliessen
@@ -341,14 +333,6 @@ export default function AbendDetail() {
           </div>
         )}
       </div>
-
-      {showPollModal && (
-        <PollCreateModal
-          eveningId={abend._id}
-          onClose={() => setShowPollModal(false)}
-          onSuccess={fetchAbend}
-        />
-      )}
 
       {showGameModal && (
         <GameAddModal

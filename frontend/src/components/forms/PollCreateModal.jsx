@@ -2,6 +2,7 @@
 import { useState } from "react";
 import API from "../../services/api";
 import "../../styles/components/PollCreateModal.css";
+import { useNavigate } from "react-router-dom";
 
 export default function PollCreateModal({ onClose, eveningId, onSuccess }) {
   const [options, setOptions] = useState([{ date: "", time: "" }]);
@@ -58,13 +59,13 @@ export default function PollCreateModal({ onClose, eveningId, onSuccess }) {
                 type="date"
                 value={opt.date}
                 onChange={(e) => handleChange(idx, "date", e.target.value)}
-                className="input"
+                className="input-poll"
               />
               <input
                 type="time"
                 value={opt.time}
                 onChange={(e) => handleChange(idx, "time", e.target.value)}
-                className="input"
+                className="input-poll"
               />
             </div>
             {options.length > 1 && (
@@ -79,7 +80,7 @@ export default function PollCreateModal({ onClose, eveningId, onSuccess }) {
           </div>
         ))}
 
-        <button onClick={addOption} className="button accent small">
+        <button onClick={addOption} className="button accent">
           + Termin hinzufügen
         </button>
 
