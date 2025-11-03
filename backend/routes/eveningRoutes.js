@@ -10,6 +10,8 @@ const {
   updateEvening,
   deleteEvening,
   changeEveningStatus,
+  addParticipant,
+  removeParticipant,
 } = require("../controllers/eveningController");
 
 router.use(checkAuth);
@@ -21,5 +23,7 @@ router.get("/:id", getEveningById);
 router.patch("/:id", updateEvening);
 router.delete("/:id", checkRole("admin"), deleteEvening);
 router.patch("/:id/status", checkRole("admin"), changeEveningStatus);
+router.post("/:id/participants", addParticipant);
+router.delete("/:id/participants/:userId", removeParticipant);
 
 module.exports = router;

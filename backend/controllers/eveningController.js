@@ -162,3 +162,61 @@ exports.changeEveningStatus = async (req, res) => {
     res.status(500).json({ error: "Fehler beim Statuswechsel" });
   }
 };
+
+// 🧍‍♂️ Teilnahme hinzufügen
+exports.addParticipant = async (req, res) => {
+  try {
+    const evening = await Evening.findById(req.params.id);
+    if (!evening) {
+      return res.status(404).json({ error: "Abend nicht gefunden" });
+    }
+
+    const userId = req.user._id || req.user.userId;
+    if (evening.participantIds.includes(userId)) {
+      return res.status(400).json({ error: "Bereits eingetragen." });
+    }
+
+    evening.participantIds.push(userId);
+    await evening.save();
+
+    const updated = await Evening.findById(req.params.id)
+      .populate("spielleiterId", "displayName")
+      .populate("participantIds", "displayName");
+
+    res.json({
+      message: "Teilnahme bestätigt",
+      participants: updated.participantIds,
+    });
+  } catch (err) {
+    console.error("Fehler bei addParticipant:", err.message);
+    res.status(500).json({ error: "Fehler beim Hinzufügen der Teilnahme" });
+  }
+};
+
+// 🚪 Teilnahme entfernen
+exports.removeParticipant = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const evening = await Evening.findById(req.params.id);
+    if (!evening) {
+      return res.status(404).json({ error: "Abend nicht gefunden" });
+    }
+
+    evening.participantIds = evening.participantIds.filter(
+      (id) => id.toString() !== userId.toString()
+    );
+    await evening.save();
+
+    const updated = await Evening.findById(req.params.id)
+      .populate("spielleiterId", "displayName")
+      .populate("participantIds", "displayName");
+
+    res.json({
+      message: "Teilnahme entfernt",
+      participants: updated.participantIds,
+    });
+  } catch (err) {
+    console.error("Fehler bei removeParticipant:", err.message);
+    res.status(500).json({ error: "Fehler beim Entfernen der Teilnahme" });
+  }
+};

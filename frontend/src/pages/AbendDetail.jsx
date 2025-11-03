@@ -123,7 +123,7 @@ export default function AbendDetail() {
         )}
 
         {(isAdmin || isSpielleiter) && (
-          <div className="abend-actions">
+          <div className="abend-detail-actions">
             <button className="button secondary">
               <PlusCircle size={16} /> Spiel hinzufügen
             </button>

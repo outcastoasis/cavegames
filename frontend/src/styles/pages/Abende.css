@@ -1,3 +1,5 @@
+@import "../variables.css";
+
 .abende-page {
   padding: var(--spacing-l) var(--spacing-m);
   max-width: 900px;
@@ -16,26 +18,36 @@
   gap: var(--spacing-m);
 }
 
+/* ====== Karten-Layout ====== */
 .abend-card {
   cursor: pointer;
+  padding: var(--spacing-m);
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-m);
+  transition: transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.abend-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-l);
+}
+
+/* ====== Kopfzeile (Datum + Status) ====== */
+.abend-card-header {
   display: flex;
   justify-content: space-between;
-  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: var(--spacing-s);
+}
+
+.abend-date {
+  display: flex;
   align-items: center;
   gap: var(--spacing-s);
-  padding: var(--spacing-m);
-}
-
-.abend-main {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.abend-info {
-  font-size: var(--font-size-small);
-  color: #444;
-  text-align: right;
+  font-weight: 600;
+  font-size: var(--font-size-large);
+  color: var(--text);
 }
 
 .badge-abende {
@@ -44,17 +56,16 @@
   font-size: var(--font-size-small);
   font-weight: bold;
   text-transform: uppercase;
-  display: inline-block;
-  width: fit-content;
 }
 
+/* ====== Statusfarben ====== */
 .status-offen {
   background-color: var(--accent);
   color: black;
 }
 .status-fixiert {
-  background-color: #fbbf24aa;
-  color: black;
+  background-color: var(--secondary);
+  color: white;
 }
 .status-abgeschlossen {
   background-color: var(--primary);
@@ -65,7 +76,44 @@
   color: white;
 }
 
+/* ====== Meta-Infos ====== */
+.abend-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--spacing-s);
+  margin-top: var(--spacing-s);
+  font-size: var(--font-size-small);
+  color: #444;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
 .date-placeholder {
   color: var(--text-muted);
   font-style: italic;
+}
+
+/* Mobile Optimierung */
+@media (max-width: 600px) {
+  .abend-meta {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ===== Teilnahme-Buttons ===== */
+.abend-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--spacing-s);
+  gap: var(--spacing-s);
+}
+
+.button.small {
+  padding: 0.25rem 0.6rem;
+  font-size: 0.85rem;
+  border-radius: var(--border-radius-full);
 }
