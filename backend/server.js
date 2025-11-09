@@ -43,6 +43,8 @@ app.use("/api/polls", pollRoutes);
 
 app.use("/api/games", require("./routes/gameRoutes"));
 
+app.use("/api/stats", require("./routes/statsRoutes"));
+
 // Server starten
 app.listen(PORT, () => {
   console.log(`Server läuft auf Port ${PORT}`);
