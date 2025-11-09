@@ -42,14 +42,14 @@ export default function YearDetail() {
     <div className="year-detail-page">
       <div className="year-detail-header">
         <h2>Jahr {yearObj.year}</h2>
-        {yearObj.closed && (
+        {yearObj.closed ? (
           <p className="year-status closed">
             Abgeschlossen am:{" "}
             {new Date(yearObj.closedAt).toLocaleDateString("de-CH")}
           </p>
+        ) : (
+          <p className="year-status open">Noch offen</p>
         )}
-        {!yearObj.closed && <p className="year-status open">Noch offen</p>}
-
         <button className="button neutral" onClick={() => navigate(-1)}>
           Zurück
         </button>
@@ -61,23 +61,26 @@ export default function YearDetail() {
         ) : (
           evenings.map((evening) => (
             <div key={evening._id} className="card evening-card">
-              <div>
+              <div className="evening-card-left">
                 <strong>
-                  {new Date(evening.date).toLocaleDateString("de-CH")}
+                  {evening.date
+                    ? new Date(evening.date).toLocaleDateString("de-CH")
+                    : "Kein Datum"}
                 </strong>
                 <p>
                   Status:{" "}
-                  <span className={`badge ${evening.status}`}>
-                    {evening.status.toUpperCase()}
+                  <span className={`badge status-${evening.status}`}>
+                    {evening.status}
                   </span>
                 </p>
               </div>
-              <div>
-                {evening.spielleiterId && (
-                  <p>Spielleiter: {evening.spielleiterId}</p>
-                )}
-                <p>Teilnehmer: {evening.participantIds.length}</p>
-                <p>Spiele: {evening.games.length}</p>
+              <div className="evening-card-right">
+                <p>
+                  Spielleiter:{" "}
+                  {evening.spielleiterRef?.displayName || "Unbekannt"}
+                </p>
+                <p>Teilnehmer: {evening.participantRefs?.length || 0}</p>
+                <p>Spiele: {evening.games?.length || 0}</p>
               </div>
             </div>
           ))

@@ -15,10 +15,12 @@
 
 .year-status.closed {
   color: var(--primary);
+  font-weight: 600;
 }
 
 .year-status.open {
   color: var(--accent);
+  font-weight: 600;
 }
 
 .evening-list {
@@ -30,35 +32,39 @@
 .evening-card {
   display: flex;
   justify-content: space-between;
-  padding: var(--spacing-m);
-  flex-wrap: wrap;
-  gap: var(--spacing-s);
+  gap: var(--spacing-m);
+  margin-bottom: var(--spacing-m);
+}
+
+.evening-card-left,
+.evening-card-right {
+  flex: 1;
 }
 
 .badge {
-  padding: 0.2rem 0.6rem;
-  border-radius: var(--border-radius-full);
-  font-size: var(--font-size-small);
-  font-weight: bold;
-  text-transform: uppercase;
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  font-weight: 600;
+  text-transform: capitalize;
+  display: inline-block;
 }
 
-.badge.offen {
-  background: var(--accent);
+.status-offen {
+  background-color: var(--accent);
   color: black;
 }
 
-.badge.fixiert {
-  background: #fbbf24aa;
-  color: black;
-}
-
-.badge.abgeschlossen {
-  background: var(--primary);
+.status-fixiert {
+  background-color: var(--secondary);
   color: white;
 }
 
-.badge.gesperrt {
-  background: #9ca3af;
+.status-abgeschlossen {
+  background-color: var(--primary);
   color: white;
+}
+
+.status-gesperrt {
+  background-color: var(--neutral);
+  color: var(--text);
 }

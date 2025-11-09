@@ -72,7 +72,6 @@ function checkPollRole(role) {
       req.evening = abend;
       req.poll = poll;
 
-      console.log("✅ checkPollRole durchlaufen:", poll._id, req.user);
       next();
     } catch (err) {
       console.error("❌ Fehler in checkPollRole:", err);

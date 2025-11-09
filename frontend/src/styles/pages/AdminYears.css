@@ -1,5 +1,5 @@
 .admin-years-page {
-  padding: var(--spacing-l) var(--spacing-m);
+  padding: var(--spacing-m);
   max-width: 900px;
   margin: 0 auto;
 }
@@ -9,7 +9,7 @@
   gap: var(--spacing-s);
   margin-bottom: var(--spacing-m);
   flex-wrap: nowrap;
-  align-items: stretch;
+  align-items: baseline;
 }
 
 .year-input {
