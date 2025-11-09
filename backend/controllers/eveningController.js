@@ -320,3 +320,23 @@ exports.deleteEveningGame = async (req, res) => {
     res.status(500).json({ error: "Fehler beim Löschen des Spiels" });
   }
 };
+
+exports.getArchivedEvenings = async (req, res) => {
+  try {
+    const evenings = await Evening.find({ status: "gesperrt" })
+      .populate("spielleiterId", "displayName")
+      .populate("participantIds", "displayName")
+      .sort({ date: -1 });
+
+    const mapped = evenings.map((e) => ({
+      ...e.toObject(),
+      spielleiterRef: e.spielleiterId,
+      participantRefs: e.participantIds,
+    }));
+
+    res.json(mapped);
+  } catch (err) {
+    console.error("Fehler beim Laden der archivierten Abende:", err);
+    res.status(500).json({ error: "Fehler beim Laden der Historie" });
+  }
+};

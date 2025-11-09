@@ -14,6 +14,7 @@ export default function AdminYears() {
   const [newYear, setNewYear] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   useEffect(() => {
     setTitle("Jahresverwaltung");
@@ -21,11 +22,13 @@ export default function AdminYears() {
   }, []);
 
   const fetchYears = async () => {
+    setLoading(true);
     try {
       const res = await API.get("/years");
       setYears(res.data);
+      setError("");
     } catch (err) {
-      console.error("Fehler beim Laden der Jahre:", err);
+      setError("Fehler beim Laden der Jahre.");
     } finally {
       setLoading(false);
     }
@@ -44,17 +47,15 @@ export default function AdminYears() {
   };
 
   const handleCloseYear = async (year) => {
+    setError("");
+    setSuccess("");
     try {
-      await API.post(`/years/${year}/close`);
+      const res = await API.post(`/years/${year}/close`);
+      setSuccess(res.data.message || "Jahr erfolgreich abgeschlossen");
       fetchYears();
     } catch (err) {
-      alert(err.response?.data?.error || "Fehler beim Abschliessen");
+      setError(err.response?.data?.error || "Fehler beim Abschließen.");
     }
-  };
-
-  const isClosable = (yearObj) => {
-    // Platzhalter – kann später durch Backend-Status ersetzt werden
-    return !yearObj.closed;
   };
 
   if (!user || user.role !== "admin") {
@@ -79,7 +80,8 @@ export default function AdminYears() {
         </button>
       </div>
 
-      {error && <div className="alert">{error}</div>}
+      {error && <div className="alert error">{error}</div>}
+      {success && <div className="alert success">{success}</div>}
 
       {loading ? (
         <p>Lade Jahre...</p>
@@ -112,12 +114,13 @@ export default function AdminYears() {
                 >
                   Details
                 </button>
+
                 {!year.closed && (
                   <button
                     className="button danger"
                     onClick={() => handleCloseYear(year.year)}
                   >
-                    Jahr abschliessen
+                    Jahr abschließen
                   </button>
                 )}
               </div>

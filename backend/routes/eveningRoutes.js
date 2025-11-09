@@ -17,11 +17,13 @@ const {
   addEveningGame,
   updateEveningGame,
   deleteEveningGame,
+  getArchivedEvenings,
 } = require("../controllers/eveningController");
 
 router.use(checkAuth);
 
 router.get("/", getEvenings);
+router.get("/archived", getArchivedEvenings);
 router.post("/", checkRole("admin"), createEvening);
 router.get("/:id", getEveningById);
 router.patch("/:id", updateEvening);

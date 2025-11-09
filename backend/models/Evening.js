@@ -26,6 +26,11 @@ const eveningSchema = new mongoose.Schema(
     },
     games: [gameSchema],
     groupPhotoUrl: String,
+
+    // NEU (optional, später per Aggregation setzbar):
+    winnerIds: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    maxPoints: { type: Number },
+    totalPoints: { type: Number }, // für Schnittvergleiche
   },
   { timestamps: true }
 );

@@ -35,15 +35,17 @@ export default function Abende() {
     try {
       const res = await API.get("/evenings");
 
-      const sorted = res.data.sort((a, b) => {
+      // GESPERRTE Abende rausfiltern → nur aktive anzeigen
+      const activeEvenings = res.data.filter((e) => e.status !== "gesperrt");
+
+      const sorted = activeEvenings.sort((a, b) => {
         const aHasDate = !!a.date;
         const bHasDate = !!b.date;
 
-        if (!aHasDate && bHasDate) return -1; // a ohne Datum zuerst
-        if (aHasDate && !bHasDate) return 1; // b ohne Datum zuerst
-        if (!aHasDate && !bHasDate) return 0; // beide ohne Datum → gleich
+        if (!aHasDate && bHasDate) return -1;
+        if (aHasDate && !bHasDate) return 1;
+        if (!aHasDate && !bHasDate) return 0;
 
-        // Beide haben ein Datum → sortiere absteigend (neu zu alt)
         return new Date(b.date) - new Date(a.date);
       });
 

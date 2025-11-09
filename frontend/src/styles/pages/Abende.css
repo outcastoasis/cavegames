@@ -1,7 +1,7 @@
 @import "../variables.css";
 
 .abende-page {
-  padding: var(--spacing-l) var(--spacing-m);
+  padding: var(--spacing-m);
   max-width: 900px;
   margin: 0 auto;
 }

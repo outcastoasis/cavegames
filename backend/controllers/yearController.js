@@ -34,8 +34,19 @@ exports.getYearDetails = async (req, res) => {
     const yearDoc = await Year.findOne({ year });
     if (!yearDoc) return res.status(404).json({ error: "Jahr nicht gefunden" });
 
-    const evenings = await Evening.find({ spieljahr: year }).sort({ date: 1 });
-    res.json({ year: yearDoc, evenings });
+    const evenings = await Evening.find({ spieljahr: year })
+      .sort({ date: 1 })
+      .populate("spielleiterId", "displayName")
+      .populate("participantIds", "displayName");
+
+    // Mapping wie in getEveningById
+    const response = evenings.map((e) => ({
+      ...e.toObject(),
+      spielleiterRef: e.spielleiterId,
+      participantRefs: e.participantIds,
+    }));
+
+    res.json({ year: yearDoc, evenings: response });
   } catch (err) {
     res.status(500).json({ error: "Fehler beim Laden des Jahres" });
   }
@@ -58,9 +69,15 @@ exports.closeYear = async (req, res) => {
         .json({ error: "Nicht alle Abende sind abgeschlossen" });
     }
 
-    // 🧮 Optional: Statistiken generieren (z. B. userStats aggregieren)
-    // TODO: Aggregation oder Verweis auf vorhandene Logik
+    // 🧮 Optional: Statistiken generieren
 
+    // 🧊 NEU: Alle Abende als 'gesperrt' markieren
+    await Evening.updateMany(
+      { spieljahr: year, status: "abgeschlossen" },
+      { $set: { status: "gesperrt" } }
+    );
+
+    // Jahr schließen
     yearDoc.closed = true;
     yearDoc.closedAt = new Date();
     await yearDoc.save();
