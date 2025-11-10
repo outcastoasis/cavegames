@@ -1,71 +1,197 @@
-.modal-overlay {
+/* ===== 🎨 PollCreateModal.css ===== */
+@import "../variables.css";
+
+/* === Overlay === */
+.poll-modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: #00000066;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 1200;
+  backdrop-filter: blur(2px);
 }
 
-.modal {
-  max-width: 480px;
-  width: 90%;
-  padding: var(--spacing-l);
-  background: white;
+/* === Modal === */
+.poll-modal {
+  background: #fff;
   border-radius: var(--card-radius);
-  box-shadow: var(--shadow-l);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+  padding: var(--spacing-l);
+  width: 92%;
+  max-width: 420px;
+  animation: modal-fade-in 0.2s ease-in-out;
 }
 
-.modal-actions {
+@keyframes modal-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* === Titel === */
+.poll-modal h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--primary);
+  text-align: center;
+  margin-bottom: var(--spacing-m);
+}
+
+/* === Formular-Struktur === */
+.poll-modal-form {
   display: flex;
-  justify-content: space-between;
-  margin-top: var(--spacing-m);
+  flex-direction: column;
 }
 
-.error-text {
-  color: var(--danger);
-  font-weight: bold;
-  margin-top: var(--spacing-s);
-}
-
+/* === Terminauswahl (Date + Time + Remove) === */
 .poll-option-row {
-  position: relative;
   margin-bottom: var(--spacing-s);
-  padding-right: 1.5rem; /* Platz für das X */
 }
 
 .poll-input-group {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 42px;
   gap: var(--spacing-s);
+  align-items: stretch; /* statt center → gleiche Höhe */
 }
 
-.input-poll {
+/* === Inputs === */
+.poll-input-group .input {
   width: 100%;
-  padding: 0.4rem 0.6rem;
+  height: 42px;
+  padding: 0 0.75rem;
   border-radius: var(--border-radius-sm);
-  border: 1px solid var(--neutral);
-  margin-top: 0.2rem;
-  margin-bottom: 0.3rem;
+  border: 1px solid var(--neutral-dark);
+  background: var(--bg);
+  font-family: inherit;
+  font-size: var(--font-size-base);
+  display: block; /* kein flex mehr, sonst vertikal verschoben */
+  box-sizing: border-box;
+  transition: border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
-.remove-option {
-  position: absolute;
-  top: 50%;
-  right: 0.2rem;
-  transform: translateY(-50%);
-  font-size: 1.2rem;
-  color: var(--danger);
-  font-weight: bold;
+.poll-input-group .input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(109, 40, 217, 0.25);
+  outline: none;
+}
+
+/* === Entfernen-Button (✕) === */
+.poll-remove-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  margin: 0; /* keine Abstände */
+  background: linear-gradient(180deg, #f87171, var(--danger));
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  border-radius: var(--border-radius-sm);
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
   cursor: pointer;
-  line-height: 1;
-  transition: opacity var(--transition-fast);
+  transition: transform var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
-.remove-option:hover {
-  opacity: 0.8;
+.poll-remove-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.poll-remove-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+/* === Termin hinzufügen === */
+.poll-add-btn {
+  align-self: flex-start;
+  background: linear-gradient(180deg, #fde047, var(--accent));
+  color: #1f2937;
+  font-weight: 600;
+  border: none;
+  padding: 0.55rem 1.1rem;
+  border-radius: var(--border-radius-full);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.poll-add-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.25);
+}
+
+/* === Fehlertext === */
+.poll-error-text {
+  color: var(--danger);
+  font-weight: 600;
+  font-size: var(--font-size-small);
+  margin-top: -0.25rem;
+}
+
+/* === Footer-Aktionen === */
+.poll-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-s);
+  margin-top: var(--spacing-m);
+}
+
+/* === Mobile Optimierung === */
+@media (max-width: 420px) {
+  .poll-modal {
+    padding: var(--spacing-m);
+    max-width: 300px; /* etwas breiter für 3 Spalten */
+  }
+
+  /* 3 Spalten auch mobil beibehalten */
+  .poll-input-group {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 42px;
+    gap: var(--spacing-xs);
+  }
+
+  .poll-input-group .input,
+  .poll-remove-btn {
+    height: 40px;
+  }
+
+  .poll-modal-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* Nur bei sehr kleinen Displays umbrechen */
+@media (max-width: 320px) {
+  .poll-input-group {
+    grid-template-columns: 1fr 1fr;
+  }
+  .poll-remove-btn {
+    grid-column: 1 / -1;
+    width: 100%;
+    height: 34px;
+  }
+}
+
+input[type="date"],
+input[type="time"] {
+  line-height: normal;
+  -webkit-appearance: none;
+  appearance: none;
+  padding-top: 0;
+  padding-bottom: 0;
+  vertical-align: middle;
 }

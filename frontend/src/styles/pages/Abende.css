@@ -1,5 +1,6 @@
 @import "../variables.css";
 
+/* ====== Seitenlayout ====== */
 .abende-page {
   padding: var(--spacing-m);
   max-width: 900px;
@@ -12,25 +13,42 @@
   justify-content: flex-end;
 }
 
+/* ====== Liste & Karten ====== */
 .abend-list {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-m);
 }
 
-/* ====== Karten-Layout ====== */
 .abend-card {
-  cursor: pointer;
-  padding: var(--spacing-m);
+  background: #fff;
   border-radius: var(--card-radius);
-  box-shadow: var(--shadow-m);
+  padding: var(--spacing-m);
+  cursor: pointer;
+  /* weiche, moderne Schatten statt --shadow-m */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   transition: transform var(--transition-fast),
     box-shadow var(--transition-fast);
+  border-left: 6px solid transparent; /* Statusindikator */
 }
 
 .abend-card:hover {
   transform: translateY(-3px);
-  box-shadow: var(--shadow-l);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.14);
+}
+
+/* dezente Status-Markierung am Kartenrand */
+.abend-card.status-offen {
+  border-left-color: var(--secondary);
+}
+.abend-card.status-fixiert {
+  border-left-color: var(--accent);
+}
+.abend-card.status-abgeschlossen {
+  border-left-color: var(--primary);
+}
+.abend-card.status-gesperrt {
+  border-left-color: var(--neutral-dark);
 }
 
 /* ====== Kopfzeile (Datum + Status) ====== */
@@ -50,30 +68,32 @@
   color: var(--text);
 }
 
+/* ====== Status-Badge ====== */
 .badge-abende {
-  padding: 0.3rem 0.6rem;
+  padding: 0.3rem 0.8rem;
   border-radius: var(--border-radius-full);
   font-size: var(--font-size-small);
-  font-weight: bold;
+  font-weight: 600;
   text-transform: uppercase;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.3);
 }
 
-/* ====== Statusfarben ====== */
+/* neue Farblogik passend zur variables.css */
 .status-offen {
-  background-color: var(--accent);
-  color: black;
+  background: var(--secondary);
+  color: #fff;
 }
 .status-fixiert {
-  background-color: var(--secondary);
-  color: white;
+  background: var(--accent);
+  color: #1f2937;
 }
 .status-abgeschlossen {
-  background-color: var(--primary);
-  color: white;
+  background: var(--primary);
+  color: #fff;
 }
 .status-gesperrt {
-  background-color: #9ca3af;
-  color: white;
+  background: var(--neutral-dark);
+  color: #fff;
 }
 
 /* ====== Meta-Infos ====== */
@@ -83,25 +103,19 @@
   gap: var(--spacing-s);
   margin-top: var(--spacing-s);
   font-size: var(--font-size-small);
-  color: #444;
+  color: var(--text-muted);
 }
 
 .meta-item {
   display: flex;
   align-items: center;
   gap: 0.3rem;
+  color: var(--text);
 }
 
 .date-placeholder {
-  color: var(--text-muted);
+  color: var(--neutral-dark);
   font-style: italic;
-}
-
-/* Mobile Optimierung */
-@media (max-width: 600px) {
-  .abend-meta {
-    grid-template-columns: repeat(2, 1fr);
-  }
 }
 
 /* ===== Teilnahme-Buttons ===== */
@@ -112,8 +126,109 @@
   gap: var(--spacing-s);
 }
 
+/* nur Größe anpassen – 3D/Shadow kommt aus .button in variables.css */
 .button.small {
-  padding: 0.25rem 0.6rem;
+  padding: 0.45rem 1rem;
   font-size: 0.85rem;
   border-radius: var(--border-radius-full);
 }
+
+/* ====== Mobile ====== */
+@media (max-width: 600px) {
+  .abend-meta {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .abend-card {
+    padding: var(--spacing-s);
+  }
+
+  .badge-abende {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.6rem;
+  }
+
+  .button.small {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Toggle auf Mobile nach rechts verschieben */
+  .abend-toggle-wrapper {
+    justify-content: flex-end;
+    margin-top: var(--spacing-s);
+  }
+
+  .toggle-label.small {
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    gap: 0.4rem;
+  }
+
+  .toggle-text {
+    font-size: 0.9rem;
+  }
+}
+
+.abend-toggle-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-top: var(--spacing-s);
+}
+
+.toggle-label.small {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  font-weight: 600;
+  user-select: none;
+  font-size: 0.9rem;
+}
+
+.toggle-label.small input {
+  display: none;
+}
+
+.toggle-slider {
+  width: 44px;
+  height: 24px;
+  background: var(--neutral-dark);
+  border-radius: 999px;
+  position: relative;
+  transition: all 0.25s ease;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-slider::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.25s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+/* Aktivzustand */
+.toggle-label.small input:checked + .toggle-slider {
+  background: linear-gradient(180deg, #4ade80, #059669);
+}
+
+.toggle-label.small input:checked ~ .toggle-text {
+  color: #059669;
+}
+
+.toggle-label.small input:not(:checked) ~ .toggle-text {
+  color: var(--danger);
+}
+
+/* Hover-Effekt */
+.toggle-label.small:hover .toggle-slider {
+  box-shadow: 0 0 0 2px rgba(109, 40, 217, 0.1);
+}
+

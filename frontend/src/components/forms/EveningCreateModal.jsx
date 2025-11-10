@@ -1,7 +1,8 @@
+// src/components/forms/EveningCreateModal.jsx
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import API from "../../services/api";
-import "../../styles/components/EveningCreateModal.css";
+import "../../styles/components/Modal.css";
 
 export default function EveningCreateModal({ onClose, onSuccess }) {
   const [years, setYears] = useState([]);
@@ -23,7 +24,7 @@ export default function EveningCreateModal({ onClose, onSuccess }) {
       ]);
       setYears(yearsRes.data);
       setUsers(usersRes.data.filter((u) => u.active !== false));
-    } catch (err) {
+    } catch {
       setError("Fehler beim Laden der Daten");
     }
   };
@@ -56,8 +57,9 @@ export default function EveningCreateModal({ onClose, onSuccess }) {
 
   return createPortal(
     <div className="modal-overlay">
-      <div className="modal-content">
-        <h3>Neuen Abend erstellen</h3>
+      <div className="modal">
+        <h2>Neuen Abend erstellen</h2>
+
         <form onSubmit={handleSubmit} className="modal-form">
           <label>Spieljahr</label>
           <select
@@ -89,9 +91,9 @@ export default function EveningCreateModal({ onClose, onSuccess }) {
 
           {selectedUserId && <p className="note">Ort: bei {spielleiterName}</p>}
 
-          {error && <div className="alert">{error}</div>}
+          {error && <p className="error-text">{error}</p>}
 
-          <div className="button-row">
+          <div className="modal-actions">
             <button type="button" className="button neutral" onClick={onClose}>
               Abbrechen
             </button>

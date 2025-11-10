@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Teilnahme-Button Demo</title>
+    <style>
+      :root {
+        --primary: #6d28d9;
+        --primary-light: #8b5cf6;
+        --accent: #facc15;
+        --bg: #f9fafb;
+        --text: #1f2937;
+        --danger: #dc2626;
+        --success: #059669;
+        --neutral: #e5e7eb;
+        --neutral-dark: #9ca3af;
+        --border-radius-full: 999px;
+        --card-radius: 0.75rem;
+        --transition: 0.25s ease;
+        font-family: "Poppins", sans-serif;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2rem;
+      }
+
+      h1 {
+        color: var(--primary);
+        margin-bottom: 1rem;
+      }
+
+      /* ===== Variante 1: Toggle Switch ===== */
+      .toggle-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .toggle-label {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        cursor: pointer;
+        font-weight: 600;
+      }
+
+      .toggle-label input {
+        display: none;
+      }
+
+      .slider {
+        width: 50px;
+        height: 28px;
+        background: var(--neutral-dark);
+        border-radius: var(--border-radius-full);
+        position: relative;
+        transition: background var(--transition);
+      }
+
+      .slider::after {
+        content: "";
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 22px;
+        height: 22px;
+        background: white;
+        border-radius: 50%;
+        transition: transform var(--transition);
+      }
+
+      .toggle-label input:checked + .slider {
+        background: linear-gradient(180deg, #4ade80, var(--success));
+      }
+
+      .toggle-label input:checked + .slider::after {
+        transform: translateX(22px);
+      }
+
+      .toggle-label input:checked ~ .toggle-text {
+        color: var(--success);
+      }
+
+      .toggle-label input:not(:checked) ~ .toggle-text {
+        color: var(--danger);
+      }
+
+      /* ===== Variante 2: Segmented Selector ===== */
+      .participation-selector {
+        display: flex;
+        background: var(--neutral);
+        border-radius: var(--border-radius-full);
+        overflow: hidden;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+        width: fit-content;
+      }
+
+      .selector-option {
+        border: none;
+        background: transparent;
+        padding: 0.6rem 1.4rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s, color 0.2s;
+        color: var(--text);
+      }
+
+      .selector-option.active {
+        color: white;
+      }
+
+      .selector-option:first-child.active {
+        background: linear-gradient(180deg, #4ade80, var(--success));
+      }
+
+      .selector-option:last-child.active {
+        background: linear-gradient(180deg, #f87171, var(--danger));
+      }
+
+      .selector-option:not(.active):hover {
+        background: rgba(0, 0, 0, 0.05);
+      }
+
+      /* ===== Variante 3: Card Style ===== */
+      .choice-cards {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 0.5rem;
+        flex-wrap: wrap;
+      }
+
+      .choice-card {
+        flex: 1;
+        max-width: 140px;
+        background: var(--neutral);
+        border-radius: var(--card-radius);
+        padding: 1rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all var(--transition);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        color: var(--text);
+        font-weight: 600;
+      }
+
+      .choice-card.selected {
+        transform: scale(1.05);
+        color: white;
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+      }
+
+      .choice-card:first-child.selected {
+        background: linear-gradient(180deg, #4ade80, var(--success));
+      }
+
+      .choice-card:last-child.selected {
+        background: linear-gradient(180deg, #f87171, var(--danger));
+      }
+
+      .choice-card span {
+        display: block;
+        margin-top: 0.3rem;
+        font-size: 1rem;
+      }
+
+      .demo-box {
+        background: white;
+        padding: 1.5rem;
+        border-radius: var(--card-radius);
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+        width: 280px;
+        text-align: center;
+      }
+
+      .demo-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--primary);
+        margin-bottom: 0.8rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Teilnahme-UI Demos</h1>
+
+    <!-- Variante 1 -->
+    <div class="demo-box">
+      <div class="demo-title">1️⃣ Toggle-Switch</div>
+      <div class="toggle-container">
+        <label class="toggle-label">
+          <input type="checkbox" id="toggleSwitch" />
+          <span class="slider"></span>
+          <span class="toggle-text">Ich bin weg</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Variante 2 -->
+    <div class="demo-box">
+      <div class="demo-title">2️⃣ Segmented Selector</div>
+      <div class="participation-selector">
+        <button id="seg-join" class="selector-option active">Dabei</button>
+        <button id="seg-leave" class="selector-option">Weg</button>
+      </div>
+    </div>
+
+    <!-- Variante 3 -->
+    <div class="demo-box">
+      <div class="demo-title">3️⃣ Card-Choice</div>
+      <div class="choice-cards">
+        <div id="card-join" class="choice-card selected">
+          👍
+          <span>Dabei</span>
+        </div>
+        <div id="card-leave" class="choice-card">
+          🚫
+          <span>Weg</span>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // --- Variante 1 ---
+      const toggle = document.getElementById("toggleSwitch");
+      const text = document.querySelector(".toggle-text");
+      toggle.addEventListener("change", () => {
+        text.textContent = toggle.checked ? "Ich nehme teil" : "Ich bin weg";
+      });
+
+      // --- Variante 2 ---
+      const segJoin = document.getElementById("seg-join");
+      const segLeave = document.getElementById("seg-leave");
+      function updateSegment(selected) {
+        segJoin.classList.toggle("active", selected === "join");
+        segLeave.classList.toggle("active", selected === "leave");
+      }
+      segJoin.onclick = () => updateSegment("join");
+      segLeave.onclick = () => updateSegment("leave");
+
+      // --- Variante 3 ---
+      const cardJoin = document.getElementById("card-join");
+      const cardLeave = document.getElementById("card-leave");
+      cardJoin.onclick = () => {
+        cardJoin.classList.add("selected");
+        cardLeave.classList.remove("selected");
+      };
+      cardLeave.onclick = () => {
+        cardLeave.classList.add("selected");
+        cardJoin.classList.remove("selected");
+      };
+    </script>
+  </body>
+</html>

@@ -1,5 +1,6 @@
-/* 📄 styles/pages/AbendDetail.css – mobile-optimiert & verbessert */
+@import "../variables.css";
 
+/* ====== Container & Grundlayout ====== */
 .abenddetail-container {
   padding: var(--spacing-m);
   max-width: 900px;
@@ -13,57 +14,68 @@
   margin-bottom: var(--spacing-m);
 }
 
-/* === Hauptkarte === */
+/* ====== Hauptkarte ====== */
 .abenddetail-card {
+  background: #fff;
+  border-radius: var(--card-radius);
   padding: var(--spacing-l);
   margin-bottom: var(--spacing-l);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: box-shadow var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.abenddetail-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 14px rgba(0, 0, 0, 0.15);
 }
 
 .abenddetail-title {
   font-size: var(--font-size-large);
+  font-weight: 600;
   margin-bottom: var(--spacing-s);
 }
 
-/* === Statusanzeige === */
+/* ====== Statusanzeige ====== */
 .abenddetail-status {
   display: inline-block;
   font-weight: 600;
   padding: var(--spacing-xs) var(--spacing-m);
   border-radius: var(--border-radius-full);
   text-transform: capitalize;
-  box-shadow: var(--shadow-s);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.3);
   margin: var(--spacing-xs) 0;
 }
 
 .abenddetail-status.offen {
-  background-color: var(--secondary);
-  color: white;
+  background: var(--secondary);
+  color: #fff;
 }
 
 .abenddetail-status.fixiert {
-  background-color: var(--accent);
-  color: black;
+  background: var(--accent);
+  color: #1f2937;
 }
 
 .abenddetail-status.abgeschlossen {
-  background-color: var(--primary);
-  color: white;
+  background: var(--primary);
+  color: #fff;
 }
 
-/* === Teilnahme-Buttons === */
-.abenddetail-teilnahme {
+/* ====== Tagessieger / Alert ====== */
+.abenddetail-winner {
   margin: var(--spacing-m) 0;
+  background: var(--accent);
+  color: var(--text);
+  padding: var(--spacing-s) var(--spacing-m);
+  border-radius: var(--border-radius-sm);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
   gap: var(--spacing-s);
 }
 
-/* === Tagessieger === */
-.abenddetail-winner {
-  margin: var(--spacing-m) 0;
-}
-
-/* === Sektionen === */
+/* ====== Sektionen ====== */
 .abenddetail-section {
   margin-top: var(--spacing-l);
 }
@@ -73,12 +85,14 @@
   align-items: center;
   gap: var(--spacing-s);
   margin-bottom: var(--spacing-s);
+  font-size: var(--font-size-base);
+  font-weight: 600;
 }
 
-/* === Teilnehmerliste === */
+/* ====== Teilnehmerliste ====== */
 .abenddetail-list {
   list-style: none;
-  padding-left: 0;
+  padding: 0;
   margin-top: var(--spacing-s);
   display: flex;
   flex-wrap: wrap;
@@ -86,36 +100,42 @@
 }
 
 .abenddetail-list li {
-  background-color: #e5e7eb; /* etwas heller als var(--neutral) */
+  background: var(--neutral);
   padding: var(--spacing-s) var(--spacing-m);
   border-radius: var(--border-radius-sm);
   font-size: var(--font-size-small);
   font-weight: 500;
   color: var(--text);
-  box-shadow: var(--shadow-s);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-/* === Spiele === */
+/* ====== Spieleliste ====== */
 .abenddetail-game {
   margin-top: var(--spacing-m);
   padding: var(--spacing-m);
+  background: #fff;
+  border-radius: var(--card-radius);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
 }
 
 .abenddetail-game-header {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-s);
   align-items: flex-start;
+  gap: var(--spacing-s);
   margin-bottom: var(--spacing-s);
 }
 
-/* Spieletitel betont */
 .abenddetail-game-header h4 {
-  font-size: 1.1rem;
-  font-weight: 600;
+  font-size: 1.3rem; /* größer */
+  font-weight: 700; /* stärker betont */
   color: var(--primary);
-  text-shadow: 0 1px 2px #00000015;
+  letter-spacing: 0.3px;
   margin: 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15); /* leichte Tiefe */
+  border-bottom: 2px solid var(--primary); /* visuelle Trennung */
+  display: inline-block;
+  padding-bottom: 0.2rem;
 }
 
 .abenddetail-game-actions {
@@ -124,10 +144,11 @@
   flex-wrap: wrap;
 }
 
-/* === Punkte === */
+/* ====== Punkteanzeige ====== */
 .abenddetail-score-list {
   list-style: none;
   padding: 0;
+
   margin: 0;
 }
 
@@ -136,7 +157,7 @@
   justify-content: space-between;
   align-items: center;
   padding: var(--spacing-s) 0;
-  border-bottom: 1px solid var(--neutral);
+  border-bottom: 1px solid var(--neutral-dark);
 }
 
 .abenddetail-score-item span:last-child {
@@ -149,22 +170,22 @@
   width: 80px;
   text-align: right;
   font-weight: bold;
-  border: 1px solid var(--neutral);
+  border: 1px solid var(--neutral-dark);
   border-radius: var(--border-radius-sm);
   padding: var(--spacing-xs);
 }
 
-/* === Gruppenfoto === */
+/* ====== Gruppenfoto ====== */
 .abenddetail-photo {
   width: 100%;
   max-height: 400px;
   object-fit: cover;
   border-radius: var(--border-radius-sm);
   margin-top: var(--spacing-s);
-  box-shadow: var(--shadow-s);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
 }
 
-/* === Footer-Buttons === */
+/* ====== Footer-Buttons ====== */
 .abenddetail-actions {
   margin-top: var(--spacing-l);
   display: flex;
@@ -172,15 +193,15 @@
   gap: var(--spacing-s);
 }
 
-/* === Ladezustand & Fehler === */
+/* ====== Ladezustand & Fehler ====== */
 .abenddetail-loading,
 .abenddetail-error {
   text-align: center;
-  font-weight: bold;
+  font-weight: 600;
   margin-top: var(--spacing-l);
 }
 
-/* === Mobile Anpassungen === */
+/* ====== Mobile ====== */
 @media (max-width: 600px) {
   .abenddetail-card {
     padding: var(--spacing-m);
@@ -191,13 +212,10 @@
   }
 
   .abenddetail-game-actions {
-    flex-direction: column;
-    gap: var(--spacing-xs);
-  }
-
-  .abenddetail-teilnahme {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row; /* nebeneinander */
+    flex-wrap: wrap; /* bei Platzmangel umbrechen */
+    justify-content: flex-start;
+    gap: var(--spacing-s); /* etwas Abstand */
   }
 
   .abenddetail-actions {
@@ -227,5 +245,99 @@
 
   .abenddetail-score-item span:last-child {
     font-size: 1.1rem;
+  }
+}
+
+/* ====== Teilnahme-Bereich klar integriert ====== */
+.abenddetail-teilnahme-section {
+  background: var(--bg);
+  border-radius: var(--card-radius);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  text-align: left;
+}
+
+.abenddetail-section-title {
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: var(--spacing-s);
+}
+
+.toggle-wrapper {
+  display: flex;
+  justify-content: left;
+  align-items: center;
+  gap: var(--spacing-s);
+}
+
+/* Toggle überarbeitet */
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  font-weight: 600;
+  user-select: none;
+  justify-content: center;
+}
+
+.toggle-label input {
+  display: none;
+}
+
+.toggle-slider {
+  width: 56px;
+  height: 32px;
+  background: var(--neutral-dark);
+  border-radius: 999px;
+  position: relative;
+  transition: all 0.25s ease;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.toggle-slider::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 26px;
+  height: 26px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.25s ease;
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.25);
+}
+
+/* Aktivzustand */
+.toggle-label input:checked + .toggle-slider {
+  background: linear-gradient(180deg, #4ade80, #059669);
+}
+
+.toggle-label input:checked + .toggle-slider::after {
+  transform: translateX(24px);
+}
+
+.toggle-label input:checked ~ .toggle-text {
+  color: #059669;
+}
+
+.toggle-label input:not(:checked) ~ .toggle-text {
+  color: var(--danger);
+}
+
+/* Schrift eleganter, weniger grell */
+.toggle-text {
+  font-weight: 500;
+  font-size: 1rem;
+}
+
+/* Hover / Fokus */
+.toggle-label:hover .toggle-slider {
+  box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.1);
+}
+
+/* Mobile Optimierung */
+@media (max-width: 600px) {
+  .toggle-text {
+    font-size: 0.95rem;
   }
 }

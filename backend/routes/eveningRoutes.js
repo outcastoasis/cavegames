@@ -3,6 +3,7 @@ const router = express.Router();
 const checkAuth = require("../middleware/checkAuth");
 const checkRole = require("../middleware/checkRole");
 const { checkEveningRole } = require("../middleware/checkEveningRole");
+const eveningController = require("../controllers/eveningController");
 
 const {
   getEvenings,
@@ -31,6 +32,7 @@ router.delete("/:id", checkRole("admin"), deleteEvening);
 router.patch("/:id/status", checkRole("admin"), changeEveningStatus);
 router.post("/:id/participants", addParticipant);
 router.delete("/:id/participants/:userId", removeParticipant);
+router.patch("/:id/recalculate", eveningController.recalculateEveningStats);
 
 router.get("/:id/games", getEveningGames);
 router.post("/:id/games", checkEveningRole("spielleiter"), addEveningGame);

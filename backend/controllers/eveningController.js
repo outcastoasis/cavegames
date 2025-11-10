@@ -1,5 +1,6 @@
 // backend/controllers/eveningController.js
 const Evening = require("../models/Evening");
+const { calculateEveningStats } = require("../utils/stats");
 
 exports.getEvenings = async (req, res) => {
   try {
@@ -151,8 +152,15 @@ exports.changeEveningStatus = async (req, res) => {
   try {
     const { status } = req.body;
     const evening = await Evening.findById(req.params.id);
+
     if (!evening)
       return res.status(404).json({ error: "Abend nicht gefunden" });
+
+    // Nur bei fixiert → abgeschlossen berechnen
+    if (status === "abgeschlossen" && evening.status === "fixiert") {
+      const stats = await calculateEveningStats(evening);
+      Object.assign(evening, stats);
+    }
 
     evening.status = status;
     await evening.save();
@@ -170,6 +178,12 @@ exports.addParticipant = async (req, res) => {
     const evening = await Evening.findById(req.params.id);
     if (!evening) {
       return res.status(404).json({ error: "Abend nicht gefunden" });
+    }
+
+    if (evening.status === "abgeschlossen" && req.user.role !== "admin") {
+      return res
+        .status(400)
+        .json({ error: "Abend ist abgeschlossen – Änderungen nicht erlaubt" });
     }
 
     const userId = req.user._id || req.user.userId;
@@ -201,6 +215,12 @@ exports.removeParticipant = async (req, res) => {
     const evening = await Evening.findById(req.params.id);
     if (!evening) {
       return res.status(404).json({ error: "Abend nicht gefunden" });
+    }
+
+    if (evening.status === "abgeschlossen" && req.user.role !== "admin") {
+      return res
+        .status(400)
+        .json({ error: "Abend ist abgeschlossen – Änderungen nicht erlaubt" });
     }
 
     evening.participantIds = evening.participantIds.filter(
@@ -253,6 +273,12 @@ exports.addEveningGame = async (req, res) => {
       return res.status(404).json({ error: "Abend nicht gefunden" });
     }
 
+    if (evening.status === "abgeschlossen" && req.user.role !== "admin") {
+      return res
+        .status(400)
+        .json({ error: "Abend ist abgeschlossen – Hinzufügen nicht erlaubt" });
+    }
+
     // Initial Scores: alle Teilnehmer starten mit 0 Punkten
     const scores = evening.participantIds.map((p) => ({
       userId: p._id,
@@ -284,6 +310,12 @@ exports.updateEveningGame = async (req, res) => {
       return res.status(404).json({ error: "Abend nicht gefunden" });
     }
 
+    if (evening.status === "abgeschlossen" && req.user.role !== "admin") {
+      return res
+        .status(400)
+        .json({ error: "Abend ist abgeschlossen – Bearbeitung nicht erlaubt" });
+    }
+
     const entry = evening.games.id(gameEntryId);
     if (!entry) {
       return res.status(404).json({ error: "Spieleintrag nicht gefunden" });
@@ -307,6 +339,12 @@ exports.deleteEveningGame = async (req, res) => {
     const evening = await Evening.findById(req.params.id);
     if (!evening) {
       return res.status(404).json({ error: "Abend nicht gefunden" });
+    }
+
+    if (evening.status === "abgeschlossen" && req.user.role !== "admin") {
+      return res
+        .status(400)
+        .json({ error: "Abend ist abgeschlossen – Bearbeitung nicht erlaubt" });
     }
 
     evening.games = evening.games.filter(
@@ -338,5 +376,24 @@ exports.getArchivedEvenings = async (req, res) => {
   } catch (err) {
     console.error("Fehler beim Laden der archivierten Abende:", err);
     res.status(500).json({ error: "Fehler beim Laden der Historie" });
+  }
+};
+
+exports.recalculateEveningStats = async (req, res) => {
+  try {
+    const evening = await Evening.findById(req.params.id);
+    if (!evening) {
+      return res.status(404).json({ error: "Abend nicht gefunden" });
+    }
+
+    // Nur erlaubt für Admins (Frontend prüft das), Backend kann später erweitern
+    const stats = await calculateEveningStats(evening);
+    Object.assign(evening, stats);
+    await evening.save();
+
+    res.json({ message: "Statistiken aktualisiert", stats });
+  } catch (err) {
+    console.error("Fehler bei Recalculate:", err);
+    res.status(500).json({ error: "Fehler beim Neuberechnen" });
   }
 };

@@ -31,6 +31,26 @@ const eveningSchema = new mongoose.Schema(
     winnerIds: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     maxPoints: { type: Number },
     totalPoints: { type: Number }, // für Schnittvergleiche
+    placements: [
+      {
+        userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        place: Number,
+      },
+    ],
+    playerPoints: [
+      {
+        userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        points: Number,
+      },
+    ],
+    gameCount: [
+      {
+        gameId: { type: mongoose.Schema.Types.ObjectId, ref: "Game" },
+        count: Number,
+      },
+    ],
+    participantCount: Number,
+    gamesPlayedCount: Number,
   },
   { timestamps: true }
 );
