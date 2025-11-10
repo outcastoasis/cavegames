@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import API from "../../services/api";
-import "../../styles/components/UserCreateModal.css";
+import "../../styles/components/Modal.css";
 
 export default function UserCreateModal({ onClose, onSuccess }) {
   const [form, setForm] = useState({
@@ -37,7 +37,7 @@ export default function UserCreateModal({ onClose, onSuccess }) {
 
     try {
       await API.post("/users", form);
-      onSuccess(); // Benutzerliste neu laden
+      onSuccess();
       onClose();
     } catch (err) {
       setError(err.response?.data?.error || "Fehler beim Erstellen.");
@@ -47,34 +47,42 @@ export default function UserCreateModal({ onClose, onSuccess }) {
 
   return createPortal(
     <div className="modal-overlay">
-      <div className="modal-content">
-        <h3>Neuen Benutzer erstellen</h3>
-        <form onSubmit={handleSubmit} className="user-form">
+      <div className="modal">
+        <h2>Neuen Benutzer erstellen</h2>
+
+        <form onSubmit={handleSubmit} className="modal-form">
+          <label>Anzeigename</label>
           <input
             className="input"
             name="displayName"
-            placeholder="Anzeigename"
+            placeholder="z. B. Jascha Bucher"
             value={form.displayName}
             onChange={handleChange}
             required
           />
+
+          <label>Benutzername</label>
           <input
             className="input"
             name="username"
-            placeholder="Benutzername"
+            placeholder="z. B. jascha"
             value={form.username}
             onChange={handleChange}
             required
           />
+
+          <label>Passwort</label>
           <input
             className="input"
             name="password"
             type="password"
-            placeholder="Passwort"
+            placeholder="Mind. 6 Zeichen"
             value={form.password}
             onChange={handleChange}
             required
           />
+
+          <label>Rolle</label>
           <select
             className="input"
             name="role"
@@ -85,13 +93,18 @@ export default function UserCreateModal({ onClose, onSuccess }) {
             <option value="admin">Admin</option>
           </select>
 
-          {error && <div className="alert">{error}</div>}
+          {error && <p className="error-text">{error}</p>}
 
-          <div className="button-row">
-            <button type="button" className="button neutral" onClick={onClose}>
+          <div className="modal-actions">
+            <button
+              type="button"
+              className="button neutral"
+              onClick={onClose}
+              disabled={loading}
+            >
               Abbrechen
             </button>
-            <button type="submit" className="button" disabled={loading}>
+            <button type="submit" className="button primary" disabled={loading}>
               {loading ? "Speichere..." : "Erstellen"}
             </button>
           </div>

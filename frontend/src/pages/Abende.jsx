@@ -157,24 +157,29 @@ export default function Abende() {
                   </div>
 
                   <div className="abend-actions">
-                    {isFixiert &&
-                      (isTeilnehmer ? (
-                        <button
-                          className="button danger small"
-                          onClick={() => handleLeave(abend._id)}
-                          disabled={busy}
-                        >
-                          <XCircle size={14} /> Ich bin weg
-                        </button>
-                      ) : (
-                        <button
-                          className="button primary small"
-                          onClick={() => handleJoin(abend._id)}
-                          disabled={busy}
-                        >
-                          <CheckCircle2 size={14} /> Ich nehme teil
-                        </button>
-                      ))}
+                    {isFixiert && (
+                      <div
+                        className="abend-toggle-wrapper"
+                        onClick={(e) => e.stopPropagation()} // verhindert, dass Karte klickbar bleibt
+                      >
+                        <label className="toggle-label small">
+                          <input
+                            type="checkbox"
+                            checked={isTeilnehmer}
+                            onChange={(e) =>
+                              e.target.checked
+                                ? handleJoin(abend._id)
+                                : handleLeave(abend._id)
+                            }
+                            disabled={busy}
+                          />
+                          <span className="toggle-slider"></span>
+                          <span className="toggle-text">
+                            {isTeilnehmer ? "Dabei" : "Weg"}
+                          </span>
+                        </label>
+                      </div>
+                    )}
 
                     {/* NEU: Button für Umfrage nur für Spielleiter, offen & ohne Poll */}
                     {isSpielleiter && isOffen && !hasPoll && (

@@ -21,6 +21,7 @@ const userStatSchema = new mongoose.Schema(
     totalPossibleEvenings: { type: Number, default: 0 }, // Für Teilnahmequote
     secondPlaces: { type: Number, default: 0 },
     thirdPlaces: { type: Number, default: 0 },
+    winRate: { type: Number, default: 0 }, // in Prozent
   },
   { timestamps: true }
 );

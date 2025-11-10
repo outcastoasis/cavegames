@@ -1,0 +1,182 @@
+@import "../variables.css";
+
+/* ====== Overlay ====== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+}
+
+/* ====== Modal-Container ====== */
+.modal {
+  background: #fff;
+  border-radius: var(--card-radius);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+  padding: var(--spacing-l);
+  width: 92%;
+  max-width: 420px;
+  transition: all var(--transition-fast);
+  animation: modal-fade-in 0.15s ease-in;
+}
+
+@keyframes modal-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ====== Titel & Struktur ====== */
+.modal h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: var(--spacing-m);
+  text-align: center;
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-m);
+}
+
+/* ====== Labels & Inputs ====== */
+.modal-form label {
+  font-weight: 600;
+  font-size: var(--font-size-small);
+  color: var(--text);
+}
+
+.input,
+.input-poll,
+select.input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--neutral-dark);
+  border-radius: var(--border-radius-sm);
+  background: var(--bg);
+  font-family: inherit;
+  font-size: var(--font-size-base);
+  transition: border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.input:focus,
+.input-poll:focus,
+select.input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(109, 40, 217, 0.2);
+}
+
+/* ====== Checkboxen ====== */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-s);
+  font-size: var(--font-size-small);
+  color: var(--text);
+}
+
+/* ====== Hinweistext ====== */
+.note,
+.error-text {
+  font-size: var(--font-size-small);
+}
+
+.note {
+  color: var(--text-muted);
+  margin-top: -0.3rem;
+}
+
+.error-text {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+/* ====== Option-Row (z. B. Polls) ====== */
+.poll-option-row {
+  position: relative;
+  margin-bottom: var(--spacing-s);
+}
+
+.poll-input-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-s);
+}
+
+.remove-option {
+  position: absolute;
+  top: 50%;
+  right: 0.3rem;
+  transform: translateY(-50%);
+  font-size: 1.1rem;
+  color: var(--danger);
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+
+.remove-option:hover {
+  opacity: 0.8;
+}
+
+/* ====== Button-Reihe ====== */
+.modal-actions,
+.button-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-s);
+  margin-top: var(--spacing-m);
+}
+
+/* ====== Mobile ====== */
+@media (max-width: 600px) {
+  .modal {
+    width: 92%;
+    max-width: 300px;
+    padding: var(--spacing-m);
+  }
+
+  .modal-actions,
+  .button-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  .button {
+    width: auto; /* verhindert Vollbreite */
+    min-width: 120px; /* optional: konsistente Größe */
+    justify-content: center;
+  }
+}
+
+/* Vereinheitlichung Input und Select-Breite */
+.input,
+select.input {
+  width: 100%;
+  box-sizing: border-box;
+  appearance: none; /* entfernt Browser-Styling */
+  background-color: var(--bg);
+  font-family: inherit;
+  font-size: var(--font-size-base);
+}
+
+select.input {
+  background-image: url("data:image/svg+xml;utf8,<svg fill='%231f2937' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'><path d='M7 7l3 3 3-3' /></svg>");
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  background-size: 2rem;
+  padding-right: 2rem; /* Platz für Pfeil */
+}

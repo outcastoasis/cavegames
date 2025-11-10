@@ -28,7 +28,6 @@ export default function AbendDetail() {
   const [showGameModal, setShowGameModal] = useState(false);
   const [busy, setBusy] = useState(false);
   const [editScores, setEditScores] = useState(null);
-  const [winner, setWinner] = useState(null);
 
   useEffect(() => {
     fetchAbend();
@@ -38,26 +37,11 @@ export default function AbendDetail() {
     try {
       const res = await API.get(`/evenings/${id}`);
       setAbend(res.data);
-      calculateWinner(res.data);
     } catch (err) {
       console.error("Fehler beim Laden des Abends:", err);
     } finally {
       setLoading(false);
     }
-  };
-
-  const calculateWinner = (abendData) => {
-    if (!abendData?.games?.length) return setWinner(null);
-    const scoreMap = {};
-    abendData.games.forEach((g) => {
-      g.scores.forEach((s) => {
-        scoreMap[s.userName] = (scoreMap[s.userName] || 0) + (s.points || 0);
-      });
-    });
-    const sorted = Object.entries(scoreMap).sort((a, b) => b[1] - a[1]);
-    setWinner(
-      sorted.length ? { name: sorted[0][0], points: sorted[0][1] } : null
-    );
   };
 
   const handleJoin = async () => {
@@ -131,6 +115,7 @@ export default function AbendDetail() {
       });
       setEditScores(null);
       await fetchAbend();
+      await API.patch(`/evenings/${id}/recalculate`);
     } catch (err) {
       alert("Fehler beim Speichern der Punkte: " + err.message);
     }
@@ -139,8 +124,8 @@ export default function AbendDetail() {
   const handleFinishEvening = async () => {
     if (!confirm("Abend wirklich abschliessen? Punkte werden fixiert.")) return;
     try {
-      await API.patch(`/evenings/${id}`, { status: "abgeschlossen" });
-      await fetchAbend();
+      await API.patch(`/evenings/${id}/status`, { status: "abgeschlossen" });
+      await fetchAbend(); // neu laden, jetzt MIT gespeicherten Statistiken
     } catch (err) {
       alert("Fehler beim Abschliessen: " + err.message);
     }
@@ -192,31 +177,115 @@ export default function AbendDetail() {
         </p>
 
         {isFixiert && (
-          <div className="abenddetail-teilnahme">
-            {isTeilnehmer ? (
-              <button
-                className="button danger"
-                onClick={handleLeave}
-                disabled={busy}
-              >
-                <XCircle size={14} /> Ich bin weg
-              </button>
-            ) : (
-              <button
-                className="button primary"
-                onClick={handleJoin}
-                disabled={busy}
-              >
-                <CheckCircle2 size={14} /> Ich nehme teil
-              </button>
-            )}
+          <div className="abenddetail-teilnahme-section">
+            <h3 className="abenddetail-section-title">Teilnahmestatus</h3>
+            <div className="toggle-wrapper">
+              <label className="toggle-label">
+                <input
+                  type="checkbox"
+                  checked={isTeilnehmer}
+                  onChange={(e) =>
+                    e.target.checked ? handleJoin() : handleLeave()
+                  }
+                  disabled={busy}
+                />
+                <span className="toggle-slider"></span>
+                <span className="toggle-text">
+                  {isTeilnehmer ? "Ich nehme teil" : "Ich bin weg"}
+                </span>
+              </label>
+            </div>
           </div>
         )}
 
-        {isAbgeschlossen && winner && (
+        {isAbgeschlossen && abend.playerPoints?.length > 0 && (
           <div className="abenddetail-winner alert">
-            <Trophy size={16} /> Tagessieger: {winner.name} ({winner.points}{" "}
-            Pkt)
+            <Trophy size={16} />
+            <span>
+              Tagessieger:{" "}
+              {abend.winnerIds
+                ?.map((wId) => {
+                  const winner = abend.participantRefs?.find(
+                    (p) => p._id === wId
+                  );
+                  return winner?.displayName || "Unbekannt";
+                })
+                .join(", ")}{" "}
+              (
+              {abend.playerPoints?.find(
+                (p) => p.userId === abend.winnerIds?.[0]
+              )?.points || 0}{" "}
+              Pkt)
+            </span>
+          </div>
+        )}
+
+        {isAbgeschlossen && abend.placements?.length > 0 && (
+          <div className="abenddetail-section">
+            <h3>
+              <Trophy size={16} /> Platzierungen
+            </h3>
+            <ul className="abenddetail-list">
+              {abend.placements.map((p) => {
+                const user = abend.participantRefs?.find(
+                  (u) => u._id === p.userId
+                );
+                const points =
+                  abend.playerPoints?.find((pt) => pt.userId === p.userId)
+                    ?.points || 0;
+                return (
+                  <li key={p.userId}>
+                    {p.place}. Platz – {user?.displayName || "Unbekannt"} (
+                    {points} Pkt)
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
+
+        {isAbgeschlossen && (
+          <div className="abenddetail-section">
+            <h3>
+              <Trophy size={16} /> Abendstatistik
+            </h3>
+            <ul className="abenddetail-list">
+              <li>
+                Höchste Einzelpunktzahl:{" "}
+                {(() => {
+                  const maxScore = abend.maxPoints || 0;
+                  const player = abend.games
+                    ?.flatMap((g) => g.scores)
+                    ?.find((s) => s.points === maxScore);
+                  const name =
+                    abend.participantRefs?.find((p) => p._id === player?.userId)
+                      ?.displayName || "Unbekannt";
+                  return `${name} (${maxScore} Pkt)`;
+                })()}
+              </li>
+              <li>
+                Spieleanzahl: {abend.gamesPlayedCount || abend.games.length}
+              </li>
+              <li>
+                Meistgespieltes Spiel:{" "}
+                {(() => {
+                  const mostPlayed =
+                    abend.gameCount?.length > 0
+                      ? [...abend.gameCount].sort(
+                          (a, b) => b.count - a.count
+                        )[0]
+                      : null;
+                  const game = abend.games.find(
+                    (g) =>
+                      g.gameId?._id === mostPlayed?.gameId ||
+                      g.gameId === mostPlayed?.gameId
+                  );
+                  return game?.gameId?.name
+                    ? `${game.gameId.name} (${mostPlayed.count}x)`
+                    : "Keine Spiele";
+                })()}
+              </li>
+            </ul>
           </div>
         )}
 
@@ -246,7 +315,8 @@ export default function AbendDetail() {
               <div key={game._id} className="abenddetail-game card">
                 <div className="abenddetail-game-header">
                   <h4>{game.gameId?.name || "Unbekanntes Spiel"}</h4>
-                  {isSpielleiter && (
+                  {((isSpielleiter && isFixiert) ||
+                    (isAdmin && isAbgeschlossen)) && (
                     <div className="abenddetail-game-actions">
                       <button
                         className="button"
@@ -268,7 +338,7 @@ export default function AbendDetail() {
                   {game.scores.map((s) => (
                     <li key={s.userId} className="abenddetail-score-item">
                       <span>{s.userName}</span>
-                      {editScores === game._id && isSpielleiter ? (
+                      {editScores === game._id && (isSpielleiter || isAdmin) ? (
                         <input
                           type="number"
                           className="input"
@@ -288,7 +358,7 @@ export default function AbendDetail() {
                   ))}
                 </ul>
 
-                {editScores === game._id && (
+                {editScores === game._id && (isSpielleiter || isAdmin) && (
                   <button
                     className="button primary"
                     onClick={() => handleSaveScores(game._id)}

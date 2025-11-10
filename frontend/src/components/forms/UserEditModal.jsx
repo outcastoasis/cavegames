@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import API from "../../services/api";
-import "../../styles/components/UserEditModal.css";
+import "../../styles/components/Modal.css";
 
 export default function UserEditModal({ user, onClose, onSuccess }) {
   const [form, setForm] = useState({
@@ -14,12 +14,14 @@ export default function UserEditModal({ user, onClose, onSuccess }) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    setForm({
-      displayName: user.displayName,
-      role: user.role,
-      active: user.active,
-      password: "",
-    });
+    if (user) {
+      setForm({
+        displayName: user.displayName || "",
+        role: user.role || "spieler",
+        active: user.active ?? true,
+        password: "",
+      });
+    }
   }, [user]);
 
   const handleChange = (e) => {
@@ -54,9 +56,11 @@ export default function UserEditModal({ user, onClose, onSuccess }) {
 
   return createPortal(
     <div className="modal-overlay">
-      <div className="modal-content">
-        <h3>Benutzer bearbeiten</h3>
-        <form onSubmit={handleSubmit} className="user-form">
+      <div className="modal">
+        <h2>Benutzer bearbeiten</h2>
+
+        <form onSubmit={handleSubmit} className="modal-form">
+          <label>Anzeigename</label>
           <input
             className="input"
             name="displayName"
@@ -64,6 +68,8 @@ export default function UserEditModal({ user, onClose, onSuccess }) {
             onChange={handleChange}
             required
           />
+
+          <label>Rolle</label>
           <select
             className="input"
             name="role"
@@ -74,12 +80,13 @@ export default function UserEditModal({ user, onClose, onSuccess }) {
             <option value="admin">Admin</option>
           </select>
 
+          <label>Neues Passwort (optional)</label>
           <input
             className="input"
             type="password"
             name="password"
             value={form.password}
-            placeholder="Neues Passwort (optional)"
+            placeholder="Leer lassen, um Passwort zu behalten"
             onChange={handleChange}
           />
 
@@ -93,18 +100,19 @@ export default function UserEditModal({ user, onClose, onSuccess }) {
             Konto aktiv
           </label>
 
-          {error && <div className="alert">{error}</div>}
+          {error && <p className="error-text">{error}</p>}
 
-          <div className="button-row">
+          <div className="modal-actions">
             <button
               type="button"
               className="button neutral"
               onClick={onClose}
+              disabled={loading}
             >
               Abbrechen
             </button>
-            <button type="submit" className="button" disabled={loading}>
-              {loading ? "Speichern..." : "Speichern"}
+            <button type="submit" className="button primary" disabled={loading}>
+              {loading ? "Speichert..." : "Speichern"}
             </button>
           </div>
         </form>

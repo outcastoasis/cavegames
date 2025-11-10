@@ -413,6 +413,17 @@ app.patch(
 
 ---
 
+## ✅ Fehlende Umsetzungen
+- [ ] Bearbeiten eines Abends sollte auch Statistiken nachtragen und bearbeiten dieses Abends und die entsprechende Jahresstatistik nachkorrigieren
+- [ ] Löschen eines Abends sollte ebenfalls möglich sein und datenbanken aktualisieren
+- [ ] 
+
+
+
+
+
+---
+
 ## ✅ Nächste Schritte
 
 1. Implementierung der Umfragen (`polls`)
