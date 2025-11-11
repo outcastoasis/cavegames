@@ -201,3 +201,9 @@ body {
 .text-center {
   text-align: center;
 }
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
