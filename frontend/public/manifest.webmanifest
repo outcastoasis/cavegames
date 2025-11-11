@@ -1,6 +1,6 @@
 {
-  "name": "Spielabend App",
-  "short_name": "Spielabend",
+  "name": "Cavegames App",
+  "short_name": "Cavegames",
   "description": "Punkte, Spieleabende und Jahreswertung – alles im Überblick.",
   "start_url": "/",
   "display": "standalone",
