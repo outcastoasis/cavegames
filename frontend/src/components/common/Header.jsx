@@ -4,7 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import "../../styles/Header.css";
 
-export default function Header({ title = "Spielabend App" }) {
+export default function Header({ title = "Cavegames" }) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [adminOpen, setAdminOpen] = useState(false);
