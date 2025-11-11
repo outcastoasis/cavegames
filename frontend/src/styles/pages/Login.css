@@ -1,5 +1,14 @@
 @import "../variables.css";
 
+html,
+body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
 .login-wrapper {
   height: 100vh;
   width: 100%;
@@ -88,4 +97,34 @@
 }
 .register-link:hover {
   text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+  .login-wrapper {
+    padding: 1rem 0.5rem;
+  }
+
+  .login-header img {
+    width: 200px;
+    height: 200px;
+  }
+
+  .login-card {
+    padding: 1rem;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .login-card h2 {
+    font-size: 1.2rem;
+  }
+
+  .icon-input {
+    padding: 0.4rem 0.6rem;
+  }
+
+  .button.login-button {
+    font-size: 1rem;
+    padding: 0.5rem 1rem;
+  }
 }
