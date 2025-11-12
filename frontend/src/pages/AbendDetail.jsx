@@ -1,5 +1,5 @@
 // src/pages/AbendDetail.jsx
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import API from "../services/api";
 import { useAuth } from "../context/AuthContext";
@@ -29,6 +29,9 @@ export default function AbendDetail() {
   const [busy, setBusy] = useState(false);
   const [editScores, setEditScores] = useState(null);
   const [eligibleUsers, setEligibleUsers] = useState([]);
+  const [scoreInputs, setScoreInputs] = useState({});
+  const [focusedField, setFocusedField] = useState(null);
+  const scoreInputRefs = useRef({});
 
   useEffect(() => {
     fetchAbend();
@@ -172,6 +175,36 @@ export default function AbendDetail() {
   const isAbgeschlossen = abend.status === "abgeschlossen";
   const isTeilnehmer = abend.participantRefs?.some((p) => p._id === user._id);
 
+  const isToday =
+    abend.date &&
+    new Date(abend.date).toDateString() === new Date().toDateString();
+
+  const getScoreInputValue = (gameId, userId, defaultValue) => {
+    return scoreInputs[`${gameId}-${userId}`] ?? defaultValue;
+  };
+
+  const handleScoreFocus = (gameId, userId, currentValue) => {
+    const key = `${gameId}-${userId}`;
+    if (currentValue === 0) {
+      setScoreInputs((prev) => ({ ...prev, [key]: "" }));
+    }
+  };
+
+  const handleScoreBlur = (gameId, userId) => {
+    const key = `${gameId}-${userId}`;
+    const currentValue = scoreInputs[key];
+    if (currentValue === "") {
+      setScoreInputs((prev) => ({ ...prev, [key]: 0 }));
+      handleScoreChange(gameId, userId, 0); // direkt aktualisieren
+    }
+  };
+
+  const handleScoreInputChange = (gameId, userId, value) => {
+    const key = `${gameId}-${userId}`;
+    setScoreInputs((prev) => ({ ...prev, [key]: value }));
+    handleScoreChange(gameId, userId, value === "" ? 0 : value);
+  };
+
   return (
     <div className="abenddetail-container">
       <button
@@ -207,7 +240,7 @@ export default function AbendDetail() {
           </span>
         </p>
 
-        {isFixiert && (
+        {isFixiert && !isToday && (
           <div className="abenddetail-teilnahme-section">
             <h3 className="abenddetail-section-title">Teilnahmestatus</h3>
             <div className="toggle-wrapper">
@@ -381,21 +414,18 @@ export default function AbendDetail() {
             abend.games.map((game) => (
               <div key={game._id} className="abenddetail-game card">
                 <div className="abenddetail-game-header">
-                  <h4>{game.gameId?.name || "Unbekanntes Spiel"}</h4>
+                  <h4 className="abenddetail-game-title">
+                    {game.gameId?.name || "Unbekanntes Spiel"}
+                  </h4>
                   {((isPrivileged && isFixiert) ||
                     (isAdmin && isAbgeschlossen)) && (
                     <div className="abenddetail-game-actions">
                       <button
-                        className="button"
-                        onClick={() => handleEditScores(game._id)}
-                      >
-                        <Edit3 size={14} /> Punkte
-                      </button>
-                      <button
-                        className="button danger"
+                        className="button-round-delete "
                         onClick={() => handleDeleteGame(game._id)}
+                        title="Spiel löschen"
                       >
-                        <Trash2 size={14} /> Löschen
+                        <Trash2 size={18} />
                       </button>
                     </div>
                   )}
@@ -409,17 +439,48 @@ export default function AbendDetail() {
                         <input
                           type="number"
                           className="input"
-                          value={s.points}
+                          value={getScoreInputValue(
+                            game._id,
+                            s.userId,
+                            s.points
+                          )}
+                          onFocus={() =>
+                            handleScoreFocus(game._id, s.userId, s.points)
+                          }
+                          onBlur={() => handleScoreBlur(game._id, s.userId)}
                           onChange={(e) =>
-                            handleScoreChange(
+                            handleScoreInputChange(
                               game._id,
                               s.userId,
                               e.target.value
                             )
                           }
+                          ref={(el) => {
+                            if (el) {
+                              scoreInputRefs.current[
+                                `${game._id}-${s.userId}`
+                              ] = el;
+                            }
+                          }}
+                          autoFocus={focusedField === `${game._id}-${s.userId}`}
                         />
                       ) : (
-                        <span>{s.points} Punkte</span>
+                        <span
+                          onClick={() => {
+                            if (isPrivileged) {
+                              setEditScores(game._id);
+                              setFocusedField(`${game._id}-${s.userId}`);
+                            }
+                          }}
+                          style={{
+                            cursor: isPrivileged ? "pointer" : "default",
+                            fontWeight: "bold",
+                            paddingLeft: "1rem",
+                          }}
+                          title={isPrivileged ? "Klicken zum Bearbeiten" : ""}
+                        >
+                          {s.points} Punkte
+                        </span>
                       )}
                     </li>
                   ))}
