@@ -2,39 +2,38 @@
 const Evening = require("../models/Evening");
 const Poll = require("../models/Poll");
 
-// middleware/checkEveningRole.js
-function checkEveningRole(role) {
+function checkEveningRole(allowedRoles) {
   return async (req, res, next) => {
-    // Abend-ID entweder aus Body oder URL-Param
+    const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
     const eveningId = req.body?.eveningId || req.params.id;
 
     if (!eveningId) {
-      return res.status(400).json({
-        error: "Abend-ID fehlt",
-        details:
-          "Für diese Aktion muss ein eveningId im Body oder URL-Parameter übermittelt werden.",
-      });
+      return res.status(400).json({ error: "Abend-ID fehlt" });
     }
 
     try {
       const abend = await Evening.findById(eveningId);
-      if (!abend) {
+      if (!abend)
         return res.status(404).json({ error: "Abend nicht gefunden" });
-      }
 
-      if (role === "spielleiter") {
-        if (abend.spielleiterId.toString() !== req.user._id.toString()) {
-          return res.status(403).json({
-            error: "Zugriff verweigert",
-            details: "Nur der Spielleiter dieses Abends darf das.",
-          });
-        }
+      const userId = req.user._id?.toString();
+      const isSpielleiter = abend.spielleiterId?.toString() === userId;
+      const isAdmin = req.user.role === "admin";
+
+      const authorized =
+        (roles.includes("spielleiter") && isSpielleiter) ||
+        (roles.includes("admin") && isAdmin);
+
+      if (!authorized) {
+        return res
+          .status(403)
+          .json({ error: "Keine Berechtigung für diese Aktion" });
       }
 
       req.evening = abend;
       next();
     } catch (err) {
-      console.error("❌ Fehler in checkEveningRole:", err);
+      console.error("Fehler in checkEveningRole:", err);
       res
         .status(500)
         .json({ error: "Middleware-Fehler", details: err.message });
@@ -46,44 +45,32 @@ function checkPollRole(role) {
   return async (req, res, next) => {
     try {
       const poll = await Poll.findById(req.params.id);
-      if (!poll) {
-        return res.status(404).json({
-          error: "Poll nicht gefunden",
-          details: `ID: ${req.params.id}`,
-        });
-      }
+      if (!poll) return res.status(404).json({ error: "Poll nicht gefunden" });
 
       const abend = await Evening.findById(poll.eveningId);
-      if (!abend) {
-        return res.status(404).json({
-          error: "Abend nicht gefunden",
-          details: "Verknüpfter Abend nicht vorhanden.",
-        });
-      }
+      if (!abend)
+        return res.status(404).json({ error: "Abend nicht gefunden" });
 
-      if (role === "spielleiter") {
-        if (abend.spielleiterId.toString() !== req.user._id.toString()) {
-          return res.status(403).json({
-            error: "Nur der Spielleiter darf diese Umfrage finalisieren",
-          });
-        }
+      const isSpielleiter =
+        abend.spielleiterId?.toString() === req.user._id?.toString();
+      const isAdmin = req.user.role === "admin";
+
+      if (role === "spielleiter" && !(isSpielleiter || isAdmin)) {
+        return res
+          .status(403)
+          .json({ error: "Nur Spielleiter oder Admin dürfen das" });
       }
 
       req.evening = abend;
       req.poll = poll;
-
       next();
     } catch (err) {
-      console.error("❌ Fehler in checkPollRole:", err);
-      return res.status(500).json({
-        error: "Middleware-Fehler",
-        details: err.message,
-      });
+      console.error("Fehler in checkPollRole:", err);
+      res
+        .status(500)
+        .json({ error: "Middleware-Fehler", details: err.message });
     }
   };
 }
 
-module.exports = {
-  checkEveningRole,
-  checkPollRole,
-};
+module.exports = { checkEveningRole, checkPollRole };

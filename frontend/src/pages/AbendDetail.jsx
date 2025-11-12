@@ -28,6 +28,7 @@ export default function AbendDetail() {
   const [showGameModal, setShowGameModal] = useState(false);
   const [busy, setBusy] = useState(false);
   const [editScores, setEditScores] = useState(null);
+  const [eligibleUsers, setEligibleUsers] = useState([]);
 
   useEffect(() => {
     fetchAbend();
@@ -37,6 +38,7 @@ export default function AbendDetail() {
     try {
       const res = await API.get(`/evenings/${id}`);
       setAbend(res.data);
+      await fetchEligibleUsers();
     } catch (err) {
       console.error("Fehler beim Laden des Abends:", err);
     } finally {
@@ -131,12 +133,41 @@ export default function AbendDetail() {
     }
   };
 
+  const fetchEligibleUsers = async () => {
+    try {
+      const res = await API.get(`/evenings/${id}/eligible-users`);
+      setEligibleUsers(res.data);
+    } catch (err) {
+      console.error("Fehler beim Laden der verfügbaren Benutzer:", err);
+    }
+  };
+
+  const handleAddParticipant = async (userId) => {
+    try {
+      await API.post(`/evenings/${id}/participants`, { userId });
+      await fetchAbend();
+    } catch (err) {
+      alert("Fehler beim Hinzufügen: " + err.message);
+    }
+  };
+
+  const handleRemoveParticipant = async (userId) => {
+    if (!confirm("Teilnehmer wirklich entfernen?")) return;
+    try {
+      await API.delete(`/evenings/${id}/participants/${userId}`);
+      await fetchAbend();
+    } catch (err) {
+      alert("Fehler beim Entfernen: " + err.message);
+    }
+  };
+
   if (loading)
     return <p className="abenddetail-loading">Lade Abenddetails...</p>;
   if (!abend) return <p className="abenddetail-error">Abend nicht gefunden.</p>;
 
   const isAdmin = user?.role === "admin";
-  const isSpielleiter = user?._id === abend.spielleiterRef?._id;
+  const isSpielleiter = abend.spielleiterRef?._id === user._id;
+  const isPrivileged = isAdmin || isSpielleiter;
   const isFixiert = abend.status === "fixiert";
   const isAbgeschlossen = abend.status === "abgeschlossen";
   const isTeilnehmer = abend.participantRefs?.some((p) => p._id === user._id);
@@ -293,14 +324,50 @@ export default function AbendDetail() {
           <h3>
             <UsersIcon size={16} /> Teilnehmer
           </h3>
+
           {abend.participantRefs?.length ? (
             <ul className="abenddetail-list">
               {abend.participantRefs.map((p) => (
-                <li key={p._id}>{p.displayName}</li>
+                <li key={p._id}>
+                  {p.displayName}
+                  {isPrivileged && isFixiert && abend.games.length === 0 && (
+                    <button
+                      className="abenddetail-remove-button"
+                      onClick={() => handleRemoveParticipant(p._id)}
+                      title="Teilnehmer entfernen"
+                    >
+                      <XCircle size={20} />
+                    </button>
+                  )}
+                </li>
               ))}
             </ul>
           ) : (
             <p>Noch keine Teilnehmer.</p>
+          )}
+
+          {isPrivileged && isFixiert && abend.games.length === 0 && (
+            <div className="abenddetail-addparticipant">
+              <label>
+                Weitere Person hinzufügen:
+                <select
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val) {
+                      handleAddParticipant(val);
+                      e.target.value = "";
+                    }
+                  }}
+                >
+                  <option value="">Bitte wählen...</option>
+                  {eligibleUsers.map((user) => (
+                    <option key={user._id} value={user._id}>
+                      {user.displayName}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
           )}
         </div>
 
@@ -315,7 +382,7 @@ export default function AbendDetail() {
               <div key={game._id} className="abenddetail-game card">
                 <div className="abenddetail-game-header">
                   <h4>{game.gameId?.name || "Unbekanntes Spiel"}</h4>
-                  {((isSpielleiter && isFixiert) ||
+                  {((isPrivileged && isFixiert) ||
                     (isAdmin && isAbgeschlossen)) && (
                     <div className="abenddetail-game-actions">
                       <button
@@ -338,7 +405,7 @@ export default function AbendDetail() {
                   {game.scores.map((s) => (
                     <li key={s.userId} className="abenddetail-score-item">
                       <span>{s.userName}</span>
-                      {editScores === game._id && (isSpielleiter || isAdmin) ? (
+                      {editScores === game._id && isPrivileged ? (
                         <input
                           type="number"
                           className="input"
@@ -358,7 +425,7 @@ export default function AbendDetail() {
                   ))}
                 </ul>
 
-                {editScores === game._id && (isSpielleiter || isAdmin) && (
+                {editScores === game._id && isPrivileged && (
                   <button
                     className="button primary"
                     onClick={() => handleSaveScores(game._id)}
@@ -384,7 +451,7 @@ export default function AbendDetail() {
           </div>
         )}
 
-        {(isAdmin || isSpielleiter) && (
+        {isPrivileged && (
           <div className="abenddetail-actions">
             {abend.status !== "abgeschlossen" && (
               <button
@@ -395,7 +462,7 @@ export default function AbendDetail() {
               </button>
             )}
 
-            {isSpielleiter && abend.status === "fixiert" && (
+            {isPrivileged && abend.status === "fixiert" && (
               <button className="button primary" onClick={handleFinishEvening}>
                 <Trophy size={16} /> Abend abschliessen
               </button>

@@ -180,13 +180,19 @@ exports.addParticipant = async (req, res) => {
       return res.status(404).json({ error: "Abend nicht gefunden" });
     }
 
-    if (evening.status === "abgeschlossen" && req.user.role !== "admin") {
+    if (evening.status === "abgeschlossen" && req.user?.role !== "admin") {
       return res
         .status(400)
         .json({ error: "Abend ist abgeschlossen – Änderungen nicht erlaubt" });
     }
 
-    const userId = req.user._id || req.user.userId;
+    const userId = req.body?.userId || req.user?._id;
+    if (!userId) {
+      return res
+        .status(400)
+        .json({ error: "Benutzer-ID fehlt (nicht eingeloggt?)" });
+    }
+
     if (evening.participantIds.includes(userId)) {
       return res.status(400).json({ error: "Bereits eingetragen." });
     }
@@ -395,5 +401,28 @@ exports.recalculateEveningStats = async (req, res) => {
   } catch (err) {
     console.error("Fehler bei Recalculate:", err);
     res.status(500).json({ error: "Fehler beim Neuberechnen" });
+  }
+};
+
+// 👤 Benutzer, die noch nicht Teilnehmer sind (für Dropdown)
+exports.getEligibleUsers = async (req, res) => {
+  try {
+    const evening = await Evening.findById(req.params.id);
+    if (!evening) {
+      return res.status(404).json({ error: "Abend nicht gefunden" });
+    }
+
+    // Hole alle aktiven Benutzer außer bereits Teilnehmende
+    const users = await require("../models/User")
+      .find({
+        active: true,
+        _id: { $nin: evening.participantIds },
+      })
+      .select("_id displayName role");
+
+    res.json(users);
+  } catch (err) {
+    console.error("Fehler bei getEligibleUsers:", err.message);
+    res.status(500).json({ error: "Fehler beim Abrufen der Benutzer" });
   }
 };

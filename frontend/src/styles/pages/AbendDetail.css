@@ -107,6 +107,36 @@
   font-weight: 500;
   color: var(--text);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.abenddetail-remove-button {
+  background: transparent;
+  border: none;
+  color: var(--danger);
+  font-size: 1.25rem;
+  font-weight: bold;
+  cursor: pointer;
+  padding: var(--spacing-xs);
+  margin-left: auto;
+  line-height: 1;
+  transition: all 0.2s ease;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.abenddetail-remove-button:hover {
+  color: white;
+  background-color: var(--danger);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transform: scale(1.05);
 }
 
 /* ====== Spieleliste ====== */
@@ -341,3 +371,43 @@
     font-size: 0.95rem;
   }
 }
+
+/* ====== Teilnehmer hinzufügen (Dropdown) ====== */
+.abenddetail-addparticipant {
+  margin-top: var(--spacing-s);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.abenddetail-addparticipant label {
+  font-weight: 500;
+  color: var(--primary);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.abenddetail-addparticipant select {
+  padding: var(--spacing-s);
+  font-size: var(--font-size-small);
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--neutral-dark);
+  background: white;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: border 0.2s ease-in-out;
+}
+
+.abenddetail-addparticipant select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.2);
+  background: #faf5ff;
+  color: var(--text);
+}
+
+.abenddetail-addparticipant option {
+  font-size: 0.95rem;
+  padding: var(--spacing-xs);
+}
+
