@@ -68,7 +68,9 @@ export default function PollCreateModal({ onClose, eveningId, onSuccess }) {
                   value={opt.time}
                   onChange={(e) => handleChange(idx, "time", e.target.value)}
                   className="input"
+                  step="900" // ⬅︎ 900 Sekunden = 15 Minuten
                 />
+
                 {options.length > 1 && (
                   <button
                     type="button"
