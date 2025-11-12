@@ -150,8 +150,8 @@
 
 .abenddetail-game-header {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  justify-content: space-between;
+  align-items: center;
   gap: var(--spacing-s);
   margin-bottom: var(--spacing-s);
 }
@@ -168,10 +168,47 @@
   padding-bottom: 0.2rem;
 }
 
+.abenddetail-game-title {
+  flex-grow: 1;
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--primary);
+  letter-spacing: 0.3px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+  border-bottom: 2px solid var(--primary);
+  padding-bottom: 0.2rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .abenddetail-game-actions {
   display: flex;
   gap: var(--spacing-s);
   flex-wrap: wrap;
+}
+
+.button-round-delete {
+  width: 42px;
+  height: 42px;
+  padding: 0 !important; /* ← ERZWINGEN */
+  border-radius: var(--border-radius-full);
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-inset), var(--shadow-raised),
+    0 0 6px rgba(0, 0, 0, 0.08); /* sanfter Umgebungs-Glow */
+  transform: translateY(0);
+  user-select: none;
+  background: linear-gradient(180deg, #f87171, var(--danger));
+  color: white;
 }
 
 /* ====== Punkteanzeige ====== */
@@ -410,4 +447,3 @@
   font-size: 0.95rem;
   padding: var(--spacing-xs);
 }
-
