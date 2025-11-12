@@ -20,6 +20,15 @@
   gap: var(--spacing-m);
 }
 
+.abend-list h3 {
+  margin: var(--spacing-l) 0 var(--spacing-s);
+  font-size: 1.1rem;
+  color: var(--text);
+  font-weight: 600;
+  border-bottom: 2px solid var(--neutral-dark);
+  padding-bottom: var(--spacing-xs);
+}
+
 .abend-card {
   background: #fff;
   border-radius: var(--card-radius);
@@ -30,6 +39,7 @@
   transition: transform var(--transition-fast),
     box-shadow var(--transition-fast);
   border-left: 6px solid transparent; /* Statusindikator */
+  margin-bottom: 1rem;
 }
 
 .abend-card:hover {
@@ -168,6 +178,10 @@
   .toggle-text {
     font-size: 0.9rem;
   }
+
+  .abend-highlight h3 {
+    font-size: 1rem;
+  }
 }
 
 .abend-toggle-wrapper {
@@ -232,3 +246,9 @@
   box-shadow: 0 0 0 2px rgba(109, 40, 217, 0.1);
 }
 
+.abend-highlight h3 {
+  margin-top: 0;
+  margin-bottom: var(--spacing-s);
+  font-size: 1.2rem;
+  font-weight: 600;
+}
