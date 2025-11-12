@@ -25,6 +25,7 @@ export default function Abende() {
     nextEvening: null,
     future: [],
     past: [],
+    openWithoutPoll: [],
   });
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -48,6 +49,7 @@ export default function Abende() {
       const future = [];
       let todayEvening = null;
       let nextEvening = null;
+      let openWithoutPoll = [];
 
       active.forEach((e) => {
         if (!e.date) return;
@@ -63,6 +65,13 @@ export default function Abende() {
         }
       });
 
+      // 🔧 Diese Schleife muss *außerhalb* der oberen forEach stehen:
+      active.forEach((e) => {
+        if (e.status === "offen" && !e.date && !e.pollId) {
+          openWithoutPoll.push(e);
+        }
+      });
+
       future.sort((a, b) => new Date(a.date) - new Date(b.date));
       past.sort((a, b) => new Date(b.date) - new Date(a.date));
 
@@ -70,7 +79,7 @@ export default function Abende() {
         nextEvening = future.shift();
       }
 
-      setEvenings({ todayEvening, nextEvening, future, past });
+      setEvenings({ todayEvening, nextEvening, future, past, openWithoutPoll });
     } catch (err) {
       console.error("Fehler beim Laden der Abende:", err);
     } finally {
@@ -247,6 +256,13 @@ export default function Abende() {
                 {calculateDaysLeft(evenings.nextEvening.date)} Tagen
               </h3>
               {renderEveningCard(evenings.nextEvening)}
+            </div>
+          )}
+
+          {evenings.openWithoutPoll.length > 0 && (
+            <div>
+              <h3>Abende ohne Umfrage</h3>
+              {evenings.openWithoutPoll.map(renderEveningCard)}
             </div>
           )}
 
