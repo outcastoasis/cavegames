@@ -4,7 +4,7 @@
   text-align: center;
   white-space: nowrap;
   position: fixed;
-  bottom: var(--spacing-l);
+  bottom: 80px;
   left: 50%;
   transform: translateX(-50%);
   background-color: var(--primary);

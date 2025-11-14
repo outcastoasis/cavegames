@@ -1,0 +1,3 @@
+- [ ] Abbrechen Button bei Punkte bearbeiten
+- [ ] Toast bei Jahr abschliessen
+- [ ] Löschen von Spiele eines Abends soll auch Statistik aktualisieren

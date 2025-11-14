@@ -98,26 +98,60 @@ exports.getEveningById = async (req, res) => {
     const evening = await Evening.findById(req.params.id)
       .populate("spielleiterId", "displayName")
       .populate("participantIds", "displayName")
-      .populate("games.gameId", "name category") // <-- FEHLTE
+      .populate("games.gameId", "name category")
       .populate("games.scores.userId", "displayName");
 
     if (!evening) {
       return res.status(404).json({ error: "Abend nicht gefunden" });
     }
+    // Falls Statistiken fehlen (alte Daten), on-the-fly berechnen
+    if (!evening.playerPoints || evening.playerPoints.length === 0) {
+      const calc = calculateEveningStats(evening);
+      evening.winnerIds = calc.winnerIds;
+      evening.playerPoints = calc.playerPoints;
+      evening.placements = calc.placements;
+      evening.maxPoints = calc.maxPoints;
+      evening.totalPoints = calc.totalPoints;
+      evening.gameCount = calc.gameCount;
+      evening.gamesPlayedCount = calc.gamesPlayedCount;
+      evening.participantCount = calc.participantCount;
+    }
 
-    // Backend → Frontend Mapping
     const response = {
       ...evening.toObject(),
       spielleiterRef: evening.spielleiterId,
       participantRefs: evening.participantIds,
+
+      // Spiele korrekt aufbereitet
       games: evening.games.map((g) => ({
-        ...g.toObject(),
+        _id: g._id,
+        gameId: g.gameId,
         scores: g.scores.map((s) => ({
           userId: s.userId?._id,
           userName: s.userId?.displayName,
           points: s.points,
         })),
       })),
+
+      // WICHTIG: Abendstatistiken korrekt und separat
+      winnerIds: evening.winnerIds?.map((id) => id.toString()),
+      playerPoints: evening.playerPoints?.map((p) => ({
+        userId: p.userId.toString(),
+        points: p.points,
+      })),
+      placements: evening.placements?.map((pl) => ({
+        userId: pl.userId.toString(),
+        place: pl.place,
+      })),
+      gameCount: evening.gameCount?.map((g) => ({
+        gameId: g.gameId.toString(),
+        count: g.count,
+      })),
+
+      totalPoints: evening.totalPoints,
+      maxPoints: evening.maxPoints,
+      gamesPlayedCount: evening.gamesPlayedCount,
+      participantCount: evening.participantCount,
     };
 
     res.json(response);
@@ -440,14 +474,6 @@ exports.recalculateEveningStats = async (req, res) => {
 
     if (!evening) {
       return res.status(404).json({ error: "Abend nicht gefunden" });
-    }
-
-    if (evening.status !== "abgeschlossen") {
-      return res
-        .status(400)
-        .json({
-          error: "Nur abgeschlossene Abende können neu berechnet werden",
-        });
     }
 
     const stats = calculateEveningStats(evening);

@@ -174,6 +174,10 @@ export default function AbendDetail() {
   const isFixiert = abend.status === "fixiert";
   const isAbgeschlossen = abend.status === "abgeschlossen";
   const isTeilnehmer = abend.participantRefs?.some((p) => p._id === user._id);
+  const backTarget = abend.status === "gesperrt" ? "/historie" : "/abende";
+  const isGesperrt = abend.status === "gesperrt";
+  const canEditScores =
+    !isGesperrt && isPrivileged && (isFixiert || (isAdmin && isAbgeschlossen));
 
   const isToday =
     abend.date &&
@@ -209,7 +213,7 @@ export default function AbendDetail() {
     <div className="abenddetail-container">
       <button
         className="abenddetail-backbutton button neutral"
-        onClick={() => navigate("/abende")}
+        onClick={() => navigate(backTarget)}
       >
         <ArrowLeft size={18} /> Zurück
       </button>
@@ -262,29 +266,28 @@ export default function AbendDetail() {
           </div>
         )}
 
-        {isAbgeschlossen && abend.playerPoints?.length > 0 && (
+        {(isAbgeschlossen || isGesperrt) && abend.winnerIds?.length > 0 && (
           <div className="abenddetail-winner alert">
             <Trophy size={16} />
             <span>
               Tagessieger:{" "}
               {abend.winnerIds
-                ?.map((wId) => {
-                  const winner = abend.participantRefs?.find(
-                    (p) => p._id === wId
-                  );
-                  return winner?.displayName || "Unbekannt";
+                .map((id) => {
+                  const u = abend.participantRefs?.find((p) => p._id === id);
+                  return u?.displayName || "Unbekannt";
                 })
                 .join(", ")}{" "}
               (
-              {abend.playerPoints?.find(
-                (p) => p.userId === abend.winnerIds?.[0]
-              )?.points || 0}{" "}
+              {
+                abend.playerPoints?.find((p) => p.userId === abend.winnerIds[0])
+                  ?.points
+              }{" "}
               Pkt)
             </span>
           </div>
         )}
 
-        {isAbgeschlossen && abend.placements?.length > 0 && (
+        {(isAbgeschlossen || isGesperrt) && abend.placements?.length > 0 && (
           <div className="abenddetail-section">
             <h3>
               <Trophy size={16} /> Platzierungen
@@ -294,13 +297,13 @@ export default function AbendDetail() {
                 const user = abend.participantRefs?.find(
                   (u) => u._id === p.userId
                 );
-                const points =
-                  abend.playerPoints?.find((pt) => pt.userId === p.userId)
+                const pts =
+                  abend.playerPoints?.find((x) => x.userId === p.userId)
                     ?.points || 0;
+
                 return (
                   <li key={p.userId}>
-                    {p.place}. Platz – {user?.displayName || "Unbekannt"} (
-                    {points} Pkt)
+                    {p.place}. Platz – {user?.displayName || "?"} ({pts} Pkt)
                   </li>
                 );
               })}
@@ -308,45 +311,44 @@ export default function AbendDetail() {
           </div>
         )}
 
-        {isAbgeschlossen && (
+        {(isAbgeschlossen || isGesperrt) && (
           <div className="abenddetail-section">
             <h3>
               <Trophy size={16} /> Abendstatistik
             </h3>
             <ul className="abenddetail-list">
+              <li>Gesamtpunkte aller Spieler: {abend.totalPoints || 0}</li>
+
               <li>
                 Höchste Einzelpunktzahl:{" "}
                 {(() => {
-                  const maxScore = abend.maxPoints || 0;
-                  const player = abend.games
-                    ?.flatMap((g) => g.scores)
-                    ?.find((s) => s.points === maxScore);
-                  const name =
-                    abend.participantRefs?.find((p) => p._id === player?.userId)
-                      ?.displayName || "Unbekannt";
-                  return `${name} (${maxScore} Pkt)`;
+                  const top = abend.playerPoints?.find(
+                    (p) => p.points === abend.maxPoints
+                  );
+                  const user = abend.participantRefs?.find(
+                    (u) => u._id === top?.userId
+                  );
+                  return user?.displayName
+                    ? `${user.displayName} (${abend.maxPoints} Pkt)`
+                    : `${abend.maxPoints} Pkt`;
                 })()}
               </li>
-              <li>
-                Spieleanzahl: {abend.gamesPlayedCount || abend.games.length}
-              </li>
+
+              <li>Spieleanzahl: {abend.gamesPlayedCount}</li>
+
               <li>
                 Meistgespieltes Spiel:{" "}
                 {(() => {
-                  const mostPlayed =
-                    abend.gameCount?.length > 0
-                      ? [...abend.gameCount].sort(
-                          (a, b) => b.count - a.count
-                        )[0]
-                      : null;
+                  if (!abend.gameCount?.length) return "Keine Daten";
+                  const sorted = [...abend.gameCount].sort(
+                    (a, b) => b.count - a.count
+                  )[0];
                   const game = abend.games.find(
-                    (g) =>
-                      g.gameId?._id === mostPlayed?.gameId ||
-                      g.gameId === mostPlayed?.gameId
+                    (g) => g.gameId?._id === sorted.gameId
                   );
                   return game?.gameId?.name
-                    ? `${game.gameId.name} (${mostPlayed.count}x)`
-                    : "Keine Spiele";
+                    ? `${game.gameId.name} (${sorted.count}x)`
+                    : "Unbekannt";
                 })()}
               </li>
             </ul>
@@ -417,25 +419,26 @@ export default function AbendDetail() {
                   <h4 className="abenddetail-game-title">
                     {game.gameId?.name || "Unbekanntes Spiel"}
                   </h4>
-                  {((isPrivileged && isFixiert) ||
-                    (isAdmin && isAbgeschlossen)) && (
-                    <div className="abenddetail-game-actions">
-                      <button
-                        className="button-round-delete "
-                        onClick={() => handleDeleteGame(game._id)}
-                        title="Spiel löschen"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  )}
+                  {!isGesperrt &&
+                    ((isPrivileged && isFixiert) ||
+                      (isAdmin && isAbgeschlossen)) && (
+                      <div className="abenddetail-game-actions">
+                        <button
+                          className="button-round-delete "
+                          onClick={() => handleDeleteGame(game._id)}
+                          title="Spiel löschen"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    )}
                 </div>
 
                 <ul className="abenddetail-score-list">
                   {game.scores.map((s) => (
                     <li key={s.userId} className="abenddetail-score-item">
                       <span>{s.userName}</span>
-                      {editScores === game._id && isPrivileged ? (
+                      {editScores === game._id && canEditScores ? (
                         <input
                           type="number"
                           className="input"
@@ -467,13 +470,13 @@ export default function AbendDetail() {
                       ) : (
                         <span
                           onClick={() => {
-                            if (isPrivileged) {
+                            if (canEditScores) {
                               setEditScores(game._id);
                               setFocusedField(`${game._id}-${s.userId}`);
                             }
                           }}
                           style={{
-                            cursor: isPrivileged ? "pointer" : "default",
+                            cursor: canEditScores ? "pointer" : "default",
                             fontWeight: "bold",
                             paddingLeft: "1rem",
                           }}
@@ -486,7 +489,7 @@ export default function AbendDetail() {
                   ))}
                 </ul>
 
-                {editScores === game._id && isPrivileged && (
+                {editScores === game._id && canEditScores && (
                   <button
                     className="button primary"
                     onClick={() => handleSaveScores(game._id)}
