@@ -1,73 +1,124 @@
 // backend/utils/stats.js
-
 const mongoose = require("mongoose");
 
 /**
- * Statistiken aus einem Evening-Dokument berechnen.
- * Erwartet: Evening mit .games (inkl. scores.userId) und .participantIds
+ * Berechnet alle finalen Abendstatistiken.
+ * Erwartet ein Evening-Dokument mit:
+ *  - .games   (Array mit gameId und scores)
+ *  - .participantIds (Array der teilnehmenden User)
  */
-async function calculateEveningStats(evening) {
-  if (!evening.games?.length) return {};
+function calculateEveningStats(evening) {
+  // Keine Spiele → keine Statistiken
+  if (!evening?.games?.length) {
+    return {
+      winnerIds: [],
+      maxPoints: 0,
+      totalPoints: 0,
+      placements: [],
+      playerPoints: [],
+      gameCount: [],
+      participantCount: evening?.participantIds?.length || 0,
+      gamesPlayedCount: 0,
+    };
+  }
 
-  const playerPointsMap = {}; // userId → Punkte
-  let maxPoints = 0;
+  // ==============================
+  // 1. Punkte sammeln
+  // ==============================
+  const playerPointsMap = {}; // userId → Gesamtpunkte
   let totalPoints = 0;
-  let placements = [];
-  let gameNameSet = new Set(); // Set für gameId.name
-  const gameCountMap = {}; // gameId → einmal zählen
+  let maxPoints = 0;
+  const gameCountMap = {}; // gameId → 1 (einmal pro Abend zählen)
 
-  // === 1. Spiele & Punkte durchgehen ===
   for (const game of evening.games) {
-    const gameIdStr = game.gameId?.toString?.() || null;
-
-    if (gameIdStr && !gameCountMap[gameIdStr]) {
-      gameCountMap[gameIdStr] = 1; // Nur einmal pro Abend zählen
+    const gameIdStr = game.gameId?.toString?.();
+    if (gameIdStr) {
+      // Jedes Spiel zählt nur 1x pro Abend
+      gameCountMap[gameIdStr] = 1;
     }
 
-    game.scores.forEach((score) => {
+    for (const score of game.scores || []) {
       const uid = score.userId?.toString?.();
-      if (!uid) return;
+      if (!uid) continue; // Ignoriere kaputte Scores (z. B. gelöschter User)
 
-      const pts = score.points || 0;
+      const pts = Number(score.points) || 0;
+
+      // Punkte aufsummieren
       playerPointsMap[uid] = (playerPointsMap[uid] || 0) + pts;
       totalPoints += pts;
 
-      if (pts > maxPoints) {
-        maxPoints = pts;
-      }
-    });
+      // höchste Einzelpunktzahl merken
+      if (pts > maxPoints) maxPoints = pts;
+    }
   }
 
-  // === 2. Gesamtpunkte sortieren (Platzierungen) ===
-  const sortedPlayers = Object.entries(playerPointsMap)
-    .map(([userId, points]) => ({ userId, points }))
+  // Wenn keine gültigen Scores existieren
+  const playerIds = Object.keys(playerPointsMap);
+  if (playerIds.length === 0) {
+    return {
+      winnerIds: [],
+      maxPoints: 0,
+      totalPoints: 0,
+      placements: [],
+      playerPoints: [],
+      gameCount: [],
+      participantCount: evening.participantIds.length,
+      gamesPlayedCount: evening.games.length,
+    };
+  }
+
+  // ==============================
+  // 2. Sortierung nach Gesamtpunkten
+  // ==============================
+  const sortedPlayers = playerIds
+    .map((userId) => ({
+      userId,
+      points: playerPointsMap[userId],
+    }))
     .sort((a, b) => b.points - a.points);
 
-  // === 3. Platzierungen berechnen (mit Gleichstand) ===
+  // ==============================
+  // 3. Platzierungen (mit Gleichständen)
+  // ==============================
+  const placements = [];
   let currentPlace = 1;
-  for (let i = 0; i < sortedPlayers.length && currentPlace <= 3; i++) {
-    const p = sortedPlayers[i];
-    if (i > 0 && p.points < sortedPlayers[i - 1].points) {
+
+  for (let i = 0; i < sortedPlayers.length; i++) {
+    const player = sortedPlayers[i];
+
+    // Wenn Punkte niedriger als beim vorherigen → neuer Platzwert
+    if (i > 0 && player.points < sortedPlayers[i - 1].points) {
       currentPlace = placements.length + 1;
     }
+
+    // Nur Top-3 speichern
     if (currentPlace <= 3) {
-      placements.push({ userId: p.userId, place: currentPlace });
-    }
+      placements.push({
+        userId: player.userId,
+        place: currentPlace,
+      });
+    } else break;
   }
 
-  // === 4. Tagessieger (alle mit höchstem Punktwert) ===
-  const topPoints = sortedPlayers[0]?.points || 0;
+  // ==============================
+  // 4. Tagessieger (alle mit Höchstpunktzahl)
+  // ==============================
+  const highest = sortedPlayers[0].points;
   const winnerIds = sortedPlayers
-    .filter((p) => p.points === topPoints)
+    .filter((p) => p.points === highest)
     .map((p) => new mongoose.Types.ObjectId(p.userId));
 
-  // === 5. Umwandlung Spielhäufigkeit ===
+  // ==============================
+  // 5. Spiele-Anzahl pro Abend
+  // ==============================
   const gameCount = Object.entries(gameCountMap).map(([gameId, count]) => ({
     gameId: new mongoose.Types.ObjectId(gameId),
     count,
   }));
 
-  // === 6. Rückgabeobjekt ===
+  // ==============================
+  // 6. Endgültiges Ergebnisobjekt
+  // ==============================
   return {
     winnerIds,
     maxPoints,
@@ -84,4 +135,3 @@ async function calculateEveningStats(evening) {
 }
 
 module.exports = { calculateEveningStats };
-
