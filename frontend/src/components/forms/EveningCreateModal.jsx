@@ -69,8 +69,8 @@ export default function EveningCreateModal({ onClose, onSuccess }) {
           >
             <option value="">– bitte wählen –</option>
             {years.map((y) => (
-              <option key={y._id} value={y.year}>
-                {y.year}
+              <option key={y._id} value={y.year} disabled={y.closed}>
+                {y.year} {y.closed ? "(abgeschlossen)" : ""}
               </option>
             ))}
           </select>
