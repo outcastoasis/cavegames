@@ -50,6 +50,7 @@ export default function Abende() {
       let todayEvening = null;
       let nextEvening = null;
       let openWithoutPoll = [];
+      let withOpenPoll = [];
 
       active.forEach((e) => {
         if (!e.date) return;
@@ -70,6 +71,11 @@ export default function Abende() {
         if (e.status === "offen" && !e.date && !e.pollId) {
           openWithoutPoll.push(e);
         }
+
+        // NEU: Abende mit offener Umfrage
+        if (e.status === "offen" && !e.date && e.pollId) {
+          withOpenPoll.push(e);
+        }
       });
 
       future.sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -79,7 +85,14 @@ export default function Abende() {
         nextEvening = future.shift();
       }
 
-      setEvenings({ todayEvening, nextEvening, future, past, openWithoutPoll });
+      setEvenings({
+        todayEvening,
+        nextEvening,
+        future,
+        past,
+        openWithoutPoll,
+        withOpenPoll,
+      });
     } catch (err) {
       console.error("Fehler beim Laden der Abende:", err);
     } finally {
@@ -133,6 +146,7 @@ export default function Abende() {
     const isSpielleiter = user?._id === abend.spielleiterRef?._id;
     const isTeilnehmer = abend.participantRefs?.some((p) => p._id === user._id);
     const hasPoll = !!abend.pollId;
+    const hasOpenPoll = abend.status === "offen" && !abend.date && abend.pollId;
 
     return (
       <div key={abend._id}>
@@ -140,6 +154,12 @@ export default function Abende() {
           className={`card abend-card status-${abend.status}`}
           onClick={(e) => {
             if (e.target.closest(".abend-actions")) return;
+
+            if (hasOpenPoll) {
+              navigate("/umfragen");
+              return;
+            }
+
             navigate(`/abende/${abend._id}`);
           }}
         >
@@ -242,6 +262,19 @@ export default function Abende() {
         <p>Lade Abende...</p>
       ) : (
         <div className="abend-list">
+          {evenings.openWithoutPoll.length > 0 && (
+            <div>
+              <h3>Abende ohne Umfrage</h3>
+              {evenings.openWithoutPoll.map(renderEveningCard)}
+            </div>
+          )}
+
+          {evenings.withOpenPoll?.length > 0 && (
+            <div>
+              <h3>Abende mit offener Umfrage</h3>
+              {evenings.withOpenPoll.map(renderEveningCard)}
+            </div>
+          )}
           {evenings.todayEvening && (
             <div className="card abend-highlight">
               <h3>Heute Abend!</h3>
@@ -252,17 +285,10 @@ export default function Abende() {
           {evenings.nextEvening && (
             <div className="card abend-highlight">
               <h3>
-                📅 Nächster Spieleabend in{" "}
+                Nächster Spieleabend in{" "}
                 {calculateDaysLeft(evenings.nextEvening.date)} Tagen
               </h3>
               {renderEveningCard(evenings.nextEvening)}
-            </div>
-          )}
-
-          {evenings.openWithoutPoll.length > 0 && (
-            <div>
-              <h3>Abende ohne Umfrage</h3>
-              {evenings.openWithoutPoll.map(renderEveningCard)}
             </div>
           )}
 
