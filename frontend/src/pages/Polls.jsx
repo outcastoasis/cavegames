@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { useOutletContext } from "react-router-dom";
 import { CalendarDays, CheckCircle2, Lock } from "lucide-react";
 import "../styles/pages/Polls.css";
+import Toast from "../components/ui/Toast";
 
 export default function Polls() {
   const { user } = useAuth();
@@ -13,6 +14,7 @@ export default function Polls() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [finalizing, setFinalizing] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
 
   useEffect(() => {
     setTitle("Umfragen");
@@ -42,9 +44,9 @@ export default function Polls() {
     try {
       await API.patch(`/polls/${pollId}/vote`, { optionDates: selectedDates });
       await fetchPolls();
-      alert("Deine Stimme wurde gespeichert.");
+      showToast("Deine Stimme wurde gespeichert.");
     } catch (err) {
-      alert(
+      showToast(
         "Fehler beim Abstimmen: " + (err.response?.data?.error || err.message)
       );
     } finally {
@@ -63,15 +65,20 @@ export default function Polls() {
     try {
       await API.patch(`/polls/${pollId}/finalize`, { finalizedDate: date });
       await fetchPolls();
-      alert("Termin erfolgreich fixiert.");
+      showToast("Termin erfolgreich fixiert.");
     } catch (err) {
-      alert(
+      showToast(
         "Fehler beim Finalisieren: " +
           (err.response?.data?.error || err.message)
       );
     } finally {
       setFinalizing(false);
     }
+  };
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(""), 2500);
   };
 
   if (loading) return <p className="text-center">Lade Umfragen...</p>;
@@ -219,6 +226,9 @@ export default function Polls() {
             </div>
           ))}
         </div>
+      )}
+      {toastMessage && (
+        <Toast message={toastMessage} onClose={() => setToastMessage("")} />
       )}
     </div>
   );

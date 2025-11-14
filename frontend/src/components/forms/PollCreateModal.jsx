@@ -49,6 +49,21 @@ export default function PollCreateModal({ onClose, eveningId, onSuccess }) {
     }
   };
 
+  const normalizeTime = (value) => {
+    const [h, m] = value.split(":").map(Number);
+    const allowed = [0, 15, 30, 45];
+
+    // Falls m nicht exakt 0/15/30/45 → nächste gültige Minute finden
+    const closest = allowed.reduce((a, b) =>
+      Math.abs(b - m) < Math.abs(a - m) ? b : a
+    );
+
+    const mm = closest.toString().padStart(2, "0");
+    const hh = h.toString().padStart(2, "0");
+
+    return `${hh}:${mm}`;
+  };
+
   return createPortal(
     <div className="poll-modal-overlay">
       <div className="poll-modal">
@@ -59,16 +74,20 @@ export default function PollCreateModal({ onClose, eveningId, onSuccess }) {
               <div className="poll-input-group">
                 <input
                   type="date"
+                  min={new Date().toISOString().split("T")[0]}
                   value={opt.date}
                   onChange={(e) => handleChange(idx, "date", e.target.value)}
                   className="input"
                 />
+
                 <input
                   type="time"
                   value={opt.time}
-                  onChange={(e) => handleChange(idx, "time", e.target.value)}
+                  step="900"
+                  onChange={(e) =>
+                    handleChange(idx, "time", normalizeTime(e.target.value))
+                  }
                   className="input"
-                  step="900" // ⬅︎ 900 Sekunden = 15 Minuten
                 />
 
                 {options.length > 1 && (
