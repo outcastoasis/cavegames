@@ -1,6 +1,7 @@
 // backend/controllers/eveningController.js
 const Evening = require("../models/Evening");
 const { calculateEveningStats } = require("../utils/stats");
+const Year = require("../models/Year");
 
 exports.getEvenings = async (req, res) => {
   try {
@@ -32,6 +33,20 @@ exports.createEvening = async (req, res) => {
       return res
         .status(400)
         .json({ error: "Spieljahr und Spielleiter sind erforderlich." });
+    }
+
+    // Jahr prüfen
+    const year = await Year.findOne({ year: spieljahr });
+    if (!year) {
+      return res.status(404).json({ error: "Spieljahr nicht gefunden." });
+    }
+
+    // Blockieren, falls Jahr abgeschlossen ist
+    if (year.closed === true) {
+      return res.status(400).json({
+        error:
+          "Das gewählte Spieljahr ist bereits abgeschlossen. Es können keine neuen Abende erstellt werden.",
+      });
     }
 
     // Nur 1 offener Abend pro Jahr zulässig
