@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User Statistik – Demo</title>
+
+    <!-- VARIABLES.CSS direkt eingebettet -->
+    <style>
+      /* 🎨 Spielabend App – Design Variablen (vereinheitlicht & 3D Buttons) */
+      @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap");
+
+      :root {
+        --primary: #6d28d9;
+        --primary-light: #8b5cf6;
+        --secondary: #3b82f6;
+        --accent: #facc15;
+        --bg: #f9fafb;
+        --text: #1f2937;
+        --danger: #dc2626;
+        --neutral: #e5e7eb;
+        --neutral-dark: #9ca3af;
+
+        --card-radius: 0.75rem;
+        --border-radius-sm: 0.4rem;
+        --border-radius-full: 999px;
+
+        --shadow-inset: inset 0 1px 2px rgba(255, 255, 255, 0.25);
+        --shadow-raised: 0 3px 6px rgba(0, 0, 0, 0.3);
+        --shadow-hover: 0 6px 10px rgba(0, 0, 0, 0.5);
+        --shadow-pressed: 0 2px 4px rgba(0, 0, 0, 0.25);
+
+        --font-family: "Poppins", sans-serif;
+        --font-size-base: 1rem;
+        --font-size-small: 0.875rem;
+        --font-size-large: 1.25rem;
+
+        --spacing-xs: 0.25rem;
+        --spacing-s: 0.5rem;
+        --spacing-m: 1rem;
+        --spacing-l: 2rem;
+
+        --transition-fast: 0.15s ease-in-out;
+      }
+
+      body {
+        margin: 0;
+        font-family: var(--font-family);
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      /* HEADER */
+      .header {
+        background: var(--primary);
+        color: white;
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        font-size: 1.25rem;
+        box-shadow: var(--shadow-raised);
+      }
+      .header img {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: white;
+        border: 2px solid white;
+      }
+
+      /* BUTTONS */
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.65rem 1.2rem;
+        border-radius: var(--border-radius-full);
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        transition: var(--transition-fast);
+        box-shadow: var(--shadow-inset), var(--shadow-raised);
+        background: linear-gradient(180deg, var(--secondary), #2563eb);
+        color: white;
+      }
+      .button:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-hover);
+      }
+
+      /* PAGE WRAPPER */
+      .page {
+        padding: var(--spacing-m);
+        max-width: 800px;
+        margin: auto;
+      }
+
+      /* USER CARD */
+      .user-card {
+        background: white;
+        border-radius: var(--card-radius);
+        padding: var(--spacing-m);
+        box-shadow: var(--shadow-raised);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+      .user-card img {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        border: 3px solid var(--primary);
+      }
+      .user-info h2 {
+        margin: 0;
+        font-size: 1.4rem;
+      }
+
+      /* YEAR SELECT */
+      .year-select {
+        margin-top: var(--spacing-m);
+        display: flex;
+        justify-content: flex-start;
+      }
+      .year-select select {
+        padding: var(--spacing-s);
+        border-radius: var(--border-radius-sm);
+        border: 1px solid var(--neutral-dark);
+        background: white;
+        font-size: 1rem;
+      }
+
+      /* GRID STATS */
+      .stats-grid {
+        margin-top: var(--spacing-m);
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: var(--spacing-m);
+      }
+      .stat-card {
+        background: white;
+        padding: var(--spacing-m);
+        border-radius: var(--card-radius);
+        box-shadow: var(--shadow-raised);
+        text-align: center;
+      }
+      .stat-card h3 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1rem;
+        color: var(--neutral-dark);
+      }
+      .stat-card .value {
+        font-size: 1.6rem;
+        font-weight: 600;
+        color: var(--primary);
+      }
+
+      /* SECTION TITLES */
+      .section-title {
+        margin-top: var(--spacing-l);
+        font-size: 1.2rem;
+        font-weight: 600;
+        border-left: 5px solid var(--primary);
+        padding-left: 0.5rem;
+      }
+
+      /* TABLE */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: var(--spacing-m);
+        background: white;
+        box-shadow: var(--shadow-raised);
+        border-radius: var(--card-radius);
+        overflow: hidden;
+      }
+      th,
+      td {
+        padding: var(--spacing-s);
+        border-bottom: 1px solid var(--neutral);
+      }
+      th {
+        background: var(--neutral);
+        font-weight: 600;
+      }
+
+      /* STREAK GRAPH PLACEHOLDER */
+      .graph-placeholder {
+        margin-top: var(--spacing-m);
+        height: 150px;
+        background: var(--neutral);
+        border-radius: var(--card-radius);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--neutral-dark);
+        font-size: 1rem;
+        font-weight: 600;
+        box-shadow: var(--shadow-inset);
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- HEADER -->
+    <div class="header">
+      <img src="https://via.placeholder.com/36" alt="User Icon" />
+      User Statistik
+    </div>
+
+    <div class="page">
+      <!-- USER CARD -->
+      <div class="user-card">
+        <img src="https://via.placeholder.com/70" alt="User Avatar" />
+        <div class="user-info">
+          <h2>Jascha Muster</h2>
+          <p>Beigetreten: 2022</p>
+        </div>
+      </div>
+
+      <!-- YEAR SELECT -->
+      <div class="year-select">
+        <select>
+          <option>2025</option>
+          <option>2024</option>
+          <option>2023</option>
+        </select>
+      </div>
+
+      <!-- STATS GRID -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h3>Gesamtpunkte</h3>
+          <div class="value">312</div>
+        </div>
+        <div class="stat-card">
+          <h3>Abende</h3>
+          <div class="value">11</div>
+        </div>
+        <div class="stat-card">
+          <h3>Durchschnitt</h3>
+          <div class="value">28.4</div>
+        </div>
+        <div class="stat-card">
+          <h3>Gewinnrate</h3>
+          <div class="value">36%</div>
+        </div>
+      </div>
+
+      <!-- STREAK / GRAPH -->
+      <h3 class="section-title">Punkteverlauf</h3>
+      <div class="graph-placeholder">Streak-Diagramm (Mockup)</div>
+
+      <!-- PLACEMENTS -->
+      <h3 class="section-title">Platzierungen</h3>
+      <table>
+        <tr>
+          <th>Platz</th>
+          <th>Anzahl</th>
+        </tr>
+        <tr>
+          <td>1. Platz</td>
+          <td>4</td>
+        </tr>
+        <tr>
+          <td>2. Platz</td>
+          <td>3</td>
+        </tr>
+        <tr>
+          <td>3. Platz</td>
+          <td>1</td>
+        </tr>
+      </table>
+
+      <!-- GAME STATS -->
+      <h3 class="section-title">Spielestatistik (optional)</h3>
+      <table>
+        <tr>
+          <th>Spiel</th>
+          <th>Punkte Ø</th>
+          <th>Bestleistung</th>
+        </tr>
+        <tr>
+          <td>Codenames</td>
+          <td>23</td>
+          <td>41</td>
+        </tr>
+        <tr>
+          <td>Azul</td>
+          <td>19</td>
+          <td>35</td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>
