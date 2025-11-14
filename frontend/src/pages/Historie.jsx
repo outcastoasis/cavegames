@@ -90,7 +90,9 @@ export default function Historie() {
     <div className="historie-page">
       {/* Tabs für Jahresauswahl */}
       <div className="historie-year-selector">
-        {years.length === 0 && !loading && <p>Keine archivierten Abende.</p>}
+        {years.length === 0 && !loading && (
+          <p className="history-empty">Keine archivierten Abende.</p>
+        )}
         {years.map((y) => (
           <button
             key={y}

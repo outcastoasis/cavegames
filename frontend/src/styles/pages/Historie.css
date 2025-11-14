@@ -42,3 +42,9 @@
   font-size: var(--font-size-large);
   margin-bottom: 0.5rem;
 }
+
+.history-empty {
+  padding: 1.5rem;
+  text-align: center;
+  opacity: 0.7;
+}
