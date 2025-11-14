@@ -168,19 +168,53 @@ exports.changeEveningStatus = async (req, res) => {
     const { status } = req.body;
     const evening = await Evening.findById(req.params.id);
 
-    if (!evening)
+    if (!evening) {
       return res.status(404).json({ error: "Abend nicht gefunden" });
+    }
 
-    // Nur bei fixiert → abgeschlossen berechnen
-    if (status === "abgeschlossen" && evening.status === "fixiert") {
-      const stats = await calculateEveningStats(evening);
+    const oldStatus = evening.status;
+
+    // Ungültiger Status
+    const validStatuses = ["offen", "fixiert", "abgeschlossen", "gesperrt"];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ error: "Ungültiger Status" });
+    }
+
+    // Logs verhindern Rückschritt nach unten (optional)
+    if (oldStatus === "abgeschlossen" && status === "fixiert") {
+      return res.status(400).json({
+        error: "Abgeschlossene Abende können nicht zurückgesetzt werden",
+      });
+    }
+
+    // ===========================================
+    // 1. Statistiken NUR bei fixiert → abgeschlossen
+    // ===========================================
+    if (oldStatus === "fixiert" && status === "abgeschlossen") {
+      const stats = calculateEveningStats(evening);
       Object.assign(evening, stats);
     }
 
+    // ===========================================
+    // 2. Status setzen & speichern
+    // ===========================================
     evening.status = status;
     await evening.save();
 
-    res.json({ message: "Status geändert", evening });
+    // Rückgabe
+    const updated = await Evening.findById(req.params.id)
+      .populate("spielleiterId", "displayName")
+      .populate("participantIds", "displayName")
+      .populate("games.gameId", "name category")
+      .populate("games.scores.userId", "displayName");
+
+    const response = {
+      ...updated.toObject(),
+      spielleiterRef: updated.spielleiterId,
+      participantRefs: updated.participantIds,
+    };
+
+    res.json({ message: "Status geändert", evening: response });
   } catch (err) {
     console.error("Fehler beim Statuswechsel:", err.message);
     res.status(500).json({ error: "Fehler beim Statuswechsel" });
@@ -403,18 +437,27 @@ exports.getArchivedEvenings = async (req, res) => {
 exports.recalculateEveningStats = async (req, res) => {
   try {
     const evening = await Evening.findById(req.params.id);
+
     if (!evening) {
       return res.status(404).json({ error: "Abend nicht gefunden" });
     }
 
-    // Nur erlaubt für Admins (Frontend prüft das), Backend kann später erweitern
-    const stats = await calculateEveningStats(evening);
+    if (evening.status !== "abgeschlossen") {
+      return res
+        .status(400)
+        .json({
+          error: "Nur abgeschlossene Abende können neu berechnet werden",
+        });
+    }
+
+    const stats = calculateEveningStats(evening);
     Object.assign(evening, stats);
+
     await evening.save();
 
     res.json({ message: "Statistiken aktualisiert", stats });
   } catch (err) {
-    console.error("Fehler bei Recalculate:", err);
+    console.error("Fehler bei Recalculate:", err.message);
     res.status(500).json({ error: "Fehler beim Neuberechnen" });
   }
 };
