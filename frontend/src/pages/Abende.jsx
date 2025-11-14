@@ -262,48 +262,62 @@ export default function Abende() {
         <p>Lade Abende...</p>
       ) : (
         <div className="abend-list">
-          {evenings.openWithoutPoll.length > 0 && (
-            <div>
-              <h3>Abende ohne Umfrage</h3>
-              {evenings.openWithoutPoll.map(renderEveningCard)}
-            </div>
-          )}
+          {evenings.openWithoutPoll.length === 0 &&
+          evenings.withOpenPoll.length === 0 &&
+          !evenings.todayEvening &&
+          !evenings.nextEvening &&
+          evenings.future.length === 0 &&
+          evenings.past.length === 0 ? (
+            <p className="abende-empty">
+              Keine Abende im aktuellen Jahr vorhanden.
+            </p>
+          ) : (
+            <>
+              {evenings.openWithoutPoll.length > 0 && (
+                <div>
+                  <h3>Abende ohne Umfrage</h3>
+                  {evenings.openWithoutPoll.map(renderEveningCard)}
+                </div>
+              )}
 
-          {evenings.withOpenPoll?.length > 0 && (
-            <div>
-              <h3>Abende mit offener Umfrage</h3>
-              {evenings.withOpenPoll.map(renderEveningCard)}
-            </div>
-          )}
-          {evenings.todayEvening && (
-            <div className="card abend-highlight">
-              <h3>Heute Abend!</h3>
-              {renderEveningCard(evenings.todayEvening)}
-            </div>
-          )}
+              {evenings.withOpenPoll.length > 0 && (
+                <div>
+                  <h3>Abende mit offener Umfrage</h3>
+                  {evenings.withOpenPoll.map(renderEveningCard)}
+                </div>
+              )}
 
-          {evenings.nextEvening && (
-            <div className="card abend-highlight">
-              <h3>
-                Nächster Spieleabend in{" "}
-                {calculateDaysLeft(evenings.nextEvening.date)} Tagen
-              </h3>
-              {renderEveningCard(evenings.nextEvening)}
-            </div>
-          )}
+              {evenings.todayEvening && (
+                <div className="card abend-highlight">
+                  <h3>Heute Abend!</h3>
+                  {renderEveningCard(evenings.todayEvening)}
+                </div>
+              )}
 
-          {evenings.future.length > 0 && (
-            <div>
-              <h3>Bevorstehend</h3>
-              {evenings.future.map(renderEveningCard)}
-            </div>
-          )}
+              {evenings.nextEvening && (
+                <div className="card abend-highlight">
+                  <h3>
+                    Nächster Spieleabend in{" "}
+                    {calculateDaysLeft(evenings.nextEvening.date)} Tagen
+                  </h3>
+                  {renderEveningCard(evenings.nextEvening)}
+                </div>
+              )}
 
-          {evenings.past.length > 0 && (
-            <div>
-              <h3>Vergangene Abende</h3>
-              {evenings.past.map(renderEveningCard)}
-            </div>
+              {evenings.future.length > 0 && (
+                <div>
+                  <h3>Bevorstehend</h3>
+                  {evenings.future.map(renderEveningCard)}
+                </div>
+              )}
+
+              {evenings.past.length > 0 && (
+                <div>
+                  <h3>Vergangene Abende</h3>
+                  {evenings.past.map(renderEveningCard)}
+                </div>
+              )}
+            </>
           )}
         </div>
       )}

@@ -1,5 +1,7 @@
 // backend/utils/stats.js
 const mongoose = require("mongoose");
+const Evening = require("../models/Evening");
+const UserStat = require("../models/UserStat");
 
 /**
  * Berechnet alle finalen Abendstatistiken.
@@ -97,7 +99,9 @@ function calculateEveningStats(evening) {
         userId: player.userId,
         place: currentPlace,
       });
-    } else break;
+    } else {
+      break;
+    }
   }
 
   // ==============================
@@ -134,4 +138,130 @@ function calculateEveningStats(evening) {
   };
 }
 
-module.exports = { calculateEveningStats };
+/**
+ * Baut alle UserStat-Dokumente für ein Jahr komplett neu auf.
+ * Nutzt die in Evening gespeicherten Abend-Statistiken.
+ *
+ * - geht alle Abende (abgeschlossen/gesperrt) im Jahr durch
+ * - erstellt pro User eine Zeitreihe seiner Abende
+ * - berechnet totalPoints, wins, streaks, best/worst usw.
+ * - speichert alles in UserStat (upsert)
+ */
+async function rebuildUserStatsForYear(year) {
+  if (!year) return;
+
+  const evenings = await Evening.find({
+    spieljahr: year,
+    status: { $in: ["abgeschlossen", "gesperrt"] },
+  }).sort({ date: 1, createdAt: 1 });
+
+  // Vorherige Stats für dieses Jahr löschen (Full-Rebuild)
+  await UserStat.deleteMany({ spieljahr: year });
+
+  if (!evenings.length) {
+    return;
+  }
+
+  const totalPossibleEvenings = evenings.length;
+
+  // userId → [{ date, points, place, isWinner }]
+  const userMap = new Map();
+
+  for (const e of evenings) {
+    const date = e.date || e.createdAt || new Date();
+
+    const pointsByUser = new Map();
+    (e.playerPoints || []).forEach((p) => {
+      if (!p.userId) return;
+      pointsByUser.set(p.userId.toString(), Number(p.points) || 0);
+    });
+
+    const placeByUser = new Map();
+    (e.placements || []).forEach((pl) => {
+      if (!pl.userId) return;
+      placeByUser.set(pl.userId.toString(), pl.place);
+    });
+
+    const winnerSet = new Set((e.winnerIds || []).map((id) => id.toString()));
+
+    (e.participantIds || []).forEach((uidObj) => {
+      const uid = uidObj.toString();
+      const points = pointsByUser.get(uid) ?? 0;
+      const place = placeByUser.get(uid) ?? null;
+      const isWinner = winnerSet.has(uid);
+
+      if (!userMap.has(uid)) userMap.set(uid, []);
+      userMap.get(uid).push({ date, points, place, isWinner });
+    });
+  }
+
+  const bulkOps = [];
+
+  for (const [userId, entries] of userMap.entries()) {
+    // Chronologisch sortieren
+    entries.sort((a, b) => a.date - b.date);
+
+    const eveningsAttended = entries.length;
+    const totalPoints = entries.reduce((sum, e) => sum + e.points, 0);
+    const bestEveningPoints = Math.max(...entries.map((e) => e.points));
+    const worstEveningPoints = Math.min(...entries.map((e) => e.points));
+    const totalWins = entries.filter((e) => e.isWinner).length;
+    const avgPoints = eveningsAttended ? totalPoints / eveningsAttended : 0;
+
+    const secondPlaces = entries.filter((e) => e.place === 2).length;
+    const thirdPlaces = entries.filter((e) => e.place === 3).length;
+
+    // Win-Streak & letzte Sieg-Datum
+    let longestWinStreak = 0;
+    let currentStreak = 0;
+    let lastWinDate = null;
+
+    for (const e of entries) {
+      if (e.isWinner) {
+        currentStreak += 1;
+        if (currentStreak > longestWinStreak) {
+          longestWinStreak = currentStreak;
+        }
+        lastWinDate = e.date;
+      } else {
+        currentStreak = 0;
+      }
+    }
+
+    const winRate = eveningsAttended
+      ? Math.round((totalWins / eveningsAttended) * 100)
+      : 0;
+
+    bulkOps.push({
+      updateOne: {
+        filter: {
+          userId: new mongoose.Types.ObjectId(userId),
+          spieljahr: year,
+        },
+        update: {
+          $set: {
+            totalPoints,
+            totalWins,
+            eveningsAttended,
+            avgPoints,
+            longestWinStreak,
+            lastWinDate,
+            bestEveningPoints,
+            worstEveningPoints,
+            totalPossibleEvenings,
+            secondPlaces,
+            thirdPlaces,
+            winRate,
+          },
+        },
+        upsert: true,
+      },
+    });
+  }
+
+  if (bulkOps.length) {
+    await UserStat.bulkWrite(bulkOps);
+  }
+}
+
+module.exports = { calculateEveningStats, rebuildUserStatsForYear };

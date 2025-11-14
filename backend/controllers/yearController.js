@@ -1,6 +1,7 @@
 const Year = require("../models/Year");
 const Evening = require("../models/Evening");
 const UserStat = require("../models/UserStat"); // optional
+const { rebuildUserStatsForYear } = require("../utils/stats");
 
 exports.getYears = async (req, res) => {
   try {
@@ -69,13 +70,14 @@ exports.closeYear = async (req, res) => {
         .json({ error: "Nicht alle Abende sind abgeschlossen" });
     }
 
-    // 🧮 Optional: Statistiken generieren
-
-    // 🧊 NEU: Alle Abende als 'gesperrt' markieren
+    // 🧊 Alle Abende als 'gesperrt' markieren
     await Evening.updateMany(
       { spieljahr: year, status: "abgeschlossen" },
       { $set: { status: "gesperrt" } }
     );
+
+    // 🧮 Statistiken für dieses Jahr neu aufbauen
+    await rebuildUserStatsForYear(year);
 
     // Jahr schließen
     yearDoc.closed = true;

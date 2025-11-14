@@ -3,6 +3,7 @@ const Evening = require("../models/Evening");
 const User = require("../models/User");
 const Game = require("../models/Game");
 const UserStat = require("../models/UserStat");
+const { rebuildUserStatsForYear } = require("../utils/stats");
 
 /**
  * 🔢 Leaderboard für ein Jahr
@@ -13,9 +14,17 @@ exports.getLeaderboard = async (req, res) => {
     const year = parseInt(req.query.year);
     if (!year) return res.status(400).json({ error: "Year erforderlich" });
 
-    const stats = await UserStat.find({ spieljahr: year })
+    let stats = await UserStat.find({ spieljahr: year })
       .populate("userId", "displayName")
       .sort({ totalPoints: -1 });
+
+    // Falls noch keine Stats existieren → neu aufbauen
+    if (!stats.length) {
+      await rebuildUserStatsForYear(year);
+      stats = await UserStat.find({ spieljahr: year })
+        .populate("userId", "displayName")
+        .sort({ totalPoints: -1 });
+    }
 
     const result = stats.map((s, index) => ({
       rank: index + 1,
@@ -48,9 +57,15 @@ exports.getUserStats = async (req, res) => {
     const year = parseInt(req.query.year);
     if (!year) return res.status(400).json({ error: "Jahr erforderlich" });
 
-    const stat = await UserStat.findOne({ userId, spieljahr: year });
-    if (!stat)
-      return res.status(404).json({ error: "Keine Statistik gefunden" });
+    let stat = await UserStat.findOne({ userId, spieljahr: year });
+
+    // Falls noch nichts existiert → Stats für Jahr aufbauen und erneut versuchen
+    if (!stat) {
+      await rebuildUserStatsForYear(year);
+      stat = await UserStat.findOne({ userId, spieljahr: year });
+      if (!stat)
+        return res.status(404).json({ error: "Keine Statistik gefunden" });
+    }
 
     res.json(stat);
   } catch (err) {

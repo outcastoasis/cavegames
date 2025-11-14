@@ -53,6 +53,39 @@ export default function Historie() {
 
   const evenings = grouped[selectedYear] || [];
 
+  const [summary, setSummary] = useState(null);
+
+  useEffect(() => {
+    if (!selectedYear) return;
+    loadYearStats(selectedYear);
+  }, [selectedYear]);
+
+  const loadYearStats = async (year) => {
+    try {
+      const [leaderRes, eveningRes] = await Promise.all([
+        API.get(`/stats/leaderboard?year=${year}`),
+        API.get(`/stats/evenings?year=${year}`),
+      ]);
+
+      const leader = leaderRes.data[0];
+
+      setSummary({
+        leaderName: leader?.name || "–",
+        leaderPoints: leader?.totalPoints || 0,
+        totalEvenings: eveningRes.data.totalEvenings,
+        avgParticipants: eveningRes.data.avgParticipants,
+        organizerNames: Object.keys(eveningRes.data.organizers || {}).map(
+          (id) => {
+            const eve = grouped[year]?.find((e) => e.organizerId === id);
+            return eve?.spielleiterRef?.displayName || "Unbekannt";
+          }
+        ),
+      });
+    } catch (err) {
+      console.error("Fehler beim Laden der Jahresstatistik:", err);
+    }
+  };
+
   return (
     <div className="historie-page">
       {/* Tabs für Jahresauswahl */}
@@ -77,18 +110,28 @@ export default function Historie() {
             {/* Jahres‑Zusammenfassung – bleibt vorerst statisch */}
             <div className="year-summary card">
               <h3>Spieljahr {selectedYear} – Zusammenfassung</h3>
-              <p>
-                <strong>Jahressieger:</strong> Lisa (128 Punkte)
-              </p>
-              <p>
-                <strong>Spieleabende:</strong> {evenings.length}
-              </p>
-              <p>
-                <strong>Meiste Siege:</strong> Max (3 Abende gewonnen)
-              </p>
-              <p>
-                <strong>Organisatoren:</strong> Lisa, Tom, Anna
-              </p>
+
+              {!summary ? (
+                <p>Daten werden geladen...</p>
+              ) : (
+                <>
+                  <p>
+                    <strong>Jahressieger:</strong> {summary.leaderName} (
+                    {summary.leaderPoints} Pkt)
+                  </p>
+                  <p>
+                    <strong>Spieleabende:</strong> {summary.totalEvenings}
+                  </p>
+                  <p>
+                    <strong>Durchschnittliche Teilnehmer:</strong>{" "}
+                    {summary.avgParticipants}
+                  </p>
+                  <p>
+                    <strong>Organisatoren:</strong>{" "}
+                    {summary.organizerNames?.join(", ") || "–"}
+                  </p>
+                </>
+              )}
             </div>
 
             {evenings.map((e) => (
@@ -107,7 +150,15 @@ export default function Historie() {
 
                 <p>Spielleiter: {e.spielleiterRef?.displayName || "?"}</p>
                 <p>Teilnehmer: {e.participantRefs?.length || 0}</p>
-                <p>Tagessieger: Lisa</p>
+                <p>
+                  Tagessieger:{" "}
+                  {e.winnerIds
+                    ?.map((id) => {
+                      const p = e.participantRefs?.find((x) => x._id === id);
+                      return p?.displayName || "?";
+                    })
+                    .join(", ") || "–"}
+                </p>
 
                 <button
                   className="button secondary"
