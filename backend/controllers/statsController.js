@@ -162,3 +162,77 @@ exports.getGameStats = async (req, res) => {
     res.status(500).json({ error: "Fehler beim Abrufen der Spielstatistik" });
   }
 };
+
+exports.getUserStatsAllYears = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // Alle Statistiken dieses Users laden
+    const stats = await UserStat.find({ userId }).sort({ spieljahr: 1 });
+
+    if (!stats.length) {
+      return res.status(404).json({ error: "Keine Statistiken vorhanden" });
+    }
+
+    // Liste aller Jahre
+    const years = stats.map((s) => s.spieljahr);
+
+    // Global aggregieren
+    const totalPoints = stats.reduce((s, x) => s + x.totalPoints, 0);
+    const totalEvenings = stats.reduce((s, x) => s + x.eveningsAttended, 0);
+    const totalPossible = stats.reduce(
+      (s, x) => s + x.totalPossibleEvenings,
+      0
+    );
+    const totalWins = stats.reduce((s, x) => s + x.totalWins, 0);
+
+    const avgPoints = totalEvenings
+      ? Math.round(totalPoints / totalEvenings)
+      : 0;
+
+    const attendanceRate = totalPossible
+      ? Math.round((totalEvenings / totalPossible) * 100)
+      : 0;
+
+    const winRate = totalEvenings
+      ? Math.round((totalWins / totalEvenings) * 100)
+      : 0;
+
+    // Durchschnitt über alle Jahrgänge
+    const avgPlacement = (() => {
+      const list = stats
+        .map((x) => x.averagePlacement)
+        .filter((x) => x != null);
+      if (!list.length) return null;
+      return Math.round(list.reduce((s, x) => s + x, 0) / list.length);
+    })();
+
+    // Jahr für Jahr
+    const byYear = {};
+    stats.forEach((s) => {
+      byYear[s.spieljahr] = {
+        totalPoints: s.totalPoints,
+        eveningsAttended: s.eveningsAttended,
+        winRate: s.winRate,
+        attendanceRate: s.attendanceRate,
+      };
+    });
+
+    res.json({
+      years,
+      byYear,
+      global: {
+        totalPoints,
+        avgPoints,
+        attendanceRate,
+        winRate,
+        avgPlacement,
+      },
+    });
+  } catch (err) {
+    console.error("❌ Fehler in getUserStatsAllYears:", err.message);
+    res
+      .status(500)
+      .json({ error: "Fehler beim Abrufen der Multi-Year Statistik" });
+  }
+};

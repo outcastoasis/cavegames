@@ -1,0 +1,12 @@
+/* ChartPlaceholder.css */
+.chart-placeholder {
+  width: 100%;
+  height: 220px;
+  border-radius: var(--card-radius);
+  background: var(--neutral);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-light);
+  font-size: 0.9rem;
+}
