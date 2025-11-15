@@ -1,6 +1,9 @@
 // backend/controllers/eveningController.js
 const Evening = require("../models/Evening");
-const { calculateEveningStats } = require("../utils/stats");
+const {
+  calculateEveningStats,
+  rebuildUserStatsForYear,
+} = require("../utils/stats");
 const Year = require("../models/Year");
 const mongoose = require("mongoose");
 
@@ -235,6 +238,7 @@ exports.changeEveningStatus = async (req, res) => {
     // ===========================================
     evening.status = status;
     await evening.save();
+    await rebuildUserStatsForYear(evening.spieljahr);
 
     // Rückgabe
     const updated = await Evening.findById(req.params.id)
@@ -481,10 +485,14 @@ exports.recalculateEveningStats = async (req, res) => {
       return res.status(404).json({ error: "Abend nicht gefunden" });
     }
 
+    // Abendstatistik neu berechnen
     const stats = calculateEveningStats(evening);
     Object.assign(evening, stats);
 
     await evening.save();
+
+    // WICHTIG: Jahres-Statistiken vollständig neu berechnen
+    await rebuildUserStatsForYear(evening.spieljahr);
 
     res.json({ message: "Statistiken aktualisiert", stats });
   } catch (err) {

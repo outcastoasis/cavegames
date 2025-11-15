@@ -1,27 +1,116 @@
-@import "../variables.css";
-
 .profile-page {
-  padding: var(--spacing-l);
-  margin-top: 60px; /* Platz für fixierten Header */
-  margin-bottom: 4.5rem; /* Platz für Navbar */
-  text-align: center;
-}
-
-.profile-title {
-  font-size: var(--font-size-large);
-  margin-bottom: var(--spacing-m);
+  padding: var(--spacing-m);
+  margin-bottom: 5rem;
 }
 
 .profile-card {
   background: white;
-  border-radius: var(--card-radius);
-  box-shadow: var(--shadow-m);
   padding: var(--spacing-m);
-  max-width: 400px;
-  margin: 0 auto;
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-raised);
+  margin-bottom: var(--spacing-m);
 }
 
-.profile-info {
-  margin: var(--spacing-s) 0;
-  font-size: var(--font-size-base);
+.profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.profile-meta {
+  margin-top: var(--spacing-s);
+  font-size: 0.9rem;
+}
+
+.view-switch {
+  display: flex;
+  gap: var(--spacing-s);
+  margin-bottom: var(--spacing-m);
+}
+
+.year-controls {
+  display: flex;
+  gap: var(--spacing-s);
+  margin-bottom: 1rem;
+}
+
+.year-select {
+  padding: 0.5rem;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--neutral-dark);
+  background: white;
+}
+
+.kpi-grid {
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  margin-bottom: var(--spacing-m);
+}
+
+.kpi-card {
+  background: white;
+  padding: 1rem;
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-raised);
+  text-align: center;
+}
+
+.kpi-title {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+.kpi-value {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-top: 0.3rem;
+  color: var(--primary);
+}
+
+/* Charts */
+.chart-card {
+  background: white;
+  padding: var(--spacing-m);
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-raised);
+  text-align: center;
+  margin-bottom: var(--spacing-m);
+}
+
+.profile-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: var(--card-radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-raised);
+}
+
+.profile-table th,
+.profile-table td {
+  padding: 0.7rem;
+  border-bottom: 1px solid var(--neutral);
+}
+
+.year-compare-grid {
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  margin-bottom: var(--spacing-m);
+}
+
+.year-card {
+  background: white;
+  padding: var(--spacing-m);
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-raised);
+}
+
+.year-card h3 {
+  color: var(--primary);
+  margin-bottom: 0.4rem;
+}
+.year-card .value {
+  font-size: 1.2rem;
+  font-weight: 700;
 }

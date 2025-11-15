@@ -136,16 +136,13 @@ async function rebuildUserStatsForYear(year) {
     status: { $in: ["abgeschlossen", "gesperrt"] },
   }).sort({ date: 1, createdAt: 1 });
 
-  // Vorherige Stats für dieses Jahr löschen (Full-Rebuild)
   await UserStat.deleteMany({ spieljahr: year });
 
-  if (!evenings.length) {
-    return;
-  }
+  if (!evenings.length) return;
 
   const totalPossibleEvenings = evenings.length;
 
-  // userId → [{ date, points, place, isWinner }]
+  // userId → [{date, points, place, isWinner, isSpielleiter}]
   const userMap = new Map();
 
   for (const e of evenings) {
@@ -170,42 +167,103 @@ async function rebuildUserStatsForYear(year) {
       const points = pointsByUser.get(uid) ?? 0;
       const place = placeByUser.get(uid) ?? null;
       const isWinner = winnerSet.has(uid);
+      const isSpielleiter = e.spielleiterId?.toString() === uid ? true : false;
 
       if (!userMap.has(uid)) userMap.set(uid, []);
-      userMap.get(uid).push({ date, points, place, isWinner });
+      userMap.get(uid).push({
+        date,
+        points,
+        place,
+        isWinner,
+        isSpielleiter,
+        eveningId: e._id,
+      });
     });
   }
 
   const bulkOps = [];
 
   for (const [userId, entries] of userMap.entries()) {
-    // Chronologisch sortieren
     entries.sort((a, b) => a.date - b.date);
 
     const eveningsAttended = entries.length;
     const totalPoints = entries.reduce((sum, e) => sum + e.points, 0);
     const bestEveningPoints = Math.max(...entries.map((e) => e.points));
     const worstEveningPoints = Math.min(...entries.map((e) => e.points));
+
     const totalWins = entries.filter((e) => e.isWinner).length;
     const avgPoints = eveningsAttended ? totalPoints / eveningsAttended : 0;
 
     const secondPlaces = entries.filter((e) => e.place === 2).length;
     const thirdPlaces = entries.filter((e) => e.place === 3).length;
 
-    // Win-Streak & letzte Sieg-Datum
-    let longestWinStreak = 0;
-    let currentStreak = 0;
-    let lastWinDate = null;
+    const firstPlaces = entries.filter((e) => e.place === 1).length;
+    const otherPlaces = entries.filter(
+      (e) => e.place !== 1 && e.place !== 2 && e.place !== 3
+    ).length;
 
-    for (const e of entries) {
-      if (e.isWinner) {
-        currentStreak += 1;
-        if (currentStreak > longestWinStreak) {
-          longestWinStreak = currentStreak;
-        }
-        lastWinDate = e.date;
+    // Durchschnittliche Platzierung (nur gültige Plätze)
+    const validPlaces = entries.filter((e) => e.place != null);
+    const averagePlacement = validPlaces.length
+      ? validPlaces.reduce((s, e) => s + e.place, 0) / validPlaces.length
+      : null;
+
+    // Score-Trend / Platzierungs-Trend
+    const scoreTrend = entries.map((e) => ({
+      date: e.date,
+      points: e.points,
+      eveningId: e.eveningId,
+    }));
+
+    const placementTrend = entries.map((e) => ({
+      date: e.date,
+      place: e.place ?? null,
+      eveningId: e.eveningId,
+    }));
+
+    // Teilnahmequote
+    const attendanceRate = totalPossibleEvenings
+      ? Math.round((eveningsAttended / totalPossibleEvenings) * 100)
+      : 0;
+
+    // Spielleiterrolle-Anzahl
+    const spielleiterCount = entries.filter((e) => e.isSpielleiter).length;
+
+    // Peak Performance: Durchschnitt der besten 3 Abende
+    const top3 = [...entries].sort((a, b) => b.points - a.points).slice(0, 3);
+    const peakPerformance =
+      top3.length > 0
+        ? Math.round(top3.reduce((sum, e) => sum + e.points, 0) / top3.length)
+        : 0;
+
+    // **Teilnahme-Streak**
+    let longestAttendanceStreak = 0;
+    let currentAttendanceStreak = 0;
+
+    // **Abwesenheits-Streak**
+    let longestAbsenceStreak = 0;
+    let currentAbsenceStreak = 0;
+
+    // Wir simulieren jedes Event, unabhängig ob User teilnimmt oder nicht.
+    // Dazu brauchen wir eine Map aller Dates im Jahr.
+    const datesAll = evenings.map((e) => e.date.toISOString());
+    const datesUser = new Set(entries.map((e) => e.date.toISOString()));
+
+    for (const d of datesAll) {
+      if (datesUser.has(d)) {
+        currentAttendanceStreak++;
+        longestAttendanceStreak = Math.max(
+          longestAttendanceStreak,
+          currentAttendanceStreak
+        );
+        currentAbsenceStreak = 0;
       } else {
-        currentStreak = 0;
+        currentAbsenceStreak++;
+        longestAbsenceStreak = Math.max(
+          longestAbsenceStreak,
+          currentAbsenceStreak
+        );
+        currentAttendanceStreak = 0;
       }
     }
 
@@ -225,14 +283,29 @@ async function rebuildUserStatsForYear(year) {
             totalWins,
             eveningsAttended,
             avgPoints,
-            longestWinStreak,
-            lastWinDate,
+
             bestEveningPoints,
             worstEveningPoints,
             totalPossibleEvenings,
+
             secondPlaces,
             thirdPlaces,
+            firstPlaces,
+            otherPlaces,
+            averagePlacement,
+
             winRate,
+            attendanceRate,
+
+            longestAttendanceStreak,
+            longestAbsenceStreak,
+
+            spielleiterCount,
+
+            peakPerformance,
+
+            scoreTrend,
+            placementTrend,
           },
         },
         upsert: true,
