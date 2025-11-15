@@ -269,6 +269,121 @@
         align-items: center;
         justify-content: center;
       }
+
+      :root {
+        --primary: #6d28d9;
+        --secondary: #3b82f6;
+        --accent: #facc15;
+        --bg: #f9fafb;
+        --text: #1f2937;
+        --danger: #dc2626;
+        --neutral: #e5e7eb;
+        --neutral-dark: #9ca3af;
+
+        --card-radius: 0.75rem;
+        --border-radius-full: 999px;
+
+        --shadow-raised: 0 3px 6px rgba(0, 0, 0, 0.15);
+      }
+
+      body {
+        margin: 0;
+        font-family: "Poppins", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      .content {
+        padding: 1rem;
+        margin-bottom: 4.5rem;
+      }
+
+      h2.section-title {
+        font-size: 1.15rem;
+        font-weight: 600;
+        margin-top: 1rem;
+        margin-bottom: 0.6rem;
+      }
+
+      /* KPI GRID */
+      .kpi-grid {
+        display: grid;
+        gap: 0.8rem;
+        grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+        margin-bottom: 1.3rem;
+      }
+
+      .kpi-card {
+        background: white;
+        padding: 1rem;
+        border-radius: var(--card-radius);
+        box-shadow: var(--shadow-raised);
+        text-align: center;
+      }
+      .kpi-title {
+        font-size: 0.85rem;
+        opacity: 0.7;
+      }
+      .kpi-value {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin-top: 0.3rem;
+        color: var(--primary);
+      }
+
+      /* Chart Cards */
+      .chart-card {
+        background: white;
+        padding: 1rem;
+        border-radius: var(--card-radius);
+        box-shadow: var(--shadow-raised);
+        text-align: center;
+        margin-bottom: 1rem;
+      }
+      .chart-placeholder {
+        height: 180px;
+        background: var(--neutral);
+        border-radius: var(--card-radius);
+        margin-top: 0.6rem;
+      }
+
+      /* YEAR COMPARISON CARDS */
+      .year-compare-grid {
+        display: grid;
+        gap: 0.8rem;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        margin-bottom: 1rem;
+      }
+      .year-card {
+        background: white;
+        padding: 1rem;
+        border-radius: var(--card-radius);
+        box-shadow: var(--shadow-raised);
+      }
+      .year-card h3 {
+        margin: 0 0 0.5rem 0;
+        color: var(--primary);
+      }
+      .year-card .value {
+        font-size: 1.2rem;
+        font-weight: 700;
+      }
+
+      /* ACTIVITY HEATMAP */
+      .heatmap {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 0.3rem;
+        padding: 0.5rem 0;
+      }
+      .heat-cell {
+        height: 18px;
+        border-radius: 4px;
+        background: var(--neutral);
+      }
+      .heat-cell.active {
+        background: var(--secondary);
+      }
     </style>
   </head>
 
@@ -287,135 +402,106 @@
     </header>
 
     <div class="content">
-      <!-- Profilkarte -->
-      <div class="profile-card">
-        <div class="profile-header">
-          <h2 style="margin: 0">Max Muster – Profil</h2>
-          <button class="logout-btn">Logout</button>
-        </div>
-        <p style="margin: 0.4rem 0 0">
-          Benutzername: <strong>max</strong><br />
-          Rolle: <strong>Spieler</strong>
-        </p>
-      </div>
+      <!-- TITEL -->
+      <h2 class="section-title">Alle Jahre – Übersicht</h2>
 
-      <!-- Jahr-Steuerung -->
-      <div class="year-controls">
-        <select class="year-select">
-          <option>2025</option>
-          <option>2024</option>
-          <option>2023</option>
-        </select>
-        <button class="button">← Vorjahr</button>
-        <button class="button">Nächstes Jahr →</button>
-        <button class="button accent">Alle Jahre</button>
-      </div>
-
-      <!-- KPIs -->
+      <!-- KPIs über alle Jahre -->
       <div class="kpi-grid">
         <div class="kpi-card">
-          <div class="kpi-title">Gesamtpunkte</div>
-          <div class="kpi-value">187</div>
+          <div class="kpi-title">Gesamtpunkte (alle Jahre)</div>
+          <div class="kpi-value">812</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-title">Durchschnitt</div>
-          <div class="kpi-value">20.8</div>
+          <div class="kpi-title">Durchschnitt aller Jahre</div>
+          <div class="kpi-value">21.4</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-title">Teilgenommene Abende</div>
-          <div class="kpi-value">9</div>
+          <div class="kpi-title">Teilnahmequote* gesamt</div>
+          <div class="kpi-value">81%</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-title">Teilnahmequote</div>
-          <div class="kpi-value">75%</div>
+          <div class="kpi-title">Gewinnrate gesamt</div>
+          <div class="kpi-value">38%</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-title">Gewinnrate</div>
-          <div class="kpi-value">44%</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-title">Top-3 Quote</div>
-          <div class="kpi-value">67%</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-title">Spielleiter-Rollen</div>
-          <div class="kpi-value">2×</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-title">Ø Platzierung</div>
-          <div class="kpi-value">3.1</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-title">Höchste Teilnahme-Streak</div>
-          <div class="kpi-value">4×</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-title">Höchste Abwesenheits-Streak</div>
-          <div class="kpi-value">1×</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-title">Peak-Performance (Top-3 Abende Ø)</div>
-          <div class="kpi-value">27</div>
+          <div class="kpi-title">Ø Platzierung (global)</div>
+          <div class="kpi-value">3.4</div>
         </div>
       </div>
 
-      <!-- Platzierungsdiagramm -->
+      <!-- Multi-Year Punkteverlauf -->
       <div class="chart-card">
-        <h2 class="section-title">Platzierungsverteilung</h2>
+        <h2 class="section-title">Punkteverlauf über alle Jahre</h2>
         <div class="chart-placeholder"></div>
       </div>
 
-      <!-- Punktenverlauf -->
+      <!-- Multi-Year Gewinnrate Verlauf -->
       <div class="chart-card">
-        <h2 class="section-title">Punktetrend</h2>
+        <h2 class="section-title">Gewinnrate über die Jahre</h2>
         <div class="chart-placeholder"></div>
       </div>
 
-      <!-- Best/Worst -->
-      <div class="bw-grid">
-        <div class="bw-card">
-          <strong>Bester Abend</strong>
-          <p>Datum: 12.08.2025<br />Punkte: 32<br />Platz: 1</p>
+      <!-- Aktivitäts-Heatmap -->
+      <div class="chart-card">
+        <h2 class="section-title">Aktivitäts-Heatmap</h2>
+        <div class="heatmap">
+          <div class="heat-cell active"></div>
+          <div class="heat-cell"></div>
+          <div class="heat-cell active"></div>
+          <div class="heat-cell"></div>
+          <div class="heat-cell active"></div>
+          <div class="heat-cell active"></div>
+          <div class="heat-cell"></div>
+          <div class="heat-cell"></div>
+          <div class="heat-cell active"></div>
+          <div class="heat-cell active"></div>
+          <div class="heat-cell"></div>
+          <div class="heat-cell active"></div>
         </div>
-        <div class="bw-card">
-          <strong>Schlechtester Abend</strong>
-          <p>Datum: 05.04.2025<br />Punkte: 6<br />Platz: 7</p>
+        <small style="opacity: 0.6"
+          >*Ein dunkleres Feld = mehr Teilnahmen pro Monat</small
+        >
+      </div>
+
+      <!-- Vergleichskarten Jahr für Jahr -->
+      <h2 class="section-title">Jahr-für-Jahr Vergleich</h2>
+      <div class="year-compare-grid">
+        <div class="year-card">
+          <h3>2025</h3>
+          <p>Punkte: <span class="value">187</span></p>
+          <p>Teilnahmen: 9</p>
+          <p>Gewinnrate: 44%</p>
+        </div>
+        <div class="year-card">
+          <h3>2024</h3>
+          <p>Punkte: <span class="value">210</span></p>
+          <p>Teilnahmen: 11</p>
+          <p>Gewinnrate: 36%</p>
+        </div>
+        <div class="year-card">
+          <h3>2023</h3>
+          <p>Punkte: <span class="value">149</span></p>
+          <p>Teilnahmen: 7</p>
+          <p>Gewinnrate: 28%</p>
         </div>
       </div>
 
-      <!-- Tabelle -->
-      <h2 class="section-title">Alle Abende</h2>
-      <table>
-        <tr>
-          <th>Datum</th>
-          <th>Punkte</th>
-          <th>Platz</th>
-          <th></th>
-        </tr>
-        <tr>
-          <td>12.10.2025</td>
-          <td>24</td>
-          <td>1</td>
-          <td><button class="button">Details</button></td>
-        </tr>
-        <tr>
-          <td>05.08.2025</td>
-          <td>17</td>
-          <td>3</td>
-          <td><button class="button">Details</button></td>
-        </tr>
-        <tr>
-          <td>22.06.2025</td>
-          <td>6</td>
-          <td>7</td>
-          <td><button class="button">Details</button></td>
-        </tr>
-      </table>
+      <!-- Optional: Badges -->
+      <h2 class="section-title">Awards & Badges</h2>
 
-      <!-- Spielestatistik (Optional) -->
-      <div class="chart-card">
-        <h2 class="section-title">Spielestatistiken</h2>
-        <div class="chart-placeholder"></div>
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-title">🏅 Ironman</div>
+          <div class="kpi-value" style="font-size: 1rem">
+            Höchste Teilnahmequote
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">🎮 Game Master</div>
+          <div class="kpi-value" style="font-size: 1rem">
+            Meiste Spielleiterrollen
+          </div>
+        </div>
       </div>
     </div>
 

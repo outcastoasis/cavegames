@@ -2,6 +2,7 @@
 const Evening = require("../models/Evening");
 const { calculateEveningStats } = require("../utils/stats");
 const Year = require("../models/Year");
+const mongoose = require("mongoose");
 
 exports.getEvenings = async (req, res) => {
   try {
@@ -353,6 +354,11 @@ exports.getEveningGames = async (req, res) => {
 exports.addEveningGame = async (req, res) => {
   try {
     const { gameId, notes } = req.body;
+
+    if (!gameId || !mongoose.Types.ObjectId.isValid(gameId)) {
+      return res.status(400).json({ error: "Ungültige Spiel-ID." });
+    }
+
     const evening = await Evening.findById(req.params.id).populate(
       "participantIds",
       "displayName"
@@ -363,12 +369,11 @@ exports.addEveningGame = async (req, res) => {
     }
 
     if (evening.status === "abgeschlossen" && req.user.role !== "admin") {
-      return res
-        .status(400)
-        .json({ error: "Abend ist abgeschlossen – Hinzufügen nicht erlaubt" });
+      return res.status(400).json({
+        error: "Abend ist abgeschlossen – Hinzufügen nicht erlaubt",
+      });
     }
 
-    // Initial Scores: alle Teilnehmer starten mit 0 Punkten
     const scores = evening.participantIds.map((p) => ({
       userId: p._id,
       points: 0,
