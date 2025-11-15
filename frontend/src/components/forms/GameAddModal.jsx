@@ -41,7 +41,8 @@ export default function GameAddModal({ eveningId, onClose, onSuccess }) {
         gameId = res.data._id;
       }
 
-      await API.post(`/evenings/${eveningId}/games`, { eveningId, gameId });
+      await API.post(`/evenings/${eveningId}/games`, { gameId });
+
       onSuccess?.();
       onClose();
     } catch (err) {

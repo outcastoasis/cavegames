@@ -10,7 +10,6 @@ const UserStat = require("../models/UserStat");
  *  - .participantIds (Array der teilnehmenden User)
  */
 function calculateEveningStats(evening) {
-  // Keine Spiele → keine Statistiken
   if (!evening?.games?.length) {
     return {
       winnerIds: [],
@@ -24,39 +23,32 @@ function calculateEveningStats(evening) {
     };
   }
 
-  // ==============================
-  // 1. Punkte sammeln
-  // ==============================
-  const playerPointsMap = {}; // userId → Gesamtpunkte
+  const playerPointsMap = {};
   let totalPoints = 0;
   let maxPoints = 0;
-  const gameCountMap = {}; // gameId → 1 (einmal pro Abend zählen)
+  const gameCountMap = {};
 
   for (const game of evening.games) {
-    const gameIdStr = game.gameId?.toString?.();
-    if (gameIdStr) {
-      // Jedes Spiel zählt nur 1x pro Abend
-      gameCountMap[gameIdStr] = 1;
+    let rawGameId = game.gameId?._id?.toString?.() || game.gameId?.toString?.();
+
+    if (rawGameId && mongoose.Types.ObjectId.isValid(rawGameId)) {
+      gameCountMap[rawGameId] = 1;
     }
 
     for (const score of game.scores || []) {
-      const uid = score.userId?.toString?.();
-      if (!uid) continue; // Ignoriere kaputte Scores (z. B. gelöschter User)
+      const uid = score.userId?._id?.toString?.() || score.userId?.toString?.();
+      if (!uid || !mongoose.Types.ObjectId.isValid(uid)) continue;
 
       const pts = Number(score.points) || 0;
 
-      // Punkte aufsummieren
       playerPointsMap[uid] = (playerPointsMap[uid] || 0) + pts;
       totalPoints += pts;
-
-      // höchste Einzelpunktzahl merken
       if (pts > maxPoints) maxPoints = pts;
     }
   }
 
-  // Wenn keine gültigen Scores existieren
   const playerIds = Object.keys(playerPointsMap);
-  if (playerIds.length === 0) {
+  if (!playerIds.length) {
     return {
       winnerIds: [],
       maxPoints: 0,
@@ -69,9 +61,6 @@ function calculateEveningStats(evening) {
     };
   }
 
-  // ==============================
-  // 2. Sortierung nach Gesamtpunkten
-  // ==============================
   const sortedPlayers = playerIds
     .map((userId) => ({
       userId,
@@ -79,57 +68,49 @@ function calculateEveningStats(evening) {
     }))
     .sort((a, b) => b.points - a.points);
 
-  // ==============================
-  // 3. Platzierungen (mit Gleichständen)
-  // ==============================
   const placements = [];
   let currentPlace = 1;
 
   for (let i = 0; i < sortedPlayers.length; i++) {
     const player = sortedPlayers[i];
-
-    // Wenn Punkte niedriger als beim vorherigen → neuer Platzwert
     if (i > 0 && player.points < sortedPlayers[i - 1].points) {
       currentPlace = placements.length + 1;
     }
-
-    // Nur Top-3 speichern
     if (currentPlace <= 3) {
       placements.push({
         userId: player.userId,
         place: currentPlace,
       });
-    } else {
-      break;
-    }
+    } else break;
   }
 
-  // ==============================
-  // 4. Tagessieger (alle mit Höchstpunktzahl)
-  // ==============================
   const highest = sortedPlayers[0].points;
+
   const winnerIds = sortedPlayers
     .filter((p) => p.points === highest)
-    .map((p) => new mongoose.Types.ObjectId(p.userId));
+    .map((p) =>
+      mongoose.Types.ObjectId.isValid(p.userId)
+        ? new mongoose.Types.ObjectId(p.userId)
+        : null
+    )
+    .filter(Boolean);
 
-  // ==============================
-  // 5. Spiele-Anzahl pro Abend
-  // ==============================
   const gameCount = Object.entries(gameCountMap).map(([gameId, count]) => ({
-    gameId: new mongoose.Types.ObjectId(gameId),
+    gameId: mongoose.Types.ObjectId.isValid(gameId)
+      ? new mongoose.Types.ObjectId(gameId)
+      : null,
     count,
   }));
 
-  // ==============================
-  // 6. Endgültiges Ergebnisobjekt
-  // ==============================
   return {
     winnerIds,
     maxPoints,
     totalPoints,
     placements,
     playerPoints: sortedPlayers.map((p) => ({
-      userId: new mongoose.Types.ObjectId(p.userId),
+      userId: mongoose.Types.ObjectId.isValid(p.userId)
+        ? new mongoose.Types.ObjectId(p.userId)
+        : null,
       points: p.points,
     })),
     gameCount,
