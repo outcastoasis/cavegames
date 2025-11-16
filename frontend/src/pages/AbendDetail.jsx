@@ -184,11 +184,21 @@ export default function AbendDetail() {
   const backTarget = abend.status === "gesperrt" ? "/historie" : "/abende";
   const isGesperrt = abend.status === "gesperrt";
   const canEditScores =
-    !isGesperrt && isPrivileged && (isFixiert || (isAdmin && isAbgeschlossen));
+    !isGesperrt &&
+    ((isAdmin && (isFixiert || isAbgeschlossen)) ||
+      (isSpielleiter && isFixiert));
 
   const isToday =
     abend.date &&
     new Date(abend.date).toDateString() === new Date().toDateString();
+
+  const canAddGame =
+    !isGesperrt && ((isAdmin && isFixiert) || (isSpielleiter && isFixiert));
+
+  const canDeleteGame =
+    !isGesperrt &&
+    ((isAdmin && (isFixiert || isAbgeschlossen)) ||
+      (isSpielleiter && isFixiert));
 
   const formattedDate = abend.date
     ? new Date(abend.date).toLocaleDateString("de-CH", {
@@ -491,19 +501,17 @@ export default function AbendDetail() {
                       {game.gameId?.name || "Unbekanntes Spiel"}
                     </h3>
 
-                    {!isGesperrt &&
-                      ((isPrivileged && isFixiert) ||
-                        (isAdmin && isAbgeschlossen)) && (
-                        <div className="abenddetail-game-actions">
-                          <button
-                            className="abenddetail-button-round-delete"
-                            onClick={() => handleDeleteGame(game._id)}
-                            title="Spiel löschen"
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                        </div>
-                      )}
+                    {canDeleteGame && (
+                      <div className="abenddetail-game-actions">
+                        <button
+                          className="abenddetail-button-round-delete"
+                          onClick={() => handleDeleteGame(game._id)}
+                          title="Spiel löschen"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   <ul className="abenddetail-score-list">
@@ -598,29 +606,26 @@ export default function AbendDetail() {
         )}
 
         {/* Aktionen unten */}
-        {isPrivileged && (
-          <footer className="abenddetail-footer-actions">
-            {abend.status !== "abgeschlossen" && (
-              <button
-                className="button accent"
-                onClick={() => setShowGameModal(true)}
-              >
-                <PlusCircle size={18} />
-                <span>Spiel hinzufügen</span>
-              </button>
-            )}
+        <footer className="abenddetail-footer-actions">
+          {/* Spiel hinzufügen */}
+          {canAddGame && (
+            <button
+              className="button accent"
+              onClick={() => setShowGameModal(true)}
+            >
+              <PlusCircle size={18} />
+              <span>Spiel hinzufügen</span>
+            </button>
+          )}
 
-            {isPrivileged && abend.status === "fixiert" && (
-              <button
-                className="button primary"
-                onClick={handleFinishEvening}
-              >
-                <Trophy size={18} />
-                <span>Abend abschliessen</span>
-              </button>
-            )}
-          </footer>
-        )}
+          {/* Abend abschliessen – nur Spielleiter ODER Admin, aber nur solange fixiert */}
+          {(isSpielleiter || isAdmin) && isFixiert && (
+            <button className="button primary" onClick={handleFinishEvening}>
+              <Trophy size={18} />
+              <span>Abend abschliessen</span>
+            </button>
+          )}
+        </footer>
       </div>
 
       {showGameModal && (

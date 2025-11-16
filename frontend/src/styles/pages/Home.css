@@ -35,11 +35,13 @@
   font-weight: 500;
   margin-bottom: var(--spacing-s);
   display: flex;
+  position: relative;
   align-items: center;
   gap: var(--spacing-s);
   cursor: pointer;
+  white-space: pre-line;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.2s ease;
 }
 
 .dashboard-alert:hover {
