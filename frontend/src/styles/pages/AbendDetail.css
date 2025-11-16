@@ -1,266 +1,14 @@
+/* src/styles/pages/AbendDetail.css */
 @import "../variables.css";
 
-/* ====== Container & Grundlayout ====== */
+/* ====== Grundlayout ====== */
+
 .abenddetail-container {
   padding: var(--spacing-m);
   max-width: 900px;
-  margin: 0 auto;
+  margin: 0 auto var(--spacing-l);
 }
 
-.abenddetail-backbutton {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-s);
-  margin-bottom: var(--spacing-m);
-}
-
-/* ====== Hauptkarte ====== */
-.abenddetail-card {
-  background: #fff;
-  border-radius: var(--card-radius);
-  padding: var(--spacing-l);
-  margin-bottom: var(--spacing-l);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  transition: box-shadow var(--transition-fast),
-    transform var(--transition-fast);
-}
-
-.abenddetail-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 14px rgba(0, 0, 0, 0.15);
-}
-
-.abenddetail-title {
-  font-size: var(--font-size-large);
-  font-weight: 600;
-  margin-bottom: var(--spacing-s);
-}
-
-/* ====== Statusanzeige ====== */
-.abenddetail-status {
-  display: inline-block;
-  font-weight: 600;
-  padding: var(--spacing-xs) var(--spacing-m);
-  border-radius: var(--border-radius-full);
-  text-transform: capitalize;
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.3);
-  margin: var(--spacing-xs) 0;
-}
-
-.abenddetail-status.offen {
-  background: var(--secondary);
-  color: #fff;
-}
-
-.abenddetail-status.fixiert {
-  background: var(--accent);
-  color: #1f2937;
-}
-
-.abenddetail-status.abgeschlossen {
-  background: var(--primary);
-  color: #fff;
-}
-
-/* ====== Tagessieger / Alert ====== */
-.abenddetail-winner {
-  margin: var(--spacing-m) 0;
-  background: var(--accent);
-  color: var(--text);
-  padding: var(--spacing-s) var(--spacing-m);
-  border-radius: var(--border-radius-sm);
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-s);
-}
-
-/* ====== Sektionen ====== */
-.abenddetail-section {
-  margin-top: var(--spacing-l);
-}
-
-.abenddetail-section h3 {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-s);
-  margin-bottom: var(--spacing-s);
-  font-size: var(--font-size-base);
-  font-weight: 600;
-}
-
-/* ====== Teilnehmerliste ====== */
-.abenddetail-list {
-  list-style: none;
-  padding: 0;
-  margin-top: var(--spacing-s);
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-s);
-}
-
-.abenddetail-list li {
-  background: var(--neutral);
-  padding: var(--spacing-s) var(--spacing-m);
-  border-radius: var(--border-radius-sm);
-  font-size: var(--font-size-small);
-  font-weight: 500;
-  color: var(--text);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-  position: relative;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.abenddetail-remove-button {
-  background: transparent;
-  border: none;
-  color: var(--danger);
-  font-size: 1.25rem;
-  font-weight: bold;
-  cursor: pointer;
-  padding: var(--spacing-xs);
-  margin-left: auto;
-  line-height: 1;
-  transition: all 0.2s ease;
-  border-radius: 50%;
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.abenddetail-remove-button:hover {
-  color: white;
-  background-color: var(--danger);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  transform: scale(1.05);
-}
-
-/* ====== Spieleliste ====== */
-.abenddetail-game {
-  margin-top: var(--spacing-m);
-  padding: var(--spacing-m);
-  background: #fff;
-  border-radius: var(--card-radius);
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
-}
-
-.abenddetail-game-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--spacing-s);
-  margin-bottom: var(--spacing-s);
-}
-
-.abenddetail-game-header h4 {
-  font-size: 1.3rem; /* größer */
-  font-weight: 700; /* stärker betont */
-  color: var(--primary);
-  letter-spacing: 0.3px;
-  margin: 0;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15); /* leichte Tiefe */
-  border-bottom: 2px solid var(--primary); /* visuelle Trennung */
-  display: inline-block;
-  padding-bottom: 0.2rem;
-}
-
-.abenddetail-game-title {
-  flex-grow: 1;
-  margin: 0;
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: var(--primary);
-  letter-spacing: 0.3px;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
-  border-bottom: 2px solid var(--primary);
-  padding-bottom: 0.2rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.abenddetail-game-actions {
-  display: flex;
-  gap: var(--spacing-s);
-  flex-wrap: wrap;
-}
-
-.button-round-delete {
-  width: 42px;
-  height: 42px;
-  padding: 0 !important; /* ← ERZWINGEN */
-  border-radius: var(--border-radius-full);
-  aspect-ratio: 1 / 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  border: none;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  box-shadow: var(--shadow-inset), var(--shadow-raised),
-    0 0 6px rgba(0, 0, 0, 0.08); /* sanfter Umgebungs-Glow */
-  transform: translateY(0);
-  user-select: none;
-  background: linear-gradient(180deg, #f87171, var(--danger));
-  color: white;
-}
-
-/* ====== Punkteanzeige ====== */
-.abenddetail-score-list {
-  list-style: none;
-  padding: 0;
-
-  margin: 0;
-}
-
-.abenddetail-score-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--spacing-s) 0;
-  border-bottom: 1px solid var(--neutral-dark);
-}
-
-.abenddetail-score-item span:last-child {
-  font-weight: 700;
-  font-size: 1rem;
-  color: var(--primary);
-}
-
-.abenddetail-score-item input {
-  width: 80px;
-  text-align: right;
-  font-weight: bold;
-  border: 1px solid var(--neutral-dark);
-  border-radius: var(--border-radius-sm);
-  padding: var(--spacing-xs);
-}
-
-/* ====== Gruppenfoto ====== */
-.abenddetail-photo {
-  width: 100%;
-  max-height: 400px;
-  object-fit: cover;
-  border-radius: var(--border-radius-sm);
-  margin-top: var(--spacing-s);
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
-}
-
-/* ====== Footer-Buttons ====== */
-.abenddetail-actions {
-  margin-top: var(--spacing-l);
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-s);
-}
-
-/* ====== Ladezustand & Fehler ====== */
 .abenddetail-loading,
 .abenddetail-error {
   text-align: center;
@@ -268,26 +16,510 @@
   margin-top: var(--spacing-l);
 }
 
+/* ====== Back-Button ====== */
+
+.abenddetail-backbutton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-s);
+  margin-bottom: var(--spacing-m);
+  padding-inline: var(--spacing-m);
+  padding-block: var(--spacing-xs);
+  font-size: var(--font-size-small);
+}
+
+/* ====== Hauptkarte ====== */
+
+.abenddetail-card {
+  padding: var(--spacing-l);
+  border-radius: var(--card-radius);
+  background: #ffffff;
+  box-shadow: var(--shadow-l);
+}
+
+/* ====== Header ====== */
+
+.abenddetail-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-m);
+  border-bottom: 1px solid var(--neutral);
+  padding-bottom: var(--spacing-m);
+}
+
+.abenddetail-header-titles {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.abenddetail-title {
+  font-size: calc(var(--font-size-large) * 1.2);
+  font-weight: 600;
+  margin: 0;
+}
+
+.abenddetail-date-row {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-s);
+  font-size: var(--font-size-small);
+  color: var(--text-muted);
+  padding: var(--spacing-xs) var(--spacing-s);
+  border-radius: var(--border-radius-full);
+  background: var(--bg);
+}
+
+.abenddetail-header-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-s);
+}
+
+.abenddetail-meta-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-s);
+  padding: var(--spacing-s) var(--spacing-m);
+  border-radius: var(--border-radius-sm);
+  background: var(--bg);
+}
+
+.abenddetail-meta-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.abenddetail-meta-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.abenddetail-meta-value {
+  font-size: var(--font-size-small);
+  font-weight: 600;
+}
+
+/* ====== Status-Badge ====== */
+
+.abenddetail-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding-inline: var(--spacing-m);
+  padding-block: var(--spacing-xs);
+  border-radius: var(--border-radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.abenddetail-status-badge--offen {
+  background: var(--secondary);
+  color: #ffffff;
+}
+
+.abenddetail-status-badge--fixiert {
+  background: var(--accent);
+  color: #1f2937;
+}
+
+.abenddetail-status-badge--abgeschlossen {
+  background: var(--primary);
+  color: #ffffff;
+}
+
+.abenddetail-status-badge--gesperrt {
+  background: var(--neutral);
+  color: var(--neutral-text);
+}
+
+/* ====== Sektionen allgemein ====== */
+
+.abenddetail-section {
+  margin-top: var(--spacing-l);
+}
+
+.abenddetail-section-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-s);
+  margin-bottom: var(--spacing-s);
+  margin-top: var(--spacing-l);
+}
+
+.abenddetail-section-title {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  margin: 0;
+}
+
+.abenddetail-muted {
+  font-size: var(--font-size-small);
+  color: var(--text-muted);
+}
+
+/* ====== Teilnahme-Toggle ====== */
+
+.abenddetail-section--participation {
+  margin-top: var(--spacing-l);
+  padding: var(--spacing-m);
+  border-radius: var(--card-radius);
+  background: var(--bg);
+}
+
+.abenddetail-toggle-wrapper {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: var(--spacing-s);
+}
+
+.abenddetail-toggle-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  font-weight: 600;
+  user-select: none;
+}
+
+.abenddetail-toggle-label input {
+  display: none;
+}
+
+.abenddetail-toggle-slider {
+  width: 56px;
+  height: 32px;
+  background: var(--neutral);
+  border-radius: var(--border-radius-full);
+  position: relative;
+  transition: all 0.25s ease;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.abenddetail-toggle-slider::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 26px;
+  height: 26px;
+  background: #ffffff;
+  border-radius: 50%;
+  transition: transform 0.25s ease;
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.25);
+}
+
+.abenddetail-toggle-label input:checked + .abenddetail-toggle-slider {
+  background: linear-gradient(180deg, #4ade80, #059669);
+}
+
+.abenddetail-toggle-label input:checked + .abenddetail-toggle-slider::after {
+  transform: translateX(24px);
+}
+
+.abenddetail-toggle-label input:checked ~ .abenddetail-toggle-text {
+  color: #059669;
+}
+
+.abenddetail-toggle-label input:not(:checked) ~ .abenddetail-toggle-text {
+  color: var(--danger);
+}
+
+.abenddetail-toggle-text {
+  font-weight: 500;
+  font-size: 1rem;
+}
+
+/* ====== Tagessieger ====== */
+
+.abenddetail-winner {
+  margin-top: var(--spacing-l);
+  padding: var(--spacing-m);
+  border-radius: var(--card-radius);
+  background: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-m);
+  box-shadow: var(--shadow-m);
+}
+
+.abenddetail-winner-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.abenddetail-winner-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.abenddetail-winner-value {
+  font-weight: 600;
+}
+
+/* ====== Platzierungen ====== */
+
+.abenddetail-rank-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.abenddetail-rank-item {
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  align-items: center;
+  padding: var(--spacing-s) var(--spacing-m);
+  border-radius: var(--border-radius-sm);
+  background: var(--bg);
+}
+
+.abenddetail-rank-place {
+  font-weight: 700;
+}
+
+.abenddetail-rank-name {
+  font-weight: 500;
+}
+
+.abenddetail-rank-points {
+  font-size: var(--font-size-small);
+  font-weight: 600;
+}
+
+/* ====== Abendstatistik ====== */
+
+.abenddetail-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-s);
+}
+
+.abenddetail-stat-card {
+  padding: var(--spacing-s) var(--spacing-m);
+  border-radius: var(--border-radius-sm);
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.abenddetail-stat-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.abenddetail-stat-value {
+  font-size: var(--font-size-small);
+  font-weight: 600;
+}
+
+/* ====== Teilnehmer ====== */
+
+.abenddetail-participant-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-s);
+}
+
+.abenddetail-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-m);
+  border-radius: var(--border-radius-full);
+  background: var(--bg);
+  box-shadow: var(--shadow-s);
+}
+
+.abenddetail-participant-name {
+  font-size: var(--font-size-small);
+  font-weight: 500;
+}
+
+.abenddetail-participant-remove {
+  background: transparent;
+  border: none;
+  color: var(--danger);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.abenddetail-participant-remove:hover {
+  filter: brightness(0.9);
+}
+
+.abenddetail-addparticipant {
+  margin-top: var(--spacing-m);
+}
+
+.abenddetail-addparticipant-label {
+  font-weight: 500;
+  color: var(--primary);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-small);
+}
+
+.abenddetail-addparticipant-select {
+  padding: var(--spacing-s);
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--neutral);
+  background: #ffffff;
+  font-size: var(--font-size-small);
+}
+
+/* ====== Spieleliste ====== */
+
+.abenddetail-games-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-m);
+}
+
+.abenddetail-subcard {
+  background: #ffffff;
+  border-radius: var(--card-radius);
+  padding: var(--spacing-m);
+  box-shadow: var(--shadow-s);
+}
+
+.abenddetail-game-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-s);
+}
+
+.abenddetail-game-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-s);
+  justify-content: space-between;
+}
+
+.abenddetail-game-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.abenddetail-game-actions {
+  display: flex;
+  align-items: center;
+}
+
+.abenddetail-button-round-delete {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--border-radius-full);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-m);
+  background: linear-gradient(180deg, #f87171, var(--danger));
+  color: #ffffff;
+}
+
+/* Punkte */
+
+.abenddetail-score-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border-top: 1px solid var(--neutral);
+  margin-top: var(--spacing-s);
+}
+
+.abenddetail-score-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-block: var(--spacing-s);
+  border-bottom: 1px solid var(--neutral);
+}
+
+.abenddetail-score-name {
+  font-size: var(--font-size-small);
+}
+
+.abenddetail-score-value {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--primary);
+}
+
+.abenddetail-score-value--editable {
+  cursor: pointer;
+}
+
+.abenddetail-score-input {
+  max-width: 90px;
+  text-align: right;
+  font-weight: 600;
+}
+
+.abenddetail-game-footer {
+  margin-top: var(--spacing-s);
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ====== Gruppenfoto ====== */
+
+.abenddetail-photo {
+  width: 100%;
+  max-height: 320px;
+  object-fit: cover;
+  border-radius: var(--border-radius-sm);
+  box-shadow: var(--shadow-m);
+}
+
+/* ====== Footer-Aktionen ====== */
+
+.abenddetail-footer-actions {
+  margin-top: var(--spacing-l);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-s);
+}
+
+.abenddetail-action-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-s);
+  flex: 1 1 160px;
+  justify-content: center;
+}
+
 /* ====== Mobile ====== */
+
 @media (max-width: 600px) {
   .abenddetail-card {
     padding: var(--spacing-m);
   }
 
-  .abenddetail-game-header {
-    align-items: stretch;
-  }
-
-  .abenddetail-game-actions {
-    flex-direction: row; /* nebeneinander */
-    flex-wrap: wrap; /* bei Platzmangel umbrechen */
-    justify-content: flex-start;
-    gap: var(--spacing-s); /* etwas Abstand */
-  }
-
-  .abenddetail-actions {
+  .abenddetail-header-meta {
     flex-direction: column;
-    gap: var(--spacing-s);
+  }
+
+  .abenddetail-stats-grid {
+    grid-template-columns: 1fr;
   }
 
   .abenddetail-score-item {
@@ -296,154 +528,147 @@
     gap: var(--spacing-xs);
   }
 
-  .abenddetail-score-item input {
+  .abenddetail-score-input {
     width: 100%;
+    max-width: none;
   }
 
-  .abenddetail-list {
+  .abenddetail-footer-actions {
     flex-direction: column;
-    gap: var(--spacing-xs);
   }
 
   .abenddetail-backbutton {
-    font-size: var(--font-size-small);
-    padding: var(--spacing-xs) var(--spacing-s);
-  }
-
-  .abenddetail-score-item span:last-child {
-    font-size: 1.1rem;
+    padding-inline: var(--spacing-s);
   }
 }
 
-/* ====== Teilnahme-Bereich klar integriert ====== */
-.abenddetail-teilnahme-section {
+/* ===== Info Cards ===== */
+
+.abenddetail-info-cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-s);
+  margin-bottom: var(--spacing-l);
+}
+
+.abenddetail-info-card {
   background: var(--bg);
+  padding: var(--spacing-m);
   border-radius: var(--card-radius);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-m);
+  box-shadow: var(--shadow-s);
+  font-size: var(--font-size-small);
 }
+
+.abenddetail-info-card span {
+  font-weight: 500;
+}
+
+/* ===========================================
+   TYPO FIXES – EINHEITLICHER TEXT
+   =========================================== */
 
 .abenddetail-section-title {
+  font-size: calc(var(--font-size-base) * 1.05);
   font-weight: 600;
-  color: var(--primary);
-  margin-bottom: var(--spacing-s);
 }
 
-.toggle-wrapper {
-  display: flex;
-  justify-content: left;
-  align-items: center;
-  gap: var(--spacing-s);
+.abenddetail-info-card {
+  font-size: var(--font-size-base);
+  padding: var(--spacing-s) var(--spacing-m);
 }
 
-/* Toggle überarbeitet */
-.toggle-label {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  cursor: pointer;
-  font-weight: 600;
-  user-select: none;
-  justify-content: center;
+.abenddetail-info-card span {
+  font-size: var(--font-size-base);
 }
 
-.toggle-label input {
-  display: none;
+/* Teilnehmer-Pills */
+.abenddetail-participant-name {
+  font-size: var(--font-size-base);
 }
 
-.toggle-slider {
-  width: 56px;
-  height: 32px;
-  background: var(--neutral-dark);
-  border-radius: 999px;
-  position: relative;
-  transition: all 0.25s ease;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.15);
+/* Scores */
+.abenddetail-score-name {
+  font-size: var(--font-size-base);
 }
 
-.toggle-slider::after {
-  content: "";
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 26px;
-  height: 26px;
-  background: white;
-  border-radius: 50%;
-  transition: transform 0.25s ease;
-  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.25);
+.abenddetail-score-value {
+  font-size: var(--font-size-base);
 }
 
-/* Aktivzustand */
-.toggle-label input:checked + .toggle-slider {
-  background: linear-gradient(180deg, #4ade80, #059669);
-}
-
-.toggle-label input:checked + .toggle-slider::after {
-  transform: translateX(24px);
-}
-
-.toggle-label input:checked ~ .toggle-text {
-  color: #059669;
-}
-
-.toggle-label input:not(:checked) ~ .toggle-text {
-  color: var(--danger);
-}
-
-/* Schrift eleganter, weniger grell */
-.toggle-text {
-  font-weight: 500;
-  font-size: 1rem;
-}
-
-/* Hover / Fokus */
-.toggle-label:hover .toggle-slider {
-  box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.1);
-}
-
-/* Mobile Optimierung */
-@media (max-width: 600px) {
-  .toggle-text {
-    font-size: 0.95rem;
-  }
-}
-
-/* ====== Teilnehmer hinzufügen (Dropdown) ====== */
-.abenddetail-addparticipant {
-  margin-top: var(--spacing-s);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-}
-
-.abenddetail-addparticipant label {
-  font-weight: 500;
-  color: var(--primary);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-}
-
-.abenddetail-addparticipant select {
-  padding: var(--spacing-s);
+/* Statistik-Karten */
+.abenddetail-stat-label {
   font-size: var(--font-size-small);
+}
+
+.abenddetail-stat-value {
+  font-size: var(--font-size-base);
+}
+
+/* ===========================================
+   BUTTON FIXES – NICHT MEHR ÜBERDIMENSIONIERT
+   =========================================== */
+
+.abenddetail-action-button {
+  padding: var(--spacing-s) var(--spacing-m);
+  border-radius: var(--border-radius-full);
+  font-size: var(--font-size-base);
+  height: auto;
+  min-height: 48px;
+}
+
+.abenddetail-action-button svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Large bubble-effect entfernen */
+.abenddetail-action-button.button.accent,
+.abenddetail-action-button.button.primary {
+  padding: var(--spacing-s) var(--spacing-m);
+}
+
+/* ===========================================
+   INFO CARD SPACING FIX – kompakter
+   =========================================== */
+
+.abenddetail-info-cards {
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-m);
+}
+
+.abenddetail-info-card {
+  padding: var(--spacing-s) var(--spacing-m);
   border-radius: var(--border-radius-sm);
-  border: 1px solid var(--neutral-dark);
-  background: white;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
-  transition: border 0.2s ease-in-out;
 }
 
-.abenddetail-addparticipant select:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.2);
-  background: #faf5ff;
-  color: var(--text);
+/* ===========================================
+   GESAMT-LAYOUT KOMPAKT
+   =========================================== */
+
+.abenddetail-card {
+  padding: var(--spacing-m);
 }
 
-.abenddetail-addparticipant option {
-  font-size: 0.95rem;
-  padding: var(--spacing-xs);
+.abenddetail-section {
+  margin-top: var(--spacing-m);
+}
+
+.abenddetail-footer-actions {
+  margin-top: var(--spacing-m);
+}
+
+.abenddetail-rank-item {
+  padding: var(--spacing-xs) var(--spacing-m);
+}
+
+.abenddetail-subcard {
+  padding: var(--spacing-m);
+}
+
+/* Toggle fix */
+.abenddetail-toggle-text {
+  font-size: var(--font-size-base);
 }
