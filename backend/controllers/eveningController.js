@@ -72,13 +72,6 @@ exports.createEvening = async (req, res) => {
 
     await newEvening.save();
 
-    // Optional: Notification erstellen (wenn unterstützt)
-    // await Notification.create({
-    //   userId: spielleiterId,
-    //   message: "Du wurdest einem neuen Abend zugeteilt. Bitte erstelle eine Umfrage.",
-    //   type: "info",
-    // });
-
     // Populate für direkte Frontend-Nutzung
     const populated = await Evening.findById(newEvening._id)
       .populate("spielleiterId", "displayName")
