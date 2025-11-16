@@ -1,0 +1,89 @@
+@import "../variables.css";
+
+/* ---------- Dashboard Layout ---------- */
+.dashboard-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: var(--spacing-m);
+}
+
+/* ---------- Willkommen Box ---------- */
+.welcome-box {
+  background: white;
+  border-radius: var(--card-radius);
+  padding: var(--spacing-m) var(--spacing-m);
+  margin-bottom: var(--spacing-m);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.welcome-title {
+  font-size: 1.6rem;
+  font-weight: 600;
+  margin-bottom: var(--spacing-xs);
+  color: var(--primary);
+}
+
+.welcome-subtitle {
+  color: var(--text-muted);
+  font-size: var(--font-size-base);
+}
+
+/* ---------- Alerts ---------- */
+.dashboard-alert {
+  padding: var(--spacing-m);
+  border-radius: var(--border-radius-sm);
+  font-weight: 500;
+  margin-bottom: var(--spacing-s);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-s);
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.dashboard-alert:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+}
+
+.dashboard-alert svg {
+  flex-shrink: 0;
+}
+
+/* Farbvarianten */
+.dashboard-alert.info {
+  background: var(--secondary);
+  color: white;
+}
+
+.dashboard-alert.warning {
+  background: var(--accent);
+  color: #1f2937;
+}
+
+.dashboard-alert.success {
+  background: var(--primary);
+  color: white;
+}
+
+.dashboard-alert.error {
+  background: var(--danger);
+  color: white;
+}
+
+/* ---------- Kartenabstand ---------- */
+.dashboard-section {
+  margin-top: var(--spacing-l);
+}
+
+.dashboard-section h3 {
+  margin-bottom: var(--spacing-s);
+}
+
+/* ---------- Mobile ---------- */
+@media (max-width: 600px) {
+  .welcome-title {
+    font-size: 1.3rem;
+  }
+}

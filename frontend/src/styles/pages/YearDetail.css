@@ -50,13 +50,13 @@
 }
 
 .status-offen {
-  background-color: var(--accent);
-  color: black;
+  background-color: var(--secondary);
+  color: white;
 }
 
 .status-fixiert {
-  background-color: var(--secondary);
-  color: white;
+  background-color: var(--accent);
+  color: #1f2937;
 }
 
 .status-abgeschlossen {

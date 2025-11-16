@@ -133,6 +133,11 @@ export default function Abende() {
   const calculateDaysLeft = (dateStr) => {
     const now = new Date();
     const target = new Date(dateStr);
+
+    // Uhrzeiten entfernen → reine Kalendertage vergleichen
+    now.setHours(0, 0, 0, 0);
+    target.setHours(0, 0, 0, 0);
+
     const diffTime = target - now;
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
