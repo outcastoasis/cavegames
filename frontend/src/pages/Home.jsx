@@ -118,7 +118,7 @@ export default function Home() {
       if (isLeader && e.status === "offen" && !e.date && !e.pollId) {
         notes.push({
           type: "info",
-          text: "Du wurdest als Spielleiter eingeteilt. Bitte erstelle eine Umfrage.",
+          text: "Du wurdest als Spielleiter eingeteilt. \nBitte erstelle eine Umfrage.",
           target: "/abende",
         });
       }
@@ -154,7 +154,7 @@ export default function Home() {
           if (!hasVoted) {
             notes.push({
               type: "warning",
-              text: "Neue Termin-Umfrage verfügbar – du hast noch nicht abgestimmt.",
+              text: "Neue Termin-Umfrage. \nBitte abstimmen!",
               target: "/umfragen",
             });
           }
@@ -271,7 +271,19 @@ export default function Home() {
             >
               {n.type === "info" && <Info size={20} />}
               {n.type === "warning" && <AlertTriangle size={20} />}
-              {n.text}
+
+              <span style={{ flex: 1 }}>{n.text}</span>
+
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                fill="none"
+                strokeWidth="2"
+              >
+                <path d="M9 6l6 6-6 6" />
+              </svg>
             </div>
           ))}
         </div>
