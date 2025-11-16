@@ -1,19 +1,20 @@
 // src/pages/AbendDetail.jsx
 import { useEffect, useState, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useOutletContext } from "react-router-dom";
 import API from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import {
   ArrowLeft,
   Trophy,
   PlusCircle,
-  CalendarClock,
+  CalendarDays,
   Users as UsersIcon,
   Image as ImageIcon,
-  CheckCircle2,
   XCircle,
-  Edit3,
   Trash2,
+  MapPinHouse,
+  Gamepad2,
+  Info,
 } from "lucide-react";
 import "../styles/pages/AbendDetail.css";
 import GameAddModal from "../components/forms/GameAddModal";
@@ -36,6 +37,12 @@ export default function AbendDetail() {
   useEffect(() => {
     fetchAbend();
   }, [id]);
+
+  const { setTitle } = useOutletContext();
+
+  useEffect(() => {
+    setTitle("Abenddetails");
+  }, [setTitle]);
 
   const fetchAbend = async () => {
     try {
@@ -130,7 +137,7 @@ export default function AbendDetail() {
     if (!confirm("Abend wirklich abschliessen? Punkte werden fixiert.")) return;
     try {
       await API.patch(`/evenings/${id}/status`, { status: "abgeschlossen" });
-      await fetchAbend(); // neu laden, jetzt MIT gespeicherten Statistiken
+      await fetchAbend();
     } catch (err) {
       alert("Fehler beim Abschliessen: " + err.message);
     }
@@ -183,6 +190,14 @@ export default function AbendDetail() {
     abend.date &&
     new Date(abend.date).toDateString() === new Date().toDateString();
 
+  const formattedDate = abend.date
+    ? new Date(abend.date).toLocaleDateString("de-CH", {
+        weekday: "long",
+        day: "2-digit",
+        month: "long",
+      })
+    : null;
+
   const getScoreInputValue = (gameId, userId, defaultValue) => {
     return scoreInputs[`${gameId}-${userId}`] ?? defaultValue;
   };
@@ -199,7 +214,7 @@ export default function AbendDetail() {
     const currentValue = scoreInputs[key];
     if (currentValue === "") {
       setScoreInputs((prev) => ({ ...prev, [key]: 0 }));
-      handleScoreChange(gameId, userId, 0); // direkt aktualisieren
+      handleScoreChange(gameId, userId, 0);
     }
   };
 
@@ -212,43 +227,50 @@ export default function AbendDetail() {
   return (
     <div className="abenddetail-container">
       <button
-        className="abenddetail-backbutton button neutral"
+        className="button neutral abenddetail-backbutton"
         onClick={() => navigate(backTarget)}
       >
-        <ArrowLeft size={18} /> Zurück
+        <ArrowLeft size={18} />
+        <span>Zurück</span>
       </button>
 
       <div className="abenddetail-card card">
-        <h2 className="abenddetail-title">
-          Spieleabend{" "}
-          {abend.date
-            ? "am " +
-              new Date(abend.date).toLocaleDateString("de-CH", {
-                weekday: "long",
-                day: "2-digit",
-                month: "long",
-              })
-            : "– Umfrage läuft"}
-        </h2>
+        <div className="abenddetail-info-cards">
+          <div className="abenddetail-info-card">
+            <CalendarDays size={18} />
+            <span>{formattedDate || "Termin wird abgestimmt"}</span>
+          </div>
 
-        <p>
-          <strong>Spielleiter:</strong> {abend.spielleiterRef?.displayName}
-        </p>
-        <p>
-          <strong>Ort:</strong> bei {abend.spielleiterRef?.displayName}
-        </p>
-        <p>
-          <strong>Status:</strong>{" "}
-          <span className={`abenddetail-status ${abend.status}`}>
-            {abend.status}
-          </span>
-        </p>
+          <div className="abenddetail-info-card">
+            <UsersIcon size={18} />
+            <span>Spielleiter: {abend.spielleiterRef?.displayName}</span>
+          </div>
 
+          <div className="abenddetail-info-card">
+            <MapPinHouse size={18} />
+            <span>bei {abend.spielleiterRef?.displayName}</span>
+          </div>
+
+          <div className="abenddetail-info-card">
+            <Info size={18} />
+
+            <span
+              className={`abenddetail-status-badge abenddetail-status-badge--${abend.status}`}
+            >
+              {abend.status}
+            </span>
+          </div>
+        </div>
+
+        {/* Teilnahme-Toggle */}
         {isFixiert && !isToday && (
-          <div className="abenddetail-teilnahme-section">
-            <h3 className="abenddetail-section-title">Teilnahmestatus</h3>
-            <div className="toggle-wrapper">
-              <label className="toggle-label">
+          <section className="abenddetail-section abenddetail-section--participation">
+            <div className="abenddetail-section-header">
+              <UsersIcon size={18} />
+              <h2 className="abenddetail-section-title">Teilnahme</h2>
+            </div>
+            <div className="abenddetail-toggle-wrapper">
+              <label className="abenddetail-toggle-label">
                 <input
                   type="checkbox"
                   checked={isTeilnehmer}
@@ -257,44 +279,50 @@ export default function AbendDetail() {
                   }
                   disabled={busy}
                 />
-                <span className="toggle-slider"></span>
-                <span className="toggle-text">
-                  {isTeilnehmer ? "Ich nehme teil" : "Ich bin weg"}
+                <span className="abenddetail-toggle-slider" />
+                <span className="abenddetail-toggle-text">
+                  {isTeilnehmer ? "Ich nehme teil" : "Ich bin nicht dabei"}
                 </span>
               </label>
             </div>
-          </div>
+          </section>
         )}
 
+        {/* Tagessieger */}
         {(isAbgeschlossen || isGesperrt) && abend.winnerIds?.length > 0 && (
-          <div className="abenddetail-winner alert">
-            <Trophy size={16} />
-            <span>
-              Tagessieger:{" "}
-              {abend.winnerIds
-                .map((id) => {
-                  const u = abend.participantRefs?.find((p) => p._id === id);
-                  return u?.displayName || "Unbekannt";
-                })
-                .join(", ")}{" "}
-              (
-              {
-                abend.playerPoints?.find((p) => p.userId === abend.winnerIds[0])
-                  ?.points
-              }{" "}
-              Pkt)
-            </span>
-          </div>
+          <section className="abenddetail-winner">
+            <Trophy size={20} />
+            <div className="abenddetail-winner-text">
+              <span className="abenddetail-winner-label">Tagessieger</span>
+              <span className="abenddetail-winner-value">
+                {abend.winnerIds
+                  .map((id) => {
+                    const u = abend.participantRefs?.find((p) => p._id === id);
+                    return u?.displayName || "Unbekannt";
+                  })
+                  .join(", ")}{" "}
+                (
+                {
+                  abend.playerPoints?.find(
+                    (p) => p.userId === abend.winnerIds[0]
+                  )?.points
+                }{" "}
+                Punkte)
+              </span>
+            </div>
+          </section>
         )}
 
+        {/* Platzierungen */}
         {(isAbgeschlossen || isGesperrt) && abend.placements?.length > 0 && (
-          <div className="abenddetail-section">
-            <h3>
-              <Trophy size={16} /> Platzierungen
-            </h3>
-            <ul className="abenddetail-list">
+          <section className="abenddetail-section">
+            <div className="abenddetail-section-header">
+              <Trophy size={18} />
+              <h2 className="abenddetail-section-title">Platzierungen</h2>
+            </div>
+            <ul className="abenddetail-rank-list">
               {abend.placements.map((p) => {
-                const user = abend.participantRefs?.find(
+                const userRef = abend.participantRefs?.find(
                   (u) => u._id === p.userId
                 );
                 const pts =
@@ -302,90 +330,126 @@ export default function AbendDetail() {
                     ?.points || 0;
 
                 return (
-                  <li key={p.userId}>
-                    {p.place}. Platz – {user?.displayName || "?"} ({pts} Pkt)
+                  <li key={p.userId} className="abenddetail-rank-item">
+                    <span className="abenddetail-rank-place">{p.place}.</span>
+                    <span className="abenddetail-rank-name">
+                      {userRef?.displayName || "?"}
+                    </span>
+                    <span className="abenddetail-rank-points">
+                      {pts} Punkte
+                    </span>
                   </li>
                 );
               })}
             </ul>
-          </div>
+          </section>
         )}
 
+        {/* Abendstatistik */}
         {(isAbgeschlossen || isGesperrt) && (
-          <div className="abenddetail-section">
-            <h3>
-              <Trophy size={16} /> Abendstatistik
-            </h3>
-            <ul className="abenddetail-list">
-              <li>Gesamtpunkte aller Spieler: {abend.totalPoints || 0}</li>
+          <section className="abenddetail-section">
+            <div className="abenddetail-section-header">
+              <Gamepad2 size={18} />
+              <h2 className="abenddetail-section-title">Abendstatistik</h2>
+            </div>
+            <div className="abenddetail-stats-grid">
+              <div className="abenddetail-stat-card">
+                <span className="abenddetail-stat-label">
+                  Gesamtpunkte aller Spieler
+                </span>
+                <span className="abenddetail-stat-value">
+                  {abend.totalPoints || 0}
+                </span>
+              </div>
 
-              <li>
-                Höchste Einzelpunktzahl:{" "}
-                {(() => {
-                  const top = abend.playerPoints?.find(
-                    (p) => p.points === abend.maxPoints
-                  );
-                  const user = abend.participantRefs?.find(
-                    (u) => u._id === top?.userId
-                  );
-                  return user?.displayName
-                    ? `${user.displayName} (${abend.maxPoints} Pkt)`
-                    : `${abend.maxPoints} Pkt`;
-                })()}
-              </li>
+              <div className="abenddetail-stat-card">
+                <span className="abenddetail-stat-label">
+                  Höchste Einzelpunktzahl
+                </span>
+                <span className="abenddetail-stat-value">
+                  {(() => {
+                    const top = abend.playerPoints?.find(
+                      (p) => p.points === abend.maxPoints
+                    );
+                    const userRef = abend.participantRefs?.find(
+                      (u) => u._id === top?.userId
+                    );
+                    return userRef?.displayName
+                      ? `${userRef.displayName} (${abend.maxPoints} Punkte)`
+                      : `${abend.maxPoints} Punkte`;
+                  })()}
+                </span>
+              </div>
 
-              <li>Spieleanzahl: {abend.gamesPlayedCount}</li>
+              <div className="abenddetail-stat-card">
+                <span className="abenddetail-stat-label">Spieleanzahl</span>
+                <span className="abenddetail-stat-value">
+                  {abend.gamesPlayedCount}
+                </span>
+              </div>
 
-              <li>
-                Meistgespieltes Spiel:{" "}
-                {(() => {
-                  if (!abend.gameCount?.length) return "Keine Daten";
-                  const sorted = [...abend.gameCount].sort(
-                    (a, b) => b.count - a.count
-                  )[0];
-                  const game = abend.games.find(
-                    (g) => g.gameId?._id === sorted.gameId
-                  );
-                  return game?.gameId?.name
-                    ? `${game.gameId.name} (${sorted.count}x)`
-                    : "Unbekannt";
-                })()}
-              </li>
-            </ul>
-          </div>
+              <div className="abenddetail-stat-card">
+                <span className="abenddetail-stat-label">
+                  Meistgespieltes Spiel
+                </span>
+                <span className="abenddetail-stat-value">
+                  {(() => {
+                    if (!abend.gameCount?.length) return "Keine Daten";
+                    const sorted = [...abend.gameCount].sort(
+                      (a, b) => b.count - a.count
+                    )[0];
+                    const gameEntry = abend.games.find(
+                      (g) => g.gameId?._id === sorted.gameId
+                    );
+                    return gameEntry?.gameId?.name
+                      ? `${gameEntry.gameId.name} (${sorted.count}x)`
+                      : "Unbekannt";
+                  })()}
+                </span>
+              </div>
+            </div>
+          </section>
         )}
 
-        <div className="abenddetail-section">
-          <h3>
-            <UsersIcon size={16} /> Teilnehmer
-          </h3>
+        {/* Teilnehmer */}
+        <section className="abenddetail-section">
+          <div className="abenddetail-section-header">
+            <UsersIcon size={18} />
+            <h2 className="abenddetail-section-title">Teilnehmer</h2>
+          </div>
 
           {abend.participantRefs?.length ? (
-            <ul className="abenddetail-list">
+            <ul className="abenddetail-participant-list">
               {abend.participantRefs.map((p) => (
-                <li key={p._id}>
-                  {p.displayName}
+                <li
+                  key={p._id}
+                  className="abenddetail-participant-pill abenddetail-pill"
+                >
+                  <span className="abenddetail-participant-name">
+                    {p.displayName}
+                  </span>
                   {isPrivileged && isFixiert && abend.games.length === 0 && (
                     <button
-                      className="abenddetail-remove-button"
+                      className="abenddetail-participant-remove"
                       onClick={() => handleRemoveParticipant(p._id)}
                       title="Teilnehmer entfernen"
                     >
-                      <XCircle size={20} />
+                      <XCircle size={18} />
                     </button>
                   )}
                 </li>
               ))}
             </ul>
           ) : (
-            <p>Noch keine Teilnehmer.</p>
+            <p className="abenddetail-muted">Noch keine Teilnehmer.</p>
           )}
 
           {isPrivileged && isFixiert && abend.games.length === 0 && (
             <div className="abenddetail-addparticipant">
-              <label>
-                Weitere Person hinzufügen:
+              <label className="abenddetail-addparticipant-label">
+                Weitere Person hinzufügen
                 <select
+                  className="abenddetail-addparticipant-select"
                   onChange={(e) => {
                     const val = e.target.value;
                     if (val) {
@@ -394,144 +458,168 @@ export default function AbendDetail() {
                     }
                   }}
                 >
-                  <option value="">Bitte wählen...</option>
-                  {eligibleUsers.map((user) => (
-                    <option key={user._id} value={user._id}>
-                      {user.displayName}
+                  <option value="">Bitte wählen…</option>
+                  {eligibleUsers.map((userItem) => (
+                    <option key={userItem._id} value={userItem._id}>
+                      {userItem.displayName}
                     </option>
                   ))}
                 </select>
               </label>
             </div>
           )}
-        </div>
+        </section>
 
-        <div className="abenddetail-section">
-          <h3>
-            <CalendarClock size={16} /> Gespielte Spiele
-          </h3>
+        {/* Gespielte Spiele */}
+        <section className="abenddetail-section">
+          <div className="abenddetail-section-header">
+            <Gamepad2 size={18} />
+            <h2 className="abenddetail-section-title">Gespielte Spiele</h2>
+          </div>
+
           {abend.games.length === 0 ? (
-            <p>Noch keine Spiele erfasst.</p>
+            <p className="abenddetail-muted">Noch keine Spiele erfasst.</p>
           ) : (
-            abend.games.map((game) => (
-              <div key={game._id} className="abenddetail-game card">
-                <div className="abenddetail-game-header">
-                  <h4 className="abenddetail-game-title">
-                    {game.gameId?.name || "Unbekanntes Spiel"}
-                  </h4>
-                  {!isGesperrt &&
-                    ((isPrivileged && isFixiert) ||
-                      (isAdmin && isAbgeschlossen)) && (
-                      <div className="abenddetail-game-actions">
-                        <button
-                          className="button-round-delete "
-                          onClick={() => handleDeleteGame(game._id)}
-                          title="Spiel löschen"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </div>
-                    )}
-                </div>
+            <div className="abenddetail-games-list">
+              {abend.games.map((game) => (
+                <article
+                  key={game._id}
+                  className="abenddetail-game-card abenddetail-subcard"
+                >
+                  <div className="abenddetail-game-header">
+                    <h3 className="abenddetail-game-title">
+                      {game.gameId?.name || "Unbekanntes Spiel"}
+                    </h3>
 
-                <ul className="abenddetail-score-list">
-                  {game.scores.map((s) => (
-                    <li key={s.userId} className="abenddetail-score-item">
-                      <span>{s.userName}</span>
-                      {editScores === game._id && canEditScores ? (
-                        <input
-                          type="number"
-                          className="input"
-                          value={getScoreInputValue(
-                            game._id,
-                            s.userId,
-                            s.points
-                          )}
-                          onFocus={() =>
-                            handleScoreFocus(game._id, s.userId, s.points)
-                          }
-                          onBlur={() => handleScoreBlur(game._id, s.userId)}
-                          onChange={(e) =>
-                            handleScoreInputChange(
+                    {!isGesperrt &&
+                      ((isPrivileged && isFixiert) ||
+                        (isAdmin && isAbgeschlossen)) && (
+                        <div className="abenddetail-game-actions">
+                          <button
+                            className="abenddetail-button-round-delete"
+                            onClick={() => handleDeleteGame(game._id)}
+                            title="Spiel löschen"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                      )}
+                  </div>
+
+                  <ul className="abenddetail-score-list">
+                    {game.scores.map((s) => (
+                      <li key={s.userId} className="abenddetail-score-item">
+                        <span className="abenddetail-score-name">
+                          {s.userName}
+                        </span>
+
+                        {editScores === game._id && canEditScores ? (
+                          <input
+                            type="number"
+                            className="input abenddetail-score-input"
+                            value={getScoreInputValue(
                               game._id,
                               s.userId,
-                              e.target.value
-                            )
-                          }
-                          ref={(el) => {
-                            if (el) {
-                              scoreInputRefs.current[
-                                `${game._id}-${s.userId}`
-                              ] = el;
+                              s.points
+                            )}
+                            onFocus={() =>
+                              handleScoreFocus(game._id, s.userId, s.points)
                             }
-                          }}
-                          autoFocus={focusedField === `${game._id}-${s.userId}`}
-                        />
-                      ) : (
-                        <span
-                          onClick={() => {
-                            if (canEditScores) {
-                              setEditScores(game._id);
-                              setFocusedField(`${game._id}-${s.userId}`);
+                            onBlur={() => handleScoreBlur(game._id, s.userId)}
+                            onChange={(e) =>
+                              handleScoreInputChange(
+                                game._id,
+                                s.userId,
+                                e.target.value
+                              )
                             }
-                          }}
-                          style={{
-                            cursor: canEditScores ? "pointer" : "default",
-                            fontWeight: "bold",
-                            paddingLeft: "1rem",
-                          }}
-                          title={isPrivileged ? "Klicken zum Bearbeiten" : ""}
-                        >
-                          {s.points} Punkte
-                        </span>
-                      )}
-                    </li>
-                  ))}
-                </ul>
+                            ref={(el) => {
+                              if (el) {
+                                scoreInputRefs.current[
+                                  `${game._id}-${s.userId}`
+                                ] = el;
+                              }
+                            }}
+                            autoFocus={
+                              focusedField === `${game._id}-${s.userId}`
+                            }
+                          />
+                        ) : (
+                          <span
+                            className={
+                              canEditScores
+                                ? "abenddetail-score-value abenddetail-score-value--editable"
+                                : "abenddetail-score-value"
+                            }
+                            onClick={() => {
+                              if (canEditScores) {
+                                setEditScores(game._id);
+                                setFocusedField(`${game._id}-${s.userId}`);
+                              }
+                            }}
+                            title={isPrivileged ? "Klicken zum Bearbeiten" : ""}
+                          >
+                            {s.points} Punkte
+                          </span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
 
-                {editScores === game._id && canEditScores && (
-                  <button
-                    className="button primary"
-                    onClick={() => handleSaveScores(game._id)}
-                  >
-                    Speichern
-                  </button>
-                )}
-              </div>
-            ))
+                  {editScores === game._id && canEditScores && (
+                    <div className="abenddetail-game-footer">
+                      <button
+                        className="button primary"
+                        onClick={() => handleSaveScores(game._id)}
+                      >
+                        Speichern
+                      </button>
+                    </div>
+                  )}
+                </article>
+              ))}
+            </div>
           )}
-        </div>
+        </section>
 
+        {/* Gruppenfoto */}
         {abend.groupPhotoUrl && (
-          <div className="abenddetail-section">
-            <h3>
-              <ImageIcon size={16} /> Gruppenfoto
-            </h3>
+          <section className="abenddetail-section">
+            <div className="abenddetail-section-header">
+              <ImageIcon size={18} />
+              <h2 className="abenddetail-section-title">Gruppenfoto</h2>
+            </div>
             <img
               src={abend.groupPhotoUrl}
               alt="Gruppenfoto"
               className="abenddetail-photo"
             />
-          </div>
+          </section>
         )}
 
+        {/* Aktionen unten */}
         {isPrivileged && (
-          <div className="abenddetail-actions">
+          <footer className="abenddetail-footer-actions">
             {abend.status !== "abgeschlossen" && (
               <button
                 className="button accent"
                 onClick={() => setShowGameModal(true)}
               >
-                <PlusCircle size={16} /> Spiel hinzufügen
+                <PlusCircle size={18} />
+                <span>Spiel hinzufügen</span>
               </button>
             )}
 
             {isPrivileged && abend.status === "fixiert" && (
-              <button className="button primary" onClick={handleFinishEvening}>
-                <Trophy size={16} /> Abend abschliessen
+              <button
+                className="button primary"
+                onClick={handleFinishEvening}
+              >
+                <Trophy size={18} />
+                <span>Abend abschliessen</span>
               </button>
             )}
-          </div>
+          </footer>
         )}
       </div>
 
