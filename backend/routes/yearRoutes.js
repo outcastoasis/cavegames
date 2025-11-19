@@ -11,11 +11,13 @@ const checkAuth = require("../middleware/checkAuth");
 const checkRole = require("../middleware/checkRole");
 
 router.use(checkAuth);
-router.use(checkRole("admin"));
 
+// 🔓 Für alle Spieler sichtbar
 router.get("/", getYears);
-router.post("/", createYear);
 router.get("/:year", getYearDetails);
-router.post("/:year/close", closeYear);
+
+// 🔒 Nur Admin
+router.post("/", checkRole("admin"), createYear);
+router.post("/:year/close", checkRole("admin"), closeYear);
 
 module.exports = router;

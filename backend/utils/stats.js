@@ -202,11 +202,21 @@ async function rebuildUserStatsForYear(year) {
       (e) => e.place !== 1 && e.place !== 2 && e.place !== 3
     ).length;
 
+    console.log("=== DEBUG USER ===");
+    console.log("User:", userId);
+    console.log("Entries:", entries);
+    console.log(
+      "Valid Places:",
+      entries.filter((e) => e.place != null)
+    );
+
     // Durchschnittliche Platzierung (nur gültige Plätze)
     const validPlaces = entries.filter((e) => e.place != null);
     const averagePlacement = validPlaces.length
       ? validPlaces.reduce((s, e) => s + e.place, 0) / validPlaces.length
       : null;
+
+    console.log("=> averagePlacement:", averagePlacement);
 
     // Score-Trend / Platzierungs-Trend
     const scoreTrend = entries.map((e) => ({
