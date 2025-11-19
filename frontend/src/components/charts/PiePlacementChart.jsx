@@ -1,5 +1,11 @@
-// src/components/charts/PiePlacementChart.jsx
-import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from "recharts";
+import {
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  Legend,
+} from "recharts";
 
 export default function PiePlacementChart({ data }) {
   const pieData = [
@@ -10,10 +16,10 @@ export default function PiePlacementChart({ data }) {
   ];
 
   const COLORS = [
-    "var(--accent)",
-    "var(--secondary)",
-    "var(--primary-light)",
-    "var(--neutral-dark)",
+    "var(--accent)", // Gold / Gelb → 1. Platz
+    "var(--secondary)", // Blau → 2. Platz
+    "var(--primary-light)", // Lila → 3. Platz
+    "var(--neutral-dark)", // Grau → Andere
   ];
 
   return (
@@ -22,7 +28,7 @@ export default function PiePlacementChart({ data }) {
         <Pie
           data={pieData}
           cx="50%"
-          cy="50%"
+          cy="45%"
           innerRadius={40}
           outerRadius={80}
           paddingAngle={3}
@@ -32,7 +38,11 @@ export default function PiePlacementChart({ data }) {
             <Cell key={i} fill={COLORS[i]} />
           ))}
         </Pie>
-        <Tooltip />
+
+        {/* LEGENDE */}
+        <Legend verticalAlign="bottom" height={36} formatter={(name) => name} />
+
+        <Tooltip formatter={(value) => `${value}x`} />
       </PieChart>
     </ResponsiveContainer>
   );

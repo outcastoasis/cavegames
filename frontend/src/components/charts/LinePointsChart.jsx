@@ -1,4 +1,3 @@
-// src/components/charts/LinePointsChart.jsx
 import {
   ResponsiveContainer,
   LineChart,
@@ -12,7 +11,10 @@ export default function LinePointsChart({ data }) {
   if (!data?.length) return null;
 
   const formatted = data.map((e) => ({
-    date: new Date(e.date).toLocaleDateString("de-CH", { month: "short" }),
+    date: new Date(e.date).toLocaleDateString("de-CH", {
+      day: "2-digit",
+      month: "short",
+    }),
     points: e.points,
   }));
 
@@ -21,13 +23,17 @@ export default function LinePointsChart({ data }) {
       <LineChart data={formatted}>
         <XAxis dataKey="date" tick={{ fontSize: 12 }} />
         <YAxis hide />
-        <Tooltip />
+        <Tooltip
+          formatter={(value) => [`${value} Punkte`, "Punkte"]}
+          labelFormatter={(label) => `Datum: ${label}`}
+        />
         <Line
           type="monotone"
           dataKey="points"
           stroke="var(--primary)"
           strokeWidth={3}
-          dot={false}
+          dot={{ r: 4 }}
+          activeDot={{ r: 6 }}
         />
       </LineChart>
     </ResponsiveContainer>

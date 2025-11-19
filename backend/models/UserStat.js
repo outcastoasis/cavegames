@@ -41,7 +41,7 @@ const userStatSchema = new mongoose.Schema(
     totalPossibleEvenings: { type: Number, default: 0 },
 
     avgPoints: { type: Number, default: 0 },
-    avgPlacement: { type: Number, default: 0 },
+    averagePlacement: { type: Number, default: null },
 
     bestEveningPoints: { type: Number, default: 0 },
     worstEveningPoints: { type: Number, default: 0 },
