@@ -6,6 +6,7 @@ import {
   Home,
   ClipboardList,
   Users,
+  User,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import "../../styles/Navbar.css";
@@ -41,10 +42,10 @@ export default function Navbar() {
         active={pathname === "/umfragen"}
       />
       <NavItem
-        icon={<Users />}
-        label="Host"
-        to="/host"
-        active={pathname === "/host"}
+        icon={<User />}
+        label="Profil"
+        to="/profil"
+        active={pathname === "/profil"}
       />
     </footer>
   );
