@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useOutletContext } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import API from "../services/api";
 import ChartWrapper from "../components/charts/ChartWrapper";
@@ -10,6 +10,7 @@ import PiePlacementChart from "../components/charts/PiePlacementChart";
 import "../styles/pages/Profile.css";
 
 export default function Profile() {
+  const { setTitle } = useOutletContext();
   const { user } = useAuth();
   const { id } = useParams(); // Profil anderer möglich: /profile/:id
   const navigate = useNavigate();
@@ -28,6 +29,7 @@ export default function Profile() {
   const [viewAllYears, setViewAllYears] = useState(false); // Toggle Ansicht
 
   useEffect(() => {
+    setTitle("Profil");
     loadAvailableYears();
   }, []);
 

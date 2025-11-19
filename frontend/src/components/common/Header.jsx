@@ -46,12 +46,6 @@ export default function Header({ title = "Cavegames" }) {
   return (
     <header className="header">
       <div className="header-bar">
-        <div
-          className="header-icon-wrapper"
-          onClick={() => navigate("/profil")}
-        >
-          <User size={20} strokeWidth={2} />
-        </div>
         <span className="header-title">{title}</span>
         {user?.role === "admin" && (
           <div

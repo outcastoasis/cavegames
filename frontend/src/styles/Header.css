@@ -12,13 +12,17 @@ header {
   right: 0;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.6);
   z-index: 101;
+  min-height: 52px;
+  align-items: center;
+  display: flex;
 }
 
 .header-bar {
-  position: relative;
+  width: 100%;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
+  position: relative;
 }
 
 .header-title {
