@@ -1,3 +1,5 @@
+// frontend/src/components/charts/LinePointsChart.jsx
+
 import {
   ResponsiveContainer,
   LineChart,

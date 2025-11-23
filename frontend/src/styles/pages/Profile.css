@@ -94,23 +94,66 @@
 
 .year-compare-grid {
   display: grid;
-  gap: 0.8rem;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   margin-bottom: var(--spacing-m);
 }
 
 .year-card {
   background: white;
-  padding: var(--spacing-m);
+  padding: calc(var(--spacing-m) * 0.9);
   border-radius: var(--card-radius);
   box-shadow: var(--shadow-raised);
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem; /* Abstand zwischen den Rows */
 }
 
 .year-card h3 {
   color: var(--primary);
-  margin-bottom: 0.4rem;
+  margin: 0;
+  text-align: center;
+  font-size: 1.1rem;
 }
-.year-card .value {
-  font-size: 1.2rem;
+
+.year-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem; /* WICHTIG: Abstand zwischen Label und Wert */
+  font-size: 0.95rem;
+  padding: 0 2px; /* verhindert zu dichtes Zusammenkleben */
+}
+
+.year-row span {
+  display: inline-block;
+}
+
+.year-row .value {
   font-weight: 700;
+  color: var(--primary);
+  white-space: nowrap; /* verhindert Umbrechen bei 1/2 */
+}
+
+/* Kompakter Button für Tabellen */
+.table-btn {
+  background: var(--secondary);
+  color: white;
+  border: none;
+  padding: 0.35rem 0.8rem;
+  font-size: 0.85rem;
+  border-radius: 999px; /* Pill Style wie bei dir */
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: var(--shadow-raised);
+  transition: transform 0.1s ease, opacity 0.1s ease;
+}
+
+.table-btn:hover {
+  transform: scale(1.05);
+  opacity: 0.95;
+}
+
+.table-btn:active {
+  transform: scale(0.97);
 }

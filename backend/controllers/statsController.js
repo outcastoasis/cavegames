@@ -215,6 +215,11 @@ exports.getUserStatsAllYears = async (req, res) => {
         eveningsAttended: s.eveningsAttended,
         winRate: s.winRate,
         attendanceRate: s.attendanceRate,
+        firstPlaces: s.firstPlaces,
+        secondPlaces: s.secondPlaces,
+        thirdPlaces: s.thirdPlaces,
+        otherPlaces: s.otherPlaces,
+        totalPossibleEvenings: s.totalPossibleEvenings,
       };
     });
 

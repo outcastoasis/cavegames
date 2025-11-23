@@ -1,3 +1,5 @@
+// frontend/src/components/charts/PiePlacementChart.jsx
+
 import {
   ResponsiveContainer,
   PieChart,

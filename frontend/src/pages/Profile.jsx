@@ -1,3 +1,5 @@
+// frontend/src/pages/Profile.jsx
+
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, useOutletContext } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -6,6 +8,10 @@ import ChartWrapper from "../components/charts/ChartWrapper";
 import ChartPlaceholder from "../components/charts/ChartPlaceholder";
 import LinePointsChart from "../components/charts/LinePointsChart";
 import PiePlacementChart from "../components/charts/PiePlacementChart";
+import MultiYearPointsChart from "../components/charts/MultiYearPointsChart";
+import MultiYearWinRateChart from "../components/charts/MultiYearWinRateChart";
+import BarYearComparison from "../components/charts/BarYearComparison";
+import ActivityHeatmap from "../components/charts/ActivityHeatmap";
 
 import "../styles/pages/Profile.css";
 
@@ -274,7 +280,7 @@ export default function Profile() {
                       <td>{yearStats.placementTrend?.[i]?.place || "-"}</td>
                       <td>
                         <button
-                          className="button secondary"
+                          className="table-btn"
                           onClick={() => navigate(`/abende/${entry.eveningId}`)}
                         >
                           Details
@@ -325,34 +331,65 @@ export default function Profile() {
               {/* Punkte Verlauf */}
               <div className="chart-card">
                 <h2 className="section-title">Punkteverlauf über alle Jahre</h2>
-                <ChartPlaceholder />
+                <MultiYearPointsChart
+                  years={multiStats.years}
+                  byYear={multiStats.byYear}
+                />
               </div>
 
               {/* Gewinnrate Verlauf */}
               <div className="chart-card">
-                <h2 className="section-title">Gewinnrate Verlauf</h2>
-                <ChartPlaceholder />
+                <h2 className="section-title">Gewinnrate über alle Jahre</h2>
+                <MultiYearWinRateChart
+                  years={multiStats.years}
+                  byYear={multiStats.byYear}
+                />
               </div>
 
-              {/* Heatmap */}
+              {/* Jahresvergleich */}
+              <div className="chart-card">
+                <h2 className="section-title">Platzierungen pro Jahr</h2>
+                <BarYearComparison
+                  years={multiStats.years}
+                  byYear={multiStats.byYear}
+                />
+              </div>
+
               <div className="chart-card">
                 <h2 className="section-title">Aktivitäts-Heatmap</h2>
-                <ChartPlaceholder />
+                <ActivityHeatmap
+                  years={multiStats.years}
+                  byYear={multiStats.byYear}
+                />
               </div>
 
-              {/* Jahr für Jahr Vergleich */}
+              {/* Jahr-für-Jahr Vergleich */}
               <h2 className="section-title">Jahr-für-Jahr Vergleich</h2>
+
               <div className="year-compare-grid">
                 {multiStats.years.map((y) => {
                   const ys = multiStats.byYear[y];
                   return (
                     <div className="year-card" key={y}>
                       <h3>{y}</h3>
-                      <p>
-                        Punkte: <span className="value">{ys.totalPoints}</span>
-                      </p>
-                      <p>Teilnahmen: {ys.eveningsAttended}</p>
-                      <p>Gewinnrate: {ys.winRate}%</p>
+
+                      <div className="year-row">
+                        <span>Punkte:</span>
+                        <span className="value">{ys.totalPoints}</span>
+                      </div>
+
+                      <div className="year-row">
+                        <span>Teilnahmen:</span>
+                        <span className="value">
+                          {ys.eveningsAttended}/
+                          {ys.totalPossibleEvenings ?? "?"}
+                        </span>
+                      </div>
+
+                      <div className="year-row">
+                        <span>Gewinnrate:</span>
+                        <span className="value">{ys.winRate}%</span>
+                      </div>
                     </div>
                   );
                 })}

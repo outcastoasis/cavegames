@@ -1,0 +1,45 @@
+/* src/styles/components/ActivityHeatmap.css */
+
+.activity-heatmap {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.heatmap-year-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.heatmap-year-label {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.heatmap-row {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.heatmap-tile {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  box-shadow: var(--shadow-s);
+  transition: opacity 0.2s;
+}
+
+.heatmap-tile.active {
+  background: var(--primary);
+}
+
+.heatmap-tile.inactive {
+  background: var(--neutral);
+}
+
+.heatmap-info {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
