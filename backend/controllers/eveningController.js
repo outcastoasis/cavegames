@@ -502,7 +502,7 @@ exports.getEligibleUsers = async (req, res) => {
       return res.status(404).json({ error: "Abend nicht gefunden" });
     }
 
-    // Hole alle aktiven Benutzer außer bereits Teilnehmende
+    // Hole alle aktiven Benutzer ausser bereits Teilnehmende
     const users = await require("../models/User")
       .find({
         active: true,

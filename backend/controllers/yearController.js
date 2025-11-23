@@ -79,7 +79,7 @@ exports.closeYear = async (req, res) => {
     // 🧮 Statistiken für dieses Jahr neu aufbauen
     await rebuildUserStatsForYear(year);
 
-    // Jahr schließen
+    // Jahr schliessen
     yearDoc.closed = true;
     yearDoc.closedAt = new Date();
     await yearDoc.save();
