@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import API from "../services/api";
 import "../styles/pages/Historie.css";
+import { MapPin, Users, Trophy } from "lucide-react";
 
 export default function Historie() {
   const { setTitle } = useOutletContext();
@@ -111,59 +112,91 @@ export default function Historie() {
           <>
             {/* Jahres‑Zusammenfassung – bleibt vorerst statisch */}
             <div className="year-summary card">
-              <h3>Spieljahr {selectedYear} – Zusammenfassung</h3>
-
               {!summary ? (
                 <p>Daten werden geladen...</p>
               ) : (
                 <>
-                  <p>
-                    <strong>Jahressieger:</strong> {summary.leaderName} (
-                    {summary.leaderPoints} Pkt)
-                  </p>
-                  <p>
-                    <strong>Spieleabende:</strong> {summary.totalEvenings}
-                  </p>
-                  <p>
-                    <strong>Durchschnittliche Teilnehmer:</strong>{" "}
-                    {summary.avgParticipants}
-                  </p>
-                  <p>
-                    <strong>Organisatoren:</strong>{" "}
-                    {summary.organizerNames?.join(", ") || "–"}
-                  </p>
+                  {/* HERO: Jahressieger */}
+                  <div className="year-winner-hero">
+                    <Trophy size={36} className="year-winner-icon" />
+                    <div className="year-winner-text">
+                      <span className="winner-label">Jahressieger</span>
+                      <span className="winner-name">{summary.leaderName}</span>
+                      <span className="winner-points">
+                        {summary.leaderPoints} Punkte
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Kleinere restliche Werte */}
+                  <div className="year-summary-grid">
+                    <div className="summary-item">
+                      <span className="label">Spieleabende</span>
+                      <span className="value">{summary.totalEvenings}</span>
+                    </div>
+
+                    <div className="summary-item">
+                      <span className="label">Ø Teilnehmer</span>
+                      <span className="value">{summary.avgParticipants}</span>
+                    </div>
+
+                    <div className="summary-item">
+                      <span className="label">Organisatoren</span>
+                      <span className="value">
+                        {summary.organizerNames?.join(", ") || "–"}
+                      </span>
+                    </div>
+                  </div>
                 </>
               )}
             </div>
 
             {evenings.map((e) => (
-              <div key={e._id} className="card abend-history-card">
-                <div className="abend-history-header">
+              <div key={e._id} className="history-card card">
+                {/* Datum */}
+                <div className="history-date">
                   <strong>
-                    {e.date
-                      ? new Date(e.date).toLocaleDateString("de-CH", {
-                          day: "2-digit",
-                          month: "long",
-                          year: "numeric",
-                        })
-                      : "Kein Datum"}
+                    {new Date(e.date).toLocaleDateString("de-CH", {
+                      day: "2-digit",
+                      month: "long",
+                      year: "numeric",
+                    })}
                   </strong>
                 </div>
 
-                <p>Spielleiter: {e.spielleiterRef?.displayName || "?"}</p>
-                <p>Teilnehmer: {e.participantRefs?.length || 0}</p>
-                <p>
-                  Tagessieger:{" "}
-                  {e.winnerIds
-                    ?.map((id) => {
-                      const p = e.participantRefs?.find((x) => x._id === id);
-                      return p?.displayName || "?";
-                    })
-                    .join(", ") || "–"}
-                </p>
+                {/* Infos */}
+                <div className="history-info">
+                  <div className="history-row">
+                    <Users size={18} />
+                    <span>{e.participantRefs?.length || 0} Teilnehmer</span>
+                  </div>
 
+                  <div className="history-row">
+                    <MapPin size={18} />
+                    <span>
+                      Spielleiter: {e.spielleiterRef?.displayName || "?"}
+                    </span>
+                  </div>
+
+                  <div className="history-row">
+                    <Trophy size={18} color="var(--accent)" />
+                    <span>
+                      Tagessieger:{" "}
+                      {e.winnerIds
+                        ?.map((id) => {
+                          const p = e.participantRefs?.find(
+                            (x) => x._id === id
+                          );
+                          return p?.displayName || "?";
+                        })
+                        .join(", ") || "–"}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Button */}
                 <button
-                  className="button secondary"
+                  className="button secondary history-btn"
                   onClick={() => navigate(`/abende/${e._id}`)}
                 >
                   Abend anzeigen
