@@ -1,3 +1,5 @@
+@import "../variables.css";
+
 /* ================================
    Historie – überarbeitetes Layout
    ================================ */
@@ -11,6 +13,7 @@
 /* Jahresauswahl */
 .historie-year-selector {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--spacing-s);
   margin-bottom: var(--spacing-m);
 }
@@ -32,50 +35,14 @@
   color: white;
 }
 
+/* Jahreszusammenfassung */
+
 .year-summary.card {
   margin-bottom: var(--spacing-l);
   padding: var(--spacing-m);
 }
 
-.year-summary h3 {
-  margin-top: 0;
-  margin-bottom: var(--spacing-s);
-}
-
-.year-summary p {
-  margin: 0.4rem 0;
-}
-
-/* Abendkarten */
-.history-card {
-  padding: var(--spacing-m);
-  margin-bottom: var(--spacing-m);
-}
-
-.history-date {
-  font-size: 1.2rem;
-  margin-bottom: var(--spacing-s);
-  color: var(--primary);
-}
-
-.history-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
-  margin-bottom: var(--spacing-m);
-}
-
-.history-row {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  font-size: 1rem;
-}
-
-.history-btn {
-  width: 100%;
-  justify-content: center;
-}
+/* Jahressieger-Hero */
 
 .year-winner-hero {
   background: linear-gradient(
@@ -84,11 +51,9 @@
     var(--primary) 100%
   );
   color: white;
-
   display: flex;
   align-items: center;
   gap: var(--spacing-m);
-
   padding: var(--spacing-m);
   border-radius: var(--card-radius);
   box-shadow: var(--shadow-hover);
@@ -107,7 +72,7 @@
 
 .winner-label {
   font-size: 0.9rem;
-  opacity: 0.85;
+  opacity: 0.9;
 }
 
 .winner-name {
@@ -118,19 +83,15 @@
 .winner-points {
   font-size: 1.1rem;
   font-weight: 600;
-  opacity: 0.9;
   color: var(--accent);
 }
 
-/* ==========================
-   SMALL SUMMARY GRID
-   ========================== */
+/* Kennzahlen-Grid */
 
 .year-summary-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: var(--spacing-m);
-  margin-top: var(--spacing-m);
 }
 
 .summary-item {
@@ -147,5 +108,62 @@
 .summary-item .value {
   font-size: 1.1rem;
   font-weight: 600;
-  color: var(--text);
+  color: var(--primary);
+}
+
+/* Abendkarten */
+
+.history-card {
+  padding: var(--spacing-m);
+  margin-bottom: var(--spacing-m);
+}
+
+.history-date {
+  font-size: 1.1rem;
+  color: var(--primary);
+  padding-bottom: 0.3rem;
+  margin-bottom: 0.6rem;
+  border-bottom: 1px solid var(--neutral);
+}
+
+.history-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-bottom: var(--spacing-m);
+}
+
+.history-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 1rem;
+}
+
+/* Gewinner-Zeile etwas stärker betonen */
+
+.history-row-winner .history-winner-name {
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.history-icon-winner {
+  color: var(--accent);
+}
+
+/* Button */
+
+.history-btn {
+  width: 100%;
+  justify-content: center;
+  padding: 0.55rem 1.1rem; /* etwas kompakter als Standard */
+  font-size: 0.95rem;
+}
+
+/* Leerer Zustand */
+
+.history-empty {
+  padding: 1.5rem;
+  text-align: center;
+  opacity: 0.7;
 }
