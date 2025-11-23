@@ -1,4 +1,3 @@
-// frontend/src/pages/Historie.jsx
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate, useOutletContext } from "react-router-dom";
@@ -14,6 +13,7 @@ export default function Historie() {
   const [grouped, setGrouped] = useState({});
   const [loading, setLoading] = useState(true);
   const [selectedYear, setSelectedYear] = useState(null);
+  const [summary, setSummary] = useState(null);
 
   useEffect(() => {
     setTitle("Historie");
@@ -22,10 +22,8 @@ export default function Historie() {
 
   const fetchArchived = async () => {
     try {
-      // ✅ Neue Route
       const res = await API.get("/evenings/archived");
 
-      // Gruppierung nach Spieljahr
       const groupedByYear = {};
       res.data.forEach((e) => {
         const year = e.spieljahr;
@@ -35,7 +33,6 @@ export default function Historie() {
 
       setGrouped(groupedByYear);
 
-      // Neueste Jahr automatisch aktiv setzen
       const sortedYears = Object.keys(groupedByYear)
         .map(Number)
         .sort((a, b) => b - a);
@@ -53,8 +50,6 @@ export default function Historie() {
     .sort((a, b) => b - a);
 
   const evenings = grouped[selectedYear] || [];
-
-  const [summary, setSummary] = useState(null);
 
   useEffect(() => {
     if (!selectedYear) return;
@@ -110,7 +105,7 @@ export default function Historie() {
       ) : (
         selectedYear && (
           <>
-            {/* Jahres‑Zusammenfassung – bleibt vorerst statisch */}
+            {/* Jahres-Zusammenfassung */}
             <div className="year-summary card">
               {!summary ? (
                 <p>Daten werden geladen...</p>
@@ -118,7 +113,7 @@ export default function Historie() {
                 <>
                   {/* HERO: Jahressieger */}
                   <div className="year-winner-hero">
-                    <Trophy size={36} className="year-winner-icon" />
+                    <Trophy size={32} className="year-winner-icon" />
                     <div className="year-winner-text">
                       <span className="winner-label">Jahressieger</span>
                       <span className="winner-name">{summary.leaderName}</span>
@@ -128,16 +123,20 @@ export default function Historie() {
                     </div>
                   </div>
 
-                  {/* Kleinere restliche Werte */}
+                  {/* Kennzahlen zum Jahr */}
                   <div className="year-summary-grid">
                     <div className="summary-item">
                       <span className="label">Spieleabende</span>
-                      <span className="value">{summary.totalEvenings}</span>
+                      <span className="value">
+                        {summary.totalEvenings ?? "–"} Abende
+                      </span>
                     </div>
 
                     <div className="summary-item">
                       <span className="label">Ø Teilnehmer</span>
-                      <span className="value">{summary.avgParticipants}</span>
+                      <span className="value">
+                        {summary.avgParticipants ?? "–"} Teilnehmer
+                      </span>
                     </div>
 
                     <div className="summary-item">
@@ -151,6 +150,7 @@ export default function Historie() {
               )}
             </div>
 
+            {/* Abende des Jahres */}
             {evenings.map((e) => (
               <div key={e._id} className="history-card card">
                 {/* Datum */}
@@ -178,18 +178,20 @@ export default function Historie() {
                     </span>
                   </div>
 
-                  <div className="history-row">
-                    <Trophy size={18} color="var(--accent)" />
+                  <div className="history-row history-row-winner">
+                    <Trophy size={18} className="history-icon-winner" />
                     <span>
                       Tagessieger:{" "}
-                      {e.winnerIds
-                        ?.map((id) => {
-                          const p = e.participantRefs?.find(
-                            (x) => x._id === id
-                          );
-                          return p?.displayName || "?";
-                        })
-                        .join(", ") || "–"}
+                      <span className="history-winner-name">
+                        {e.winnerIds
+                          ?.map((id) => {
+                            const p = e.participantRefs?.find(
+                              (x) => x._id === id
+                            );
+                            return p?.displayName || "?";
+                          })
+                          .join(", ") || "–"}
+                      </span>
                     </span>
                   </div>
                 </div>
