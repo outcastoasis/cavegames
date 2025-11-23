@@ -4,6 +4,7 @@ import { Navigate, useNavigate, useOutletContext } from "react-router-dom";
 import API from "../services/api";
 import "../styles/pages/AdminYears.css";
 import { Link } from "react-router-dom";
+import Toast from "../components/ui/Toast";
 
 export default function AdminYears() {
   const { user } = useAuth();
@@ -54,7 +55,7 @@ export default function AdminYears() {
       setSuccess(res.data.message || "Jahr erfolgreich abgeschlossen");
       fetchYears();
     } catch (err) {
-      setError(err.response?.data?.error || "Fehler beim Abschließen.");
+      setError(err.response?.data?.error || "Fehler beim Abschliessen.");
     }
   };
 
@@ -64,6 +65,9 @@ export default function AdminYears() {
 
   return (
     <div className="admin-years-page">
+      {error && <Toast message={error} onClose={() => setError("")} />}
+
+      {success && <Toast message={success} onClose={() => setSuccess("")} />}
       <div className="year-header">
         <input
           type="number"
@@ -79,9 +83,6 @@ export default function AdminYears() {
           Jahr anlegen
         </button>
       </div>
-
-      {error && <div className="alert error">{error}</div>}
-      {success && <div className="alert success">{success}</div>}
 
       {loading ? (
         <p>Lade Jahre...</p>
@@ -120,7 +121,7 @@ export default function AdminYears() {
                     className="button danger"
                     onClick={() => handleCloseYear(year.year)}
                   >
-                    Jahr abschließen
+                    Jahr abschliessen
                   </button>
                 )}
               </div>

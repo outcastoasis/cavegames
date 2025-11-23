@@ -66,7 +66,6 @@ export default function Abende() {
         }
       });
 
-      // 🔧 Diese Schleife muss *außerhalb* der oberen forEach stehen:
       active.forEach((e) => {
         if (e.status === "offen" && !e.date && !e.pollId) {
           openWithoutPoll.push(e);

@@ -136,7 +136,7 @@
   gap: var(--spacing-s);
 }
 
-/* nur Größe anpassen – 3D/Shadow kommt aus .button in variables.css */
+/* nur Grösse anpassen – 3D/Shadow kommt aus .button in variables.css */
 .button.small {
   padding: 0.45rem 1rem;
   font-size: 0.85rem;

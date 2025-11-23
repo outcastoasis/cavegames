@@ -157,7 +157,7 @@ select.input:focus {
 
   .button {
     width: auto; /* verhindert Vollbreite */
-    min-width: 120px; /* optional: konsistente Größe */
+    min-width: 120px; /* optional: konsistente Grösse */
     justify-content: center;
   }
 }
