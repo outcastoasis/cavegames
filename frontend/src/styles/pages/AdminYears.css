@@ -1,92 +1,124 @@
+/* =========================================================
+   ADMIN YEARS – EIGENE, EINDEUTIGE KLASSEN MIT PREFIX admin-
+   ========================================================= */
+
 .admin-years-page {
   padding: var(--spacing-m);
-  max-width: 900px;
+  max-width: 950px;
   margin: 0 auto;
 }
 
-.year-header {
+.admin-year-header {
   display: flex;
   gap: var(--spacing-s);
-  margin-bottom: var(--spacing-m);
-  flex-wrap: nowrap;
-  align-items: baseline;
+  margin-bottom: var(--spacing-l);
+  align-items: center;
+  flex-wrap: nowrap; /* Bleibt in einer Zeile */
 }
 
-.year-input {
+.admin-year-input {
   flex: 1;
+  min-width: 0; /* erlaubt schrumpfen auf mobile */
   height: 2.75rem;
-  font-size: var(--font-size-small);
   padding: 0 var(--spacing-m);
   border-radius: var(--border-radius-full);
-  border: 1px solid #ccc;
+  border: 1px solid var(--neutral-dark);
+  background: white;
+  font-size: var(--font-size-base);
 }
 
-.button.year-add-button {
+.admin-year-add-btn {
   height: 2.75rem;
   border-radius: var(--border-radius-full);
   font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  padding: 0 1rem; /* kompakter */
+  white-space: nowrap; /* kein Umbrechen */
 }
 
-.year-list {
+/* LIST */
+.admin-year-list {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-m);
 }
 
-.year-card {
+/* CARD */
+.admin-year-card {
+  background: white;
+  padding: var(--spacing-m);
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-raised);
+
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: var(--spacing-m);
+  align-items: flex-start;
   flex-wrap: wrap;
-  gap: var(--spacing-s);
+
+  gap: var(--spacing-m);
 }
 
-.year-info {
+/* LEFT */
+.admin-year-info {
   flex: 1;
-  min-width: 200px;
+  min-width: 220px;
 }
 
-.year-info h3 {
+.admin-year-info h3 {
   margin: 0;
-  font-size: var(--font-size-large);
+  font-size: 1.4rem;
+  color: var(--primary);
 }
 
-.year-info p {
-  margin: 0.3rem 0;
+.admin-year-info p {
+  margin: 0.4rem 0;
+  font-size: var(--font-size-base);
 }
 
-.year-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-s);
-  justify-content: flex-end;
-  align-items: center;
-}
-
-.badge {
-  padding: 0.3rem 0.8rem;
+/* BADGES */
+.admin-badge {
+  display: inline-block;
+  padding: 0.35rem 1rem;
   border-radius: var(--border-radius-full);
   font-size: var(--font-size-small);
-  font-weight: bold;
-  text-transform: uppercase;
-  display: inline-block;
+  font-weight: 600;
 }
 
-.badge.closed {
-  background-color: var(--primary);
-  color: white;
-}
-
-.badge.open {
-  background-color: var(--accent);
+.admin-badge-open {
+  background: var(--accent);
   color: black;
 }
 
-.small {
-  font-size: var(--font-size-small);
-  color: #555;
+.admin-badge-closed {
+  background: var(--primary);
+  color: white;
+}
+
+/* RIGHT SIDE BUTTONS */
+.admin-year-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-s);
+  min-width: 200px;
+  justify-content: flex-end;
+}
+
+/* BUTTON FIX — benutze globale .button Variants */
+.admin-year-btn,
+.admin-year-btn-danger {
+  background: none !important;
+  color: inherit !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .admin-year-card {
+    padding: var(--spacing-s);
+  }
+
+  .admin-year-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
 }

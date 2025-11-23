@@ -68,16 +68,16 @@ export default function AdminYears() {
       {error && <Toast message={error} onClose={() => setError("")} />}
 
       {success && <Toast message={success} onClose={() => setSuccess("")} />}
-      <div className="year-header">
+      <div className="admin-year-header">
         <input
           type="number"
           placeholder="Neues Jahr z. B. 2025"
-          className="input year-input"
+          className="admin-year-input"
           value={newYear}
           onChange={(e) => setNewYear(e.target.value)}
         />
         <button
-          className="button primary year-add-button"
+          className="button primary admin-year-add-btn"
           onClick={handleCreateYear}
         >
           Jahr anlegen
@@ -87,17 +87,17 @@ export default function AdminYears() {
       {loading ? (
         <p>Lade Jahre...</p>
       ) : (
-        <div className="year-list">
+        <div className="admin-year-list">
           {years.map((year) => (
-            <div key={year._id} className="card year-card">
-              <div className="year-info">
+            <div key={year._id} className="admin-year-card">
+              <div className="admin-year-info">
                 <h3>{year.year}</h3>
                 <p>
                   Status:{" "}
                   {year.closed ? (
-                    <span className="badge closed">Abgeschlossen</span>
+                    <span className="admin-badge admin-badge-closed">Abgeschlossen</span>
                   ) : (
-                    <span className="badge open">Offen</span>
+                    <span className="admin-badge admin-badge-open">Offen</span>
                   )}
                 </p>
                 {year.closedAt && (
@@ -108,9 +108,9 @@ export default function AdminYears() {
                 )}
               </div>
 
-              <div className="year-actions">
+              <div className="admin-year-actions">
                 <button
-                  className="button"
+                  className="button neutral"
                   onClick={() => navigate(`/admin/years/${year.year}`)}
                 >
                   Details
