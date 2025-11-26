@@ -1,5 +1,9 @@
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
+const {
+  uploadToCloudinary,
+  deleteFromCloudinary,
+} = require("../utils/uploadService");
 
 exports.getAllUsers = async (req, res) => {
   try {
@@ -85,4 +89,33 @@ exports.deactivateUser = async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: "Fehler beim Deaktivieren" });
   }
+};
+
+exports.uploadUserAvatar = async (req, res) => {
+  const { id } = req.params;
+  const file = req.file;
+
+  if (!file) return res.status(400).json({ error: "No file uploaded" });
+
+  const user = await User.findById(id);
+  if (!user) return res.status(404).json({ error: "User not found" });
+
+  const folder = `spielabend/users/${id}`;
+  const publicId = "avatar";
+
+  // altes Bild löschen
+  if (user.profileImagePublicId) {
+    await deleteFromCloudinary(user.profileImagePublicId);
+  }
+
+  const result = await uploadToCloudinary(file.path, folder, publicId);
+
+  user.profileImageUrl = result.secure_url;
+  user.profileImagePublicId = result.public_id;
+  await user.save();
+
+  res.json({
+    message: "Profile image updated",
+    url: result.secure_url,
+  });
 };

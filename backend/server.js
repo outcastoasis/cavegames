@@ -1,12 +1,15 @@
 // backend/server.js
+
+require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
 const connectDB = require("./config/db");
 const userRoutes = require("./routes/userRoutes");
 const authRoutes = require("./routes/auth");
 const pollRoutes = require("./routes/pollRoutes");
-
-require("dotenv").config();
+const uploadRoutes = require("./routes/uploads");
+const multer = require("multer");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -44,6 +47,18 @@ app.use("/api/polls", pollRoutes);
 app.use("/api/games", require("./routes/gameRoutes"));
 
 app.use("/api/stats", require("./routes/statsRoutes"));
+
+app.use("/api/uploads", uploadRoutes);
+
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({ error: err.message });
+  }
+  if (err.message === "Only JPG/PNG are allowed") {
+    return res.status(400).json({ error: err.message });
+  }
+  next(err);
+});
 
 // Server starten
 app.listen(PORT, () => {
