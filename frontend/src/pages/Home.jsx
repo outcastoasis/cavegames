@@ -297,19 +297,19 @@ export default function Home() {
       )}
 
       {!loading && nextEvening && (
-        <>
+        <div className="card abend-highlight">
           <h3>
             Nächster Spieleabend in {calculateDaysLeft(nextEvening.date)} Tagen
           </h3>
           {renderEveningCard(nextEvening)}
-        </>
+        </div>
       )}
 
       {!loading && lastEvening && (
-        <div className="card abend-highlight">
+        <>
           <h3>Letzter Spieleabend</h3>
           {renderEveningCard(lastEvening)}
-        </div>
+        </>
       )}
 
       {!loading && !todayEvening && !nextEvening && !lastEvening && (
