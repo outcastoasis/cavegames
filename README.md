@@ -413,27 +413,6 @@ app.patch(
 
 ---
 
-## ✅ Fehlende Umsetzungen
-- [ ] Bearbeiten eines Abends sollte auch Statistiken nachtragen und bearbeiten dieses Abends und die entsprechende Jahresstatistik nachkorrigieren
-- [ ] Löschen eines Abends sollte ebenfalls möglich sein und datenbanken aktualisieren
-- [ ] 
-
-
-
-
-
----
-
-## ✅ Nächste Schritte
-
-1. Implementierung der Umfragen (`polls`)
-2. Umsetzung der Jahresverwaltung
-3. Definition & Test der Leaderboard-API
-4. Backend-Basis & Mock-Daten
-5. HTML-Demoseiten & UI-Feinschliff
-
----
-
 ## 📂 Lizenz & Hinweise
 
 Private Freizeit-App, nicht für öffentliche Nutzung vorgesehen.  

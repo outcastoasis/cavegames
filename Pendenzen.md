@@ -1,7 +1,7 @@
 - [ ] Abbrechen Button bei Punkte bearbeiten
 - [ ] Löschen von Spiele eines Abends soll auch Statistik aktualisieren
 - [ ] Durchschnittsplatzierung hat noch kommawert
-- [ ] Historie Seite noch unübersichtlich. Einträge besser und schöner darstellen
+- [x] Historie Seite noch unübersichtlich. Einträge besser und schöner darstellen
 - [x] Alle Jahre Graphen noch nicht eingebaut
 - [x] User Statistiken aktuell noch "forbidden" aufgrund der /years Route
 - [x] Toast bei Jahr abschliessen
