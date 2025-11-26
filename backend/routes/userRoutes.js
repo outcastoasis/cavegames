@@ -1,7 +1,10 @@
 const express = require("express");
 const router = express.Router();
+
 const upload = require("../middleware/upload");
-const { uploadUserAvatar } = require("../controllers/userController");
+const checkAuth = require("../middleware/checkAuth");
+const checkRole = require("../middleware/checkRole");
+const checkSelfOrAdmin = require("../middleware/checkSelfOrAdmin");
 
 const {
   getAllUsers,
@@ -9,19 +12,29 @@ const {
   createUser,
   updateUser,
   deactivateUser,
+  uploadUserAvatar,
 } = require("../controllers/userController");
 
-const checkAuth = require("../middleware/checkAuth");
-const checkRole = require("../middleware/checkRole");
-
+// Alle Routen benötigen Login
 router.use(checkAuth);
-router.use(checkRole("admin"));
 
-router.get("/", getAllUsers);
-router.get("/:id", getUserById);
-router.post("/", createUser);
-router.patch("/:id/avatar", upload.single("file"), uploadUserAvatar);
-router.patch("/:id", updateUser);
-router.delete("/:id", deactivateUser);
+// ==============================
+//      ADMIN-Routen
+// ==============================
+router.get("/", checkRole("admin"), getAllUsers);
+router.get("/:id", checkRole("admin"), getUserById);
+router.post("/", checkRole("admin"), createUser);
+router.patch("/:id", checkRole("admin"), updateUser);
+router.delete("/:id", checkRole("admin"), deactivateUser);
+
+// ==============================
+//      Avatar Upload (Admin + User selbst)
+// ==============================
+router.patch(
+  "/:id/avatar",
+  checkSelfOrAdmin,
+  upload.single("file"),
+  uploadUserAvatar
+);
 
 module.exports = router;

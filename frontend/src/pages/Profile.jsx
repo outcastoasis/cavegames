@@ -12,12 +12,13 @@ import MultiYearPointsChart from "../components/charts/MultiYearPointsChart";
 import MultiYearWinRateChart from "../components/charts/MultiYearWinRateChart";
 import BarYearComparison from "../components/charts/BarYearComparison";
 import ActivityHeatmap from "../components/charts/ActivityHeatmap";
+import defaultAvatar from "../assets/images/avatar.jpg";
 
 import "../styles/pages/Profile.css";
 
 export default function Profile() {
   const { setTitle } = useOutletContext();
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const { id } = useParams(); // Profil anderer möglich: /profile/:id
   const navigate = useNavigate();
 
@@ -104,15 +105,22 @@ export default function Profile() {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      // Avatar sofort im UI aktualisieren
-      if (user && res.data.url) {
-        user.profileImageUrl = res.data.url;
+      // Sofort anzeigen
+      if (res.data.url) {
+        setUser((prev) => ({
+          ...prev,
+          profileImageUrl: res.data.url,
+        }));
+        localStorage.setItem(
+          "user",
+          JSON.stringify({
+            ...user,
+            profileImageUrl: res.data.url,
+          })
+        );
       }
-
-      alert("Profilbild aktualisiert!");
     } catch (err) {
       console.error("Avatar Upload Error:", err);
-      alert("Fehler beim Hochladen des Profilbilds");
     }
   }
 
@@ -137,7 +145,7 @@ export default function Profile() {
         {/* ==== PROFILBILD ==== */}
         <div className="profile-avatar-wrapper">
           <img
-            src={user?.profileImageUrl || "/default-avatar.png"}
+            src={user?.profileImageUrl || defaultAvatar}
             alt="Profilbild"
             className="profile-avatar"
           />
