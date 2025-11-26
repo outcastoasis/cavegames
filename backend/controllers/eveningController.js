@@ -64,7 +64,6 @@ exports.createEvening = async (req, res) => {
     const newEvening = new Evening({
       spieljahr,
       spielleiterId,
-      organizerId: req.user.id,
       participantIds: [spielleiterId],
       status: "offen",
       date: null,
@@ -465,7 +464,7 @@ exports.getArchivedEvenings = async (req, res) => {
 
     res.json(mapped);
   } catch (err) {
-    console.error("Fehler beim Laden der archivierten Abende:", err);
+    console.error("Fehler beim Laden der Historie:", err);
     res.status(500).json({ error: "Fehler beim Laden der Historie" });
   }
 };
