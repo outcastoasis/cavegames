@@ -28,6 +28,7 @@ const eveningSchema = new mongoose.Schema(
     },
     games: [gameSchema],
     groupPhotoUrl: String,
+    groupPhotoPublicId: String,
 
     // NEU (optional, später per Aggregation setzbar):
     winnerIds: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],

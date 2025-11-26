@@ -92,6 +92,30 @@ export default function Profile() {
     );
   }
 
+  async function handleAvatarChange(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await API.patch(`/users/${userId}/avatar`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      // Avatar sofort im UI aktualisieren
+      if (user && res.data.url) {
+        user.profileImageUrl = res.data.url;
+      }
+
+      alert("Profilbild aktualisiert!");
+    } catch (err) {
+      console.error("Avatar Upload Error:", err);
+      alert("Fehler beim Hochladen des Profilbilds");
+    }
+  }
+
   return (
     <div className="profile-page">
       {/* ==== PROFILKARTE ==== */}
@@ -107,6 +131,32 @@ export default function Profile() {
             }}
           >
             Logout
+          </button>
+        </div>
+
+        {/* ==== PROFILBILD ==== */}
+        <div className="profile-avatar-wrapper">
+          <img
+            src={user?.profileImageUrl || "/default-avatar.png"}
+            alt="Profilbild"
+            className="profile-avatar"
+          />
+
+          {/* Datei auswählen */}
+          <input
+            type="file"
+            id="avatarInput"
+            accept="image/png, image/jpeg"
+            style={{ display: "none" }}
+            onChange={handleAvatarChange}
+          />
+
+          {/* Button zum Öffnen des Datei-Dialogs */}
+          <button
+            className="button secondary"
+            onClick={() => document.getElementById("avatarInput").click()}
+          >
+            Profilbild ändern
           </button>
         </div>
 

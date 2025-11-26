@@ -1,5 +1,7 @@
 const express = require("express");
 const router = express.Router();
+const upload = require("../middleware/upload");
+const { uploadUserAvatar } = require("../controllers/userController");
 
 const {
   getAllUsers,
@@ -18,6 +20,7 @@ router.use(checkRole("admin"));
 router.get("/", getAllUsers);
 router.get("/:id", getUserById);
 router.post("/", createUser);
+router.patch("/:id/avatar", upload.single("file"), uploadUserAvatar);
 router.patch("/:id", updateUser);
 router.delete("/:id", deactivateUser);
 

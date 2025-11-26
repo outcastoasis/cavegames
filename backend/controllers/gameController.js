@@ -68,6 +68,9 @@ exports.deleteGame = async (req, res) => {
     if (!deleted)
       return res.status(404).json({ error: "Spiel nicht gefunden" });
     res.json({ message: "Spiel gelöscht" });
+    if (game.imagePublicId) {
+      await deleteFromCloudinary(game.imagePublicId);
+    }
   } catch (err) {
     res.status(500).json({ error: "Fehler beim Löschen des Spiels" });
   }

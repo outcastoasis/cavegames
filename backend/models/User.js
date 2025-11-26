@@ -29,6 +29,8 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    profileImageUrl: String,
+    profileImagePublicId: String,
   },
   { timestamps: true }
 );

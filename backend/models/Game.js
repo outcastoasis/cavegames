@@ -8,6 +8,7 @@ const gameSchema = new mongoose.Schema(
     category: { type: String },
     description: { type: String },
     imageUrl: { type: String },
+    imagePublicId: { type: String },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   },
   { timestamps: true }

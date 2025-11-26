@@ -6,6 +6,10 @@ const {
 } = require("../utils/stats");
 const Year = require("../models/Year");
 const mongoose = require("mongoose");
+const {
+  uploadToCloudinary,
+  deleteFromCloudinary,
+} = require("../utils/uploadService");
 
 exports.getEvenings = async (req, res) => {
   try {
@@ -187,6 +191,9 @@ exports.deleteEvening = async (req, res) => {
     if (!deleted)
       return res.status(404).json({ error: "Abend nicht gefunden" });
     res.json({ message: "Abend gelöscht" });
+    if (deleted.groupPhotoPublicId) {
+      await deleteFromCloudinary(deleted.groupPhotoPublicId);
+    }
   } catch (err) {
     console.error("Fehler beim Löschen:", err.message);
     res.status(500).json({ error: "Fehler beim Löschen" });
@@ -514,4 +521,34 @@ exports.getEligibleUsers = async (req, res) => {
     console.error("Fehler bei getEligibleUsers:", err.message);
     res.status(500).json({ error: "Fehler beim Abrufen der Benutzer" });
   }
+};
+
+exports.uploadGroupPhoto = async (req, res) => {
+  const { id } = req.params;
+  const file = req.file;
+
+  if (!file) return res.status(400).json({ error: "No file uploaded" });
+
+  const evening = await Evening.findById(id);
+  if (!evening) return res.status(404).json({ error: "Evening not found" });
+
+  const folder = `spielabend/evenings/${id}`;
+  const publicId = `group-photo`;
+
+  // altes Bild löschen
+  if (evening.groupPhotoPublicId) {
+    await deleteFromCloudinary(evening.groupPhotoPublicId);
+  }
+
+  // neues Bild hochladen
+  const result = await uploadToCloudinary(file.path, folder, publicId);
+
+  evening.groupPhotoUrl = result.secure_url;
+  evening.groupPhotoPublicId = result.public_id;
+  await evening.save();
+
+  res.json({
+    message: "Group photo updated",
+    url: result.secure_url,
+  });
 };
