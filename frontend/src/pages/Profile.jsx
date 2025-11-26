@@ -1,6 +1,6 @@
 // frontend/src/pages/Profile.jsx
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate, useOutletContext } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import API from "../services/api";
@@ -13,6 +13,7 @@ import MultiYearWinRateChart from "../components/charts/MultiYearWinRateChart";
 import BarYearComparison from "../components/charts/BarYearComparison";
 import ActivityHeatmap from "../components/charts/ActivityHeatmap";
 import defaultAvatar from "../assets/images/avatar.jpg";
+import Toast from "../components/ui/Toast";
 
 import "../styles/pages/Profile.css";
 
@@ -34,6 +35,9 @@ export default function Profile() {
   const [loadingMulti, setLoadingMulti] = useState(false);
 
   const [viewAllYears, setViewAllYears] = useState(false); // Toggle Ansicht
+
+  const [toast, setToast] = useState(null);
+  const toastTimer = useRef(null);
 
   useEffect(() => {
     setTitle("Profil");
@@ -93,9 +97,27 @@ export default function Profile() {
     );
   }
 
+  function showToast(message) {
+    // Falls noch ein Timer läuft → löschen
+    if (toastTimer.current) {
+      clearTimeout(toastTimer.current);
+    }
+
+    setToast(message);
+
+    // Neuer Timer für 2.5s
+    toastTimer.current = setTimeout(() => {
+      setToast(null);
+      toastTimer.current = null;
+    }, 2500);
+  }
+
   async function handleAvatarChange(e) {
     const file = e.target.files[0];
     if (!file) return;
+
+    // Toast: Upload startet
+    showToast("Profilbild wird hochgeladen...");
 
     try {
       const formData = new FormData();
@@ -105,12 +127,13 @@ export default function Profile() {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      // Sofort anzeigen
       if (res.data.url) {
+        // Sofort in UI aktualisieren
         setUser((prev) => ({
           ...prev,
           profileImageUrl: res.data.url,
         }));
+
         localStorage.setItem(
           "user",
           JSON.stringify({
@@ -118,61 +141,71 @@ export default function Profile() {
             profileImageUrl: res.data.url,
           })
         );
+
+        // Toast: erfolgreich
+        showToast("Profilbild erfolgreich aktualisiert!");
       }
     } catch (err) {
       console.error("Avatar Upload Error:", err);
+      showToast("Fehler beim Hochladen des Profilbildes");
     }
   }
 
   return (
     <div className="profile-page">
+      {toast && <Toast message={toast} onClose={() => setToast(null)} />}
       {/* ==== PROFILKARTE ==== */}
-      <div className="profile-card">
-        <div className="profile-header">
-          <h2>{user?.displayName || "Profil"}</h2>
-
-          <button
-            className="button danger"
-            onClick={() => {
-              localStorage.removeItem("token");
-              navigate("/login");
-            }}
-          >
-            Logout
-          </button>
-        </div>
-
-        {/* ==== PROFILBILD ==== */}
-        <div className="profile-avatar-wrapper">
-          <img
-            src={user?.profileImageUrl || defaultAvatar}
-            alt="Profilbild"
-            className="profile-avatar"
-          />
-
-          {/* Datei auswählen */}
+      <div className="profile-card-modern">
+        {/* Avatar mit Klick zum Ändern */}
+        <div className="profile-avatar-section">
           <input
             type="file"
             id="avatarInput"
             accept="image/png, image/jpeg"
-            style={{ display: "none" }}
+            hidden
             onChange={handleAvatarChange}
           />
 
-          {/* Button zum Öffnen des Datei-Dialogs */}
-          <button
-            className="button secondary"
+          <div
+            className="avatar-click-area"
             onClick={() => document.getElementById("avatarInput").click()}
           >
-            Profilbild ändern
-          </button>
+            <img
+              src={user?.profileImageUrl || defaultAvatar}
+              alt="Profilbild"
+              className="avatar-img"
+            />
+          </div>
         </div>
 
-        <p className="profile-meta">
-          Benutzername: <strong>{user?.username}</strong>
-          <br />
-          Rolle: <strong>{user?.role === "admin" ? "Admin" : "Spieler"}</strong>
-        </p>
+        {/* Name */}
+        <h2 className="profile-name-center">{user?.displayName}</h2>
+
+        {/* Info Rows */}
+        <div className="profile-info-list">
+          <div className="info-row">
+            <span className="info-label">Benutzername</span>
+            <span className="info-value">{user?.username}</span>
+          </div>
+
+          <div className="info-row">
+            <span className="info-label">Rolle</span>
+            <span className="info-value">
+              {user?.role === "admin" ? "Admin" : "Spieler"}
+            </span>
+          </div>
+        </div>
+
+        {/* Logout unten */}
+        <button
+          className="button danger logout-btn"
+          onClick={() => {
+            localStorage.removeItem("token");
+            navigate("/login");
+          }}
+        >
+          Logout
+        </button>
       </div>
 
       {/* ==== ANSICHTSWECHSEL ==== */}

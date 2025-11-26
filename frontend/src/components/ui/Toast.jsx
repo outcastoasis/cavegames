@@ -1,3 +1,5 @@
+// frontend/src/components/ui/Toast.jsx
+
 import { useEffect } from "react";
 import "../../styles/components/Toast.css";
 

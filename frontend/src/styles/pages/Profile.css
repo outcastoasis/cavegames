@@ -3,25 +3,6 @@
   margin-bottom: 5rem;
 }
 
-.profile-card {
-  background: white;
-  padding: var(--spacing-m);
-  border-radius: var(--card-radius);
-  box-shadow: var(--shadow-raised);
-  margin-bottom: var(--spacing-m);
-}
-
-.profile-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.profile-meta {
-  margin-top: var(--spacing-s);
-  font-size: 0.9rem;
-}
-
 .view-switch {
   display: flex;
   gap: var(--spacing-s);
@@ -158,19 +139,92 @@
   transform: scale(0.97);
 }
 
-.profile-avatar-wrapper {
+/* ============================================
+   Moderne Profilkarte – Spielabend App
+============================================ */
+
+.profile-card-modern {
+  background: white;
+  border-radius: var(--card-radius);
+  padding: var(--spacing-l);
+  box-shadow: var(--shadow-raised);
+  margin-bottom: var(--spacing-l);
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: var(--spacing-m);
-  gap: var(--spacing-s);
 }
 
-.profile-avatar {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  object-fit: cover;
-  box-shadow: var(--shadow-raised);
+/* Avatar */
+.profile-avatar-section {
+  display: flex;
+  justify-content: center;
+}
+
+.avatar-click-area {
+  width: 144px;
+  height: 144px;
+  padding: 0;
   border: 3px solid var(--primary);
+  border-radius: 50%;
+  box-shadow: var(--shadow-m);
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: transform var(--transition-medium), opacity var(--transition-fast);
+}
+
+.avatar-click-area:hover {
+  transform: scale(1.03);
+  opacity: 0.95;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+/* Name */
+.profile-name-center {
+  font-size: 1.6rem;
+  font-weight: 600;
+  margin: 0 0 var(--spacing-m) 0;
+  text-align: center;
+}
+
+/* Info Rows */
+.profile-info-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-s);
+  margin-bottom: var(--spacing-m);
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  background: var(--bg);
+  border-radius: var(--border-radius-sm);
+  padding: var(--spacing-s) var(--spacing-m);
+  box-shadow: var(--shadow-s);
+}
+
+.info-label {
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+
+.info-value {
+  font-weight: 600;
+  color: var(--primary);
+}
+
+/* Logout Button */
+.logout-btn {
+  width: 100%;
+  padding: 0.6rem 1.2rem;
+  margin-top: var(--spacing-s);
 }
