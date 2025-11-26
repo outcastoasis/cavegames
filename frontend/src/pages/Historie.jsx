@@ -70,12 +70,10 @@ export default function Historie() {
         leaderPoints: leader?.totalPoints || 0,
         totalEvenings: eveningRes.data.totalEvenings,
         avgParticipants: eveningRes.data.avgParticipants,
-        organizerNames: Object.keys(eveningRes.data.organizers || {}).map(
-          (id) => {
-            const eve = grouped[year]?.find((e) => e.organizerId === id);
-            return eve?.spielleiterRef?.displayName || "Unbekannt";
-          }
-        ),
+        organizerNames: evenings
+          .map((e) => e.spielleiterRef?.displayName)
+          .filter(Boolean)
+          .filter((v, i, a) => a.indexOf(v) === i),
       });
     } catch (err) {
       console.error("Fehler beim Laden der Jahresstatistik:", err);
@@ -142,7 +140,9 @@ export default function Historie() {
                     <div className="summary-item">
                       <span className="label">Organisatoren</span>
                       <span className="value">
-                        {summary.organizerNames?.join(", ") || "–"}
+                        {summary.organizerNames?.length > 0
+                          ? summary.organizerNames.join(", ")
+                          : "–"}
                       </span>
                     </div>
                   </div>
