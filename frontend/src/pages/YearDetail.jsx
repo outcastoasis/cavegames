@@ -47,7 +47,7 @@ export default function YearDetail() {
 
   const handleDeleteEvening = async (eveningId) => {
     const ok = window.confirm(
-      "Willst du diesen Abend wirklich loeschen? Umfrage und Statistiken fuer dieses Jahr werden entsprechend aktualisiert."
+      "Willst du diesen Abend wirklich löschen? Umfrage und Statistiken fuer dieses Jahr werden entsprechend aktualisiert."
     );
     if (!ok) return;
 
@@ -58,7 +58,7 @@ export default function YearDetail() {
       await API.delete(`/evenings/${eveningId}`);
       await fetchYearData();
     } catch (err) {
-      setError(err?.response?.data?.error || "Fehler beim Loeschen des Abends");
+      setError(err?.response?.data?.error || "Fehler beim Löschen des Abends");
     } finally {
       setDeletingId(null);
     }
@@ -156,16 +156,15 @@ export default function YearDetail() {
                 className="year-detail-actions"
                 onClick={(e) => e.stopPropagation()}
               >
-
                 {!yearObj.closed && (
                   <button
                     className="button danger small"
                     onClick={() => handleDeleteEvening(abend._id)}
                     disabled={deletingId === abend._id}
-                    title="Abend loeschen"
+                    title="Abend löschen"
                   >
                     <Trash2 size={16} />
-                    {deletingId === abend._id ? "Loesche..." : "Loeschen"}
+                    {deletingId === abend._id ? "Lösche..." : "Löschen"}
                   </button>
                 )}
               </div>

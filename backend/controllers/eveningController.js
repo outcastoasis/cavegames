@@ -196,23 +196,23 @@ exports.deleteEvening = async (req, res) => {
     const yearDoc = await Year.findOne({ year: evening.spieljahr });
     if (yearDoc?.closed) {
       return res.status(400).json({
-        error: "Jahr ist abgeschlossen – Abend kann nicht geloescht werden",
+        error: "Jahr ist abgeschlossen – Abend kann nicht gelöscht werden",
       });
     }
 
-    // 1) Poll loeschen (robust ueber eveningId)
+    // 1) Poll löschen (robust ueber eveningId)
     const poll = await Poll.findOneAndDelete({ eveningId: evening._id });
     if (poll) {
-      // defensiv: pollId am Abend loesen
+      // defensiv: pollId am Abend lösen
       await Evening.updateOne({ _id: evening._id }, { $set: { pollId: null } });
     }
 
-    // 2) Gruppenfoto loeschen
+    // 2) Gruppenfoto löschen
     if (evening.groupPhotoPublicId) {
       await deleteFromCloudinary(evening.groupPhotoPublicId);
     }
 
-    // 3) Abend loeschen
+    // 3) Abend löschen
     await Evening.deleteOne({ _id: evening._id });
 
     // 4) Stats neu bauen
@@ -222,16 +222,16 @@ exports.deleteEvening = async (req, res) => {
       console.error("Rebuild failed after delete:", e);
       return res.status(500).json({
         error:
-          "Abend geloescht, aber Statistiken konnten nicht neu berechnet werden",
+          "Abend gelöscht, aber Statistiken konnten nicht neu berechnet werden",
       });
     }
 
     return res.json({
-      message: "Abend inkl. Umfrage und Stats-Verknuepfungen geloescht",
+      message: "Abend inkl. Umfrage und Stats-Verknuepfungen gelöscht",
     });
   } catch (err) {
-    console.error("Fehler beim Loeschen:", err.message);
-    return res.status(500).json({ error: "Fehler beim Loeschen" });
+    console.error("Fehler beim Löschen:", err.message);
+    return res.status(500).json({ error: "Fehler beim Löschen" });
   }
 };
 
