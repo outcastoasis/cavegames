@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/pages/Login.css";
-import logo from "../assets/images/Logo_Cavegames.png";
+import logo from "../assets/images/icon-512.png";
 import { UserPlus, User, Lock } from "lucide-react";
 import { Link } from "react-router-dom";
 
