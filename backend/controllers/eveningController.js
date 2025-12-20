@@ -10,6 +10,7 @@ const {
   uploadToCloudinary,
   deleteFromCloudinary,
 } = require("../utils/uploadService");
+const Poll = require("../models/Poll");
 
 exports.getEvenings = async (req, res) => {
   try {
@@ -187,16 +188,50 @@ exports.updateEvening = async (req, res) => {
 
 exports.deleteEvening = async (req, res) => {
   try {
-    const deleted = await Evening.findByIdAndDelete(req.params.id);
-    if (!deleted)
+    const evening = await Evening.findById(req.params.id);
+    if (!evening) {
       return res.status(404).json({ error: "Abend nicht gefunden" });
-    res.json({ message: "Abend gelöscht" });
-    if (deleted.groupPhotoPublicId) {
-      await deleteFromCloudinary(deleted.groupPhotoPublicId);
     }
+
+    const yearDoc = await Year.findOne({ year: evening.spieljahr });
+    if (yearDoc?.closed) {
+      return res.status(400).json({
+        error: "Jahr ist abgeschlossen – Abend kann nicht geloescht werden",
+      });
+    }
+
+    // 1) Poll loeschen (robust ueber eveningId)
+    const poll = await Poll.findOneAndDelete({ eveningId: evening._id });
+    if (poll) {
+      // defensiv: pollId am Abend loesen
+      await Evening.updateOne({ _id: evening._id }, { $set: { pollId: null } });
+    }
+
+    // 2) Gruppenfoto loeschen
+    if (evening.groupPhotoPublicId) {
+      await deleteFromCloudinary(evening.groupPhotoPublicId);
+    }
+
+    // 3) Abend loeschen
+    await Evening.deleteOne({ _id: evening._id });
+
+    // 4) Stats neu bauen
+    try {
+      await rebuildUserStatsForYear(evening.spieljahr);
+    } catch (e) {
+      console.error("Rebuild failed after delete:", e);
+      return res.status(500).json({
+        error:
+          "Abend geloescht, aber Statistiken konnten nicht neu berechnet werden",
+      });
+    }
+
+    return res.json({
+      message: "Abend inkl. Umfrage und Stats-Verknuepfungen geloescht",
+    });
   } catch (err) {
-    console.error("Fehler beim Löschen:", err.message);
-    res.status(500).json({ error: "Fehler beim Löschen" });
+    console.error("Fehler beim Loeschen:", err.message);
+    return res.status(500).json({ error: "Fehler beim Loeschen" });
   }
 };
 

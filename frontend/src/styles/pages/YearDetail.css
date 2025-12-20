@@ -1,70 +1,183 @@
+/* src/styles/pages/YearDetail.css */
+@import "../variables.css";
+
 .year-detail-page {
-  padding: var(--spacing-m) var(--spacing-m);
+  padding: var(--spacing-m);
   max-width: 900px;
   margin: 0 auto;
 }
 
-.year-detail-header {
-  margin-bottom: var(--spacing-m);
-}
-
-.year-status {
-  font-weight: 600;
-  margin: 0.5rem 0;
-}
-
-.year-status.closed {
-  color: var(--primary);
-  font-weight: 600;
-}
-
-.year-status.open {
-  color: var(--accent);
-  font-weight: 600;
-}
-
-.evening-list {
+/* ===== Top Header wie Abende ===== */
+.year-detail-top {
   display: flex;
-  flex-direction: column;
-  gap: var(--spacing-m);
-}
-
-.evening-card {
-  display: flex;
+  align-items: flex-start;
   justify-content: space-between;
   gap: var(--spacing-m);
   margin-bottom: var(--spacing-m);
 }
 
-.evening-card-left,
-.evening-card-right {
-  flex: 1;
-}
-
-.badge {
-  padding: 0.3rem 0.8rem;
-  border-radius: 999px;
+.year-detail-title {
+  margin: 0;
+  font-size: 1.4rem;
   font-weight: 600;
-  text-transform: capitalize;
-  display: inline-block;
-}
-
-.status-offen {
-  background-color: var(--secondary);
-  color: white;
-}
-
-.status-fixiert {
-  background-color: var(--accent);
-  color: #1f2937;
-}
-
-.status-abgeschlossen {
-  background-color: var(--primary);
-  color: white;
-}
-
-.status-gesperrt {
-  background-color: var(--neutral);
   color: var(--text);
+}
+
+.year-detail-top-left {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-s);
+}
+
+.year-detail-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--border-radius-full);
+  font-weight: 600;
+  font-size: var(--font-size-small);
+  width: fit-content;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.3);
+}
+
+.year-detail-pill-open {
+  background: rgba(250, 204, 21, 0.22);
+  color: #1f2937;
+  border: 1px solid rgba(250, 204, 21, 0.45);
+}
+
+.year-detail-pill-closed {
+  background: rgba(109, 40, 217, 0.14);
+  color: var(--primary);
+  border: 1px solid rgba(109, 40, 217, 0.25);
+}
+
+.year-detail-back {
+  white-space: nowrap;
+}
+
+/* ===== Alert ===== */
+.year-detail-alert {
+  margin-bottom: var(--spacing-m);
+}
+
+.year-detail-empty {
+  padding: 1.5rem;
+  text-align: center;
+  opacity: 0.7;
+}
+
+/* ===== List + Cards wie Abende ===== */
+.year-detail-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-m);
+}
+
+.year-detail-card {
+  background: #fff;
+  border-radius: var(--card-radius);
+  padding: var(--spacing-m);
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+  border-left: 6px solid transparent;
+}
+
+.year-detail-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.14);
+}
+
+/* Statusindikator am Kartenrand */
+.year-detail-card.status-offen {
+  border-left-color: var(--secondary);
+}
+.year-detail-card.status-fixiert {
+  border-left-color: var(--accent);
+}
+.year-detail-card.status-abgeschlossen {
+  border-left-color: var(--primary);
+}
+.year-detail-card.status-gesperrt {
+  border-left-color: var(--neutral-dark);
+}
+
+/* Header (Datum + Badge) */
+.year-detail-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-s);
+}
+
+.year-detail-date {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-s);
+  font-weight: 600;
+  font-size: var(--font-size-large);
+  color: var(--text);
+}
+
+/* Meta grid */
+.year-detail-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--spacing-s);
+  margin-top: var(--spacing-s);
+  font-size: var(--font-size-small);
+}
+
+.year-detail-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--text);
+}
+
+/* Actions */
+.year-detail-actions {
+  display: flex;
+  justify-content: flex-start;
+  gap: var(--spacing-s);
+  margin-top: var(--spacing-m);
+}
+
+.button.small {
+  padding: 0.45rem 1rem;
+  font-size: 0.85rem;
+  border-radius: var(--border-radius-full);
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .year-detail-top {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .year-detail-back {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .year-detail-meta {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .year-detail-card {
+    padding: var(--spacing-s);
+  }
+
+  .year-detail-actions {
+    flex-direction: column;
+  }
+
+  .year-detail-actions .button.small {
+    width: 100%;
+    justify-content: center;
+  }
 }
