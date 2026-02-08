@@ -34,7 +34,7 @@ export default function Polls() {
 
   const handleToggle = (date) => {
     setSelectedDates((prev) =>
-      prev.includes(date) ? prev.filter((d) => d !== date) : [...prev, date]
+      prev.includes(date) ? prev.filter((d) => d !== date) : [...prev, date],
     );
   };
 
@@ -45,9 +45,10 @@ export default function Polls() {
       await API.patch(`/polls/${pollId}/vote`, { optionDates: selectedDates });
       await fetchPolls();
       showToast("Deine Stimme wurde gespeichert.");
+      setSelectedDates([]);
     } catch (err) {
       showToast(
-        "Fehler beim Abstimmen: " + (err.response?.data?.error || err.message)
+        "Fehler beim Abstimmen: " + (err.response?.data?.error || err.message),
       );
     } finally {
       setSubmitting(false);
@@ -57,10 +58,11 @@ export default function Polls() {
   const handleFinalize = async (pollId, date) => {
     if (
       !confirm(
-        "Termin wirklich fixieren? Danach ist keine Abstimmung mehr möglich."
+        "Termin wirklich fixieren? Danach ist keine Abstimmung mehr möglich.",
       )
     )
       return;
+
     setFinalizing(true);
     try {
       await API.patch(`/polls/${pollId}/finalize`, { finalizedDate: date });
@@ -69,7 +71,7 @@ export default function Polls() {
     } catch (err) {
       showToast(
         "Fehler beim Finalisieren: " +
-          (err.response?.data?.error || err.message)
+          (err.response?.data?.error || err.message),
       );
     } finally {
       setFinalizing(false);
@@ -79,6 +81,16 @@ export default function Polls() {
   const showToast = (msg) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(""), 2500);
+  };
+
+  // Hilfsfunktion: voter Namen aus opt.votes (populated) extrahieren
+  const getVoterNames = (opt) => {
+    const raw = opt?.votes || [];
+    const names = raw
+      .map((v) => (typeof v === "string" ? v : v?.displayName))
+      .filter(Boolean);
+    // Duplikate entfernen (safety)
+    return Array.from(new Set(names));
   };
 
   if (loading) return <p className="text-center">Lade Umfragen...</p>;
@@ -94,62 +106,75 @@ export default function Polls() {
           <h3>Wann soll der nächste Abend stattfinden?</h3>
 
           <div className="poll-options">
-            {activePoll.options.map((opt, idx) => {
-              const iso = new Date(opt.date).toISOString();
-              const isSelected = selectedDates.includes(iso);
-              const totalVotes = activePoll.options.reduce(
-                (sum, o) => sum + o.votes.length,
-                0
+            {(() => {
+              // ✅ Progress-Bar Normalisierung: max Stimmen im Poll = 100%
+              const maxVotesInPoll = Math.max(
+                0,
+                ...(activePoll.options?.map((o) => o.votes?.length || 0) || []),
               );
-              const percentage = totalVotes
-                ? Math.round((opt.votes.length / totalVotes) * 100)
-                : 0;
 
-              return (
-                <div
-                  key={idx}
-                  className={`poll-option ${isSelected ? "selected" : ""}`}
-                  onClick={() => handleToggle(iso)}
-                >
-                  <div className="option-date">
-                    <CalendarDays size={16} />
-                    {new Date(opt.date).toLocaleString("de-CH", {
-                      weekday: "short",
-                      day: "2-digit",
-                      month: "short",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
+              return activePoll.options.map((opt, idx) => {
+                const iso = new Date(opt.date).toISOString();
+                const isSelected = selectedDates.includes(iso);
+
+                const votesCount = opt.votes?.length || 0;
+                const voterNames = getVoterNames(opt);
+                const percentage = maxVotesInPoll
+                  ? Math.round((votesCount / maxVotesInPoll) * 100)
+                  : 0;
+
+                return (
+                  <div
+                    key={idx}
+                    className={`poll-option ${isSelected ? "selected" : ""}`}
+                    onClick={() => handleToggle(iso)}
+                  >
+                    <div className="option-date">
+                      <CalendarDays size={16} />
+                      {new Date(opt.date).toLocaleString("de-CH", {
+                        weekday: "short",
+                        day: "2-digit",
+                        month: "short",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </div>
+
+                    <div className="option-progress">
+                      <div
+                        className="progress-bar"
+                        style={{ width: `${percentage}%` }}
+                      ></div>
+                    </div>
+
+                    <div className="option-votes">
+                      {votesCount} Stimme{votesCount !== 1 && "n"}
+                      {/* ✅ Namen anzeigen */}
+                      {voterNames.length > 0 && (
+                        <div className="option-voters">
+                          <span>{voterNames.join(", ")}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Nur Spielleiter darf fixieren */}
+                    {user?._id === activePoll.eveningId?.spielleiterId && (
+                      <button
+                        className="button accent finalize-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleFinalize(activePoll._id, opt.date);
+                        }}
+                        disabled={finalizing}
+                      >
+                        <Lock size={14} />
+                        Termin fixieren
+                      </button>
+                    )}
                   </div>
-
-                  <div className="option-progress">
-                    <div
-                      className="progress-bar"
-                      style={{ width: `${percentage}%` }}
-                    ></div>
-                  </div>
-
-                  <div className="option-votes">
-                    {opt.votes.length} Stimme{opt.votes.length !== 1 && "n"}
-                  </div>
-
-                  {/* Nur Spielleiter darf fixieren */}
-                  {user?._id === activePoll.eveningId?.spielleiterId && (
-                    <button
-                      className="button accent finalize-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleFinalize(activePoll._id, opt.date);
-                      }}
-                      disabled={finalizing}
-                    >
-                      <Lock size={14} />
-                      Termin fixieren
-                    </button>
-                  )}
-                </div>
-              );
-            })}
+                );
+              });
+            })()}
           </div>
 
           {user && (
@@ -172,6 +197,7 @@ export default function Polls() {
       {pastPolls.length > 0 && (
         <div className="past-polls">
           <h3>Abgeschlossene Umfragen</h3>
+
           {pastPolls.map((poll) => (
             <div className="poll-card poll-finalized" key={poll._id}>
               <h4>
@@ -188,9 +214,14 @@ export default function Polls() {
 
               <div className="poll-options">
                 {poll.options.map((opt, idx) => {
+                  const iso = new Date(opt.date).toISOString();
                   const isFinal =
                     new Date(opt.date).toISOString() ===
                     new Date(poll.finalizedOption).toISOString();
+
+                  const votesCount = opt.votes?.length || 0;
+                  const voterNames = getVoterNames(opt);
+
                   return (
                     <div
                       key={idx}
@@ -208,15 +239,22 @@ export default function Polls() {
                           minute: "2-digit",
                         })}
                       </div>
+
                       <div className="option-votes">
                         {isFinal ? (
                           <>
-                            Gewählt mit {opt.votes.length} Stimme
-                            {opt.votes.length !== 1 && "n"}{" "}
-                            <CheckCircle2 size={14} />
+                            Gewählt mit {votesCount} Stimme
+                            {votesCount !== 1 && "n"} <CheckCircle2 size={14} />
                           </>
                         ) : (
-                          `${opt.votes.length} Stimmen`
+                          `${votesCount} Stimmen`
+                        )}
+
+                        {/* ✅ Namen anzeigen */}
+                        {voterNames.length > 0 && (
+                          <div className="option-voters">
+                            <span>{voterNames.join(", ")}</span>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -227,6 +265,7 @@ export default function Polls() {
           ))}
         </div>
       )}
+
       {toastMessage && (
         <Toast message={toastMessage} onClose={() => setToastMessage("")} />
       )}
