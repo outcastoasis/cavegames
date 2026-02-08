@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import "../styles/pages/AbendDetail.css";
 import GameAddModal from "../components/forms/GameAddModal";
+import defaultAvatar from "../assets/images/avatar.jpg";
 
 export default function AbendDetail() {
   const { id } = useParams();
@@ -64,7 +65,7 @@ export default function AbendDetail() {
       await fetchAbend();
     } catch (err) {
       alert(
-        "Fehler beim Beitreten: " + (err.response?.data?.error || err.message)
+        "Fehler beim Beitreten: " + (err.response?.data?.error || err.message),
       );
     } finally {
       setBusy(false);
@@ -79,7 +80,7 @@ export default function AbendDetail() {
       await fetchAbend();
     } catch (err) {
       alert(
-        "Fehler beim Verlassen: " + (err.response?.data?.error || err.message)
+        "Fehler beim Verlassen: " + (err.response?.data?.error || err.message),
       );
     } finally {
       setBusy(false);
@@ -108,10 +109,10 @@ export default function AbendDetail() {
           ? {
               ...g,
               scores: g.scores.map((s) =>
-                s.userId === userId ? { ...s, points: Number(value) } : s
+                s.userId === userId ? { ...s, points: Number(value) } : s,
               ),
             }
-          : g
+          : g,
       ),
     }));
   };
@@ -314,7 +315,7 @@ export default function AbendDetail() {
                 (
                 {
                   abend.playerPoints?.find(
-                    (p) => p.userId === abend.winnerIds[0]
+                    (p) => p.userId === abend.winnerIds[0],
                   )?.points
                 }{" "}
                 Punkte)
@@ -333,7 +334,7 @@ export default function AbendDetail() {
             <ul className="abenddetail-rank-list">
               {abend.placements.map((p) => {
                 const userRef = abend.participantRefs?.find(
-                  (u) => u._id === p.userId
+                  (u) => u._id === p.userId,
                 );
                 const pts =
                   abend.playerPoints?.find((x) => x.userId === p.userId)
@@ -387,10 +388,10 @@ export default function AbendDetail() {
                   {(() => {
                     if (!abend.gameCount?.length) return "Keine Daten";
                     const sorted = [...abend.gameCount].sort(
-                      (a, b) => b.count - a.count
+                      (a, b) => b.count - a.count,
                     )[0];
                     const gameEntry = abend.games.find(
-                      (g) => g.gameId?._id === sorted.gameId
+                      (g) => g.gameId?._id === sorted.gameId,
                     );
                     return gameEntry?.gameId?.name
                       ? `${gameEntry.gameId.name} (${sorted.count}x)`
@@ -416,9 +417,21 @@ export default function AbendDetail() {
                   key={p._id}
                   className="abenddetail-participant-pill abenddetail-pill"
                 >
+                  <img
+                    className="abenddetail-participant-avatar"
+                    src={p.profileImageUrl || defaultAvatar}
+                    alt=""
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      e.currentTarget.src = defaultAvatar;
+                    }}
+                  />
+
                   <span className="abenddetail-participant-name">
                     {p.displayName}
                   </span>
+
                   {isPrivileged && isFixiert && abend.games.length === 0 && (
                     <button
                       className="abenddetail-participant-remove"
@@ -509,7 +522,7 @@ export default function AbendDetail() {
                             value={getScoreInputValue(
                               game._id,
                               s.userId,
-                              s.points
+                              s.points,
                             )}
                             onFocus={() =>
                               handleScoreFocus(game._id, s.userId, s.points)
@@ -519,7 +532,7 @@ export default function AbendDetail() {
                               handleScoreInputChange(
                                 game._id,
                                 s.userId,
-                                e.target.value
+                                e.target.value,
                               )
                             }
                             ref={(el) => {

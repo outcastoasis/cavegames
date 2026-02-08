@@ -16,8 +16,8 @@ exports.getEvenings = async (req, res) => {
   try {
     const evenings = await Evening.find()
       .populate("pollId") // ← WICHTIG!
-      .populate("spielleiterId", "displayName")
-      .populate("participantIds", "displayName")
+      .populate("spielleiterId", "displayName profileImageUrl")
+      .populate("participantIds", "displayName profileImageUrl")
       .sort({ date: -1 });
 
     // Einheitliches Frontend-Mapping
@@ -78,8 +78,8 @@ exports.createEvening = async (req, res) => {
 
     // Populate für direkte Frontend-Nutzung
     const populated = await Evening.findById(newEvening._id)
-      .populate("spielleiterId", "displayName")
-      .populate("participantIds", "displayName");
+      .populate("spielleiterId", "displayName profileImageUrl")
+      .populate("participantIds", "displayName profileImageUrl");
 
     const response = {
       ...populated.toObject(),
@@ -97,8 +97,8 @@ exports.createEvening = async (req, res) => {
 exports.getEveningById = async (req, res) => {
   try {
     const evening = await Evening.findById(req.params.id)
-      .populate("spielleiterId", "displayName")
-      .populate("participantIds", "displayName")
+      .populate("spielleiterId", "displayName profileImageUrl")
+      .populate("participantIds", "displayName profileImageUrl")
       .populate("games.gameId", "name category")
       .populate("games.scores.userId", "displayName");
 
@@ -167,8 +167,8 @@ exports.updateEvening = async (req, res) => {
     const updated = await Evening.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
     })
-      .populate("spielleiterId", "displayName")
-      .populate("participantIds", "displayName");
+      .populate("spielleiterId", "displayName profileImageUrl")
+      .populate("participantIds", "displayName profileImageUrl");
 
     if (!updated)
       return res.status(404).json({ error: "Abend nicht gefunden" });
@@ -276,8 +276,8 @@ exports.changeEveningStatus = async (req, res) => {
 
     // Rückgabe
     const updated = await Evening.findById(req.params.id)
-      .populate("spielleiterId", "displayName")
-      .populate("participantIds", "displayName")
+      .populate("spielleiterId", "displayName profileImageUrl")
+      .populate("participantIds", "displayName profileImageUrl")
       .populate("games.gameId", "name category")
       .populate("games.scores.userId", "displayName");
 
@@ -323,8 +323,8 @@ exports.addParticipant = async (req, res) => {
     await evening.save();
 
     const updated = await Evening.findById(req.params.id)
-      .populate("spielleiterId", "displayName")
-      .populate("participantIds", "displayName");
+      .populate("spielleiterId", "displayName profileImageUrl")
+      .populate("participantIds", "displayName profileImageUrl");
 
     res.json({
       message: "Teilnahme bestätigt",
@@ -352,13 +352,13 @@ exports.removeParticipant = async (req, res) => {
     }
 
     evening.participantIds = evening.participantIds.filter(
-      (id) => id.toString() !== userId.toString()
+      (id) => id.toString() !== userId.toString(),
     );
     await evening.save();
 
     const updated = await Evening.findById(req.params.id)
-      .populate("spielleiterId", "displayName")
-      .populate("participantIds", "displayName");
+      .populate("spielleiterId", "displayName profileImageUrl")
+      .populate("participantIds", "displayName profileImageUrl");
 
     res.json({
       message: "Teilnahme entfernt",
@@ -399,7 +399,7 @@ exports.addEveningGame = async (req, res) => {
 
     const evening = await Evening.findById(req.params.id).populate(
       "participantIds",
-      "displayName"
+      "displayName profileImageUrl",
     );
 
     if (!evening) {
@@ -480,7 +480,7 @@ exports.deleteEveningGame = async (req, res) => {
     }
 
     evening.games = evening.games.filter(
-      (g) => g._id.toString() !== gameEntryId.toString()
+      (g) => g._id.toString() !== gameEntryId.toString(),
     );
     await evening.save();
 
@@ -494,8 +494,8 @@ exports.deleteEveningGame = async (req, res) => {
 exports.getArchivedEvenings = async (req, res) => {
   try {
     const evenings = await Evening.find({ status: "gesperrt" })
-      .populate("spielleiterId", "displayName")
-      .populate("participantIds", "displayName")
+      .populate("spielleiterId", "displayName profileImageUrl")
+      .populate("participantIds", "displayName profileImageUrl")
       .sort({ date: -1 });
 
     const mapped = evenings.map((e) => ({
