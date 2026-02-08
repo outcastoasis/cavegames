@@ -1,5 +1,7 @@
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
+const fs = require("fs");
+
 const {
   uploadToCloudinary,
   deleteFromCloudinary,
@@ -63,9 +65,7 @@ exports.updateUser = async (req, res) => {
     if (displayName) user.displayName = displayName;
     if (role) user.role = role;
     if (typeof active === "boolean") user.active = active;
-    if (password) {
-      user.passwordHash = await bcrypt.hash(password, 10);
-    }
+    if (password) user.passwordHash = await bcrypt.hash(password, 10);
 
     await user.save();
     res.json({ message: "Benutzer aktualisiert" });
@@ -79,7 +79,7 @@ exports.deactivateUser = async (req, res) => {
     const user = await User.findByIdAndUpdate(
       req.params.id,
       { active: false },
-      { new: true }
+      { new: true },
     );
 
     if (!user)
@@ -97,25 +97,44 @@ exports.uploadUserAvatar = async (req, res) => {
 
   if (!file) return res.status(400).json({ error: "No file uploaded" });
 
-  const user = await User.findById(id);
-  if (!user) return res.status(404).json({ error: "User not found" });
+  try {
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ error: "User not found" });
 
-  const folder = `spielabend/users/${id}`;
-  const publicId = "avatar";
+    const folder = `spielabend/users/${id}`;
+    const publicId = "avatar";
 
-  // altes Bild löschen
-  if (user.profileImagePublicId) {
-    await deleteFromCloudinary(user.profileImagePublicId);
+    if (user.profileImagePublicId) {
+      await deleteFromCloudinary(user.profileImagePublicId);
+    }
+
+    const result = await uploadToCloudinary(file.path, folder, publicId);
+
+    user.profileImageUrl = result.secure_url;
+    user.profileImagePublicId = result.public_id;
+    await user.save();
+
+    res.json({
+      message: "Profile image updated",
+      url: result.secure_url,
+    });
+  } catch (err) {
+    const msg = err?.message?.toLowerCase() || "";
+
+    if (msg.includes("file too large")) {
+      return res.status(413).json({ error: "Bild ist zu gross" });
+    }
+
+    if (msg.includes("unsupported image type")) {
+      return res.status(415).json({ error: "Bildformat nicht unterstützt" });
+    }
+
+    console.error("uploadUserAvatar error:", err);
+    res.status(500).json({ error: "Fehler beim Hochladen" });
+  } finally {
+    // temporäre Datei entfernen
+    if (file?.path) {
+      fs.unlink(file.path, () => {});
+    }
   }
-
-  const result = await uploadToCloudinary(file.path, folder, publicId);
-
-  user.profileImageUrl = result.secure_url;
-  user.profileImagePublicId = result.public_id;
-  await user.save();
-
-  res.json({
-    message: "Profile image updated",
-    url: result.secure_url,
-  });
 };

@@ -116,7 +116,6 @@ export default function Profile() {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Toast: Upload startet
     showToast("Profilbild wird hochgeladen...");
 
     try {
@@ -128,7 +127,6 @@ export default function Profile() {
       });
 
       if (res.data.url) {
-        // Sofort in UI aktualisieren
         setUser((prev) => ({
           ...prev,
           profileImageUrl: res.data.url,
@@ -139,15 +137,22 @@ export default function Profile() {
           JSON.stringify({
             ...user,
             profileImageUrl: res.data.url,
-          })
+          }),
         );
 
-        // Toast: erfolgreich
         showToast("Profilbild erfolgreich aktualisiert!");
       }
     } catch (err) {
-      console.error("Avatar Upload Error:", err);
-      showToast("Fehler beim Hochladen des Profilbildes");
+      const status = err?.response?.status;
+      const apiMsg = err?.response?.data?.error;
+
+      if (status === 413) showToast(apiMsg || "Bild ist zu gross");
+      else if (status === 415)
+        showToast(apiMsg || "Bildformat nicht unterstützt");
+      else showToast(apiMsg || "Fehler beim Hochladen des Profilbildes");
+    } finally {
+      // erlaubt, dieselbe Datei erneut auszuwählen
+      e.target.value = "";
     }
   }
 
@@ -161,7 +166,7 @@ export default function Profile() {
           <input
             type="file"
             id="avatarInput"
-            accept="image/png, image/jpeg"
+            accept="image/*"
             hidden
             onChange={handleAvatarChange}
           />
@@ -304,7 +309,7 @@ export default function Profile() {
                         yearStats.secondPlaces +
                         yearStats.thirdPlaces) /
                         yearStats.eveningsAttended) *
-                        100
+                        100,
                     ) || 0
                   }%`}
                 />

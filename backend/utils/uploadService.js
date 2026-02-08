@@ -6,9 +6,11 @@ async function uploadToCloudinary(filePath, folder, publicId = null) {
     public_id: publicId ?? undefined,
     overwrite: true,
     resource_type: "image",
+
+    // Einheitliches, UI-taugliches Profilbild
     transformation: [
-      { width: 1600, crop: "limit" }, // Große Bilder begrenzen
-      { quality: "auto" },
+      { width: 1024, height: 1024, crop: "limit" }, // nur verkleinern, kein Upscale
+      { quality: "auto:good" },
       { fetch_format: "auto" },
     ],
   });

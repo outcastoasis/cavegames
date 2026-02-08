@@ -4,15 +4,43 @@ const os = require("os");
 
 const upload = multer({
   dest: os.tmpdir(),
+
+  // Grössere Originale zulassen – Cloudinary verkleinert später
   limits: {
-    fileSize: 2 * 1024 * 1024, // 2 MB
+    fileSize: 8 * 1024 * 1024, // 8 MB
   },
+
   fileFilter(req, file, cb) {
-    const allowed = ["image/jpeg", "image/png"];
-    if (!allowed.includes(file.mimetype)) {
-      return cb(new Error("Only JPG/PNG are allowed"));
+    const allowedMimeTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "image/heic",
+      "image/heif",
+      "image/avif",
+    ];
+
+    const allowedExtensions = [
+      ".jpg",
+      ".jpeg",
+      ".png",
+      ".webp",
+      ".heic",
+      ".heif",
+      ".avif",
+    ];
+
+    const ext = path.extname(file.originalname || "").toLowerCase();
+
+    // Einige Clients senden HEIC als application/octet-stream → Endung prüfen
+    if (
+      allowedMimeTypes.includes(file.mimetype) ||
+      allowedExtensions.includes(ext)
+    ) {
+      return cb(null, true);
     }
-    cb(null, true);
+
+    return cb(new Error("Unsupported image type"));
   },
 });
 

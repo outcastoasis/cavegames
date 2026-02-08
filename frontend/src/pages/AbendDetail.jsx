@@ -373,25 +373,6 @@ export default function AbendDetail() {
               </div>
 
               <div className="abenddetail-stat-card">
-                <span className="abenddetail-stat-label">
-                  Höchste Einzelpunktzahl
-                </span>
-                <span className="abenddetail-stat-value">
-                  {(() => {
-                    const top = abend.playerPoints?.find(
-                      (p) => p.points === abend.maxPoints
-                    );
-                    const userRef = abend.participantRefs?.find(
-                      (u) => u._id === top?.userId
-                    );
-                    return userRef?.displayName
-                      ? `${userRef.displayName} (${abend.maxPoints} Punkte)`
-                      : `${abend.maxPoints} Punkte`;
-                  })()}
-                </span>
-              </div>
-
-              <div className="abenddetail-stat-card">
                 <span className="abenddetail-stat-label">Spieleanzahl</span>
                 <span className="abenddetail-stat-value">
                   {abend.gamesPlayedCount}
