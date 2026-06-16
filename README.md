@@ -30,6 +30,64 @@ Die Anwendung ist **mobiloptimiert**, **modern gestaltet**, **datenschutzfreundl
 
 ---
 
+## Lokal starten
+
+### 1. Abhängigkeiten installieren
+
+Im Projektroot:
+
+```powershell
+npm install
+npm --prefix backend install
+npm --prefix frontend install
+```
+
+### 2. Backend konfigurieren
+
+Datei `backend/.env` anlegen:
+
+```env
+PORT=5000
+MONGODB_URI=mongodb+srv://...
+JWT_SECRET=dev-secret-irgendwas-langes
+CLIENT_ORIGIN=http://localhost:5173
+
+CLOUDINARY_CLOUD_NAME=...
+CLOUDINARY_API_KEY=...
+CLOUDINARY_API_SECRET=...
+```
+
+`MONGODB_URI`, `JWT_SECRET` und `CLIENT_ORIGIN` werden für den lokalen Start benötigt. Die Cloudinary-Werte werden für Bild-Uploads verwendet.
+
+### 3. Frontend konfigurieren
+
+Datei `frontend/.env` anlegen:
+
+```env
+VITE_API_BASE_URL=http://localhost:5000/api
+```
+
+### 4. Frontend und Backend starten
+
+Im Projektroot:
+
+```powershell
+npm run dev
+```
+
+Das startet parallel:
+
+- Frontend: `http://localhost:5173`
+- Backend: `http://localhost:5000`
+
+Backend-Test:
+
+```text
+http://localhost:5000/api/test
+```
+
+---
+
 ## 🧱 Strukturvorlage (Beispiel)
 
 ```
@@ -198,7 +256,7 @@ app.patch(
   "/api/evenings/:id/games",
   checkAuth,
   checkRole("spielleiter"),
-  updateGames
+  updateGames,
 );
 ```
 

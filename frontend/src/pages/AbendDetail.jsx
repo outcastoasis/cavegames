@@ -12,6 +12,7 @@ import {
   Image as ImageIcon,
   XCircle,
   Trash2,
+  Pencil,
   MapPinHouse,
   Gamepad2,
   Info,
@@ -30,6 +31,8 @@ export default function AbendDetail() {
   const [showGameModal, setShowGameModal] = useState(false);
   const [busy, setBusy] = useState(false);
   const [editScores, setEditScores] = useState(null);
+  const [originalScores, setOriginalScores] = useState(null);
+  const [savingGameId, setSavingGameId] = useState(null);
   const [eligibleUsers, setEligibleUsers] = useState([]);
   const [scoreInputs, setScoreInputs] = useState({});
   const [focusedField, setFocusedField] = useState(null);
@@ -97,8 +100,52 @@ export default function AbendDetail() {
     }
   };
 
-  const handleEditScores = (gameId) => {
-    setEditScores(gameId === editScores ? null : gameId);
+  const buildScoreInputs = (game) =>
+    Object.fromEntries(
+      game.scores.map((score) => [
+        `${game._id}-${score.userId}`,
+        score.points,
+      ]),
+    );
+
+  const handleEditScores = (gameId, focusUserId = null) => {
+    if (editScores && editScores !== gameId) {
+      alert("Bitte speichere oder brich die aktuelle Punktebearbeitung zuerst ab.");
+      return;
+    }
+
+    const game = abend.games.find((g) => g._id === gameId);
+    if (!game || savingGameId) return;
+
+    setEditScores(gameId);
+    setOriginalScores({
+      gameId,
+      scores: game.scores.map((score) => ({ ...score })),
+    });
+    setScoreInputs(buildScoreInputs(game));
+    setFocusedField(focusUserId ? `${gameId}-${focusUserId}` : null);
+  };
+
+  const handleCancelScores = () => {
+    if (!originalScores) {
+      setEditScores(null);
+      setScoreInputs({});
+      setFocusedField(null);
+      return;
+    }
+
+    setAbend((prev) => ({
+      ...prev,
+      games: prev.games.map((game) =>
+        game._id === originalScores.gameId
+          ? { ...game, scores: originalScores.scores }
+          : game,
+      ),
+    }));
+    setEditScores(null);
+    setOriginalScores(null);
+    setScoreInputs({});
+    setFocusedField(null);
   };
 
   const handleScoreChange = (gameId, userId, value) => {
@@ -119,6 +166,17 @@ export default function AbendDetail() {
 
   const handleSaveScores = async (gameId) => {
     const game = abend.games.find((g) => g._id === gameId);
+    if (!game || savingGameId) return;
+
+    const hasInvalidScore = game.scores.some(
+      (score) => !Number.isFinite(Number(score.points)) || score.points < 0,
+    );
+    if (hasInvalidScore) {
+      alert("Bitte gib nur gÃ¼ltige Punkte ab 0 ein.");
+      return;
+    }
+
+    setSavingGameId(gameId);
     try {
       await API.patch(`/evenings/${id}/games/${gameId}`, {
         scores: game.scores.map((s) => ({
@@ -126,16 +184,50 @@ export default function AbendDetail() {
           points: s.points,
         })),
       });
-      setEditScores(null);
-      await fetchAbend();
       await API.patch(`/evenings/${id}/recalculate`);
+      setEditScores(null);
+      setOriginalScores(null);
+      setScoreInputs({});
+      setFocusedField(null);
+      await fetchAbend();
     } catch (err) {
       alert("Fehler beim Speichern der Punkte: " + err.message);
+    } finally {
+      setSavingGameId(null);
     }
   };
 
   const handleFinishEvening = async () => {
-    if (!confirm("Abend wirklich abschliessen? Punkte werden fixiert.")) return;
+    const gamesCount = abend.games?.length || 0;
+    const participantsCount = abend.participantRefs?.length || 0;
+    const totalPoints = abend.games?.reduce(
+      (sum, game) =>
+        sum +
+        game.scores.reduce(
+          (scoreSum, score) => scoreSum + (Number(score.points) || 0),
+          0,
+        ),
+      0,
+    );
+    const hasGamesWithoutScores = abend.games?.some((game) =>
+      game.scores.every((score) => Number(score.points) === 0),
+    );
+    const reviewText = [
+      "Abend wirklich abschliessen?",
+      "",
+      `${gamesCount} Spiele`,
+      `${participantsCount} Teilnehmer`,
+      `${totalPoints} Gesamtpunkte`,
+      hasGamesWithoutScores
+        ? "Hinweis: Mindestens ein Spiel hat nur 0 Punkte."
+        : null,
+      "",
+      "Die Punkte werden fixiert.",
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    if (!confirm(reviewText)) return;
     try {
       await API.patch(`/evenings/${id}/status`, { status: "abgeschlossen" });
       await fetchAbend();
@@ -495,15 +587,32 @@ export default function AbendDetail() {
                       {game.gameId?.name || "Unbekanntes Spiel"}
                     </h3>
 
-                    {canDeleteGame && (
+                    {(canEditScores || canDeleteGame) && (
                       <div className="abenddetail-game-actions">
-                        <button
-                          className="abenddetail-button-round-delete"
-                          onClick={() => handleDeleteGame(game._id)}
-                          title="Spiel löschen"
-                        >
-                          <Trash2 size={18} />
-                        </button>
+                        {canEditScores && editScores !== game._id && (
+                          <button
+                            className="abenddetail-button-round-edit"
+                            onClick={() => handleEditScores(game._id)}
+                            title="Punkte bearbeiten"
+                            disabled={
+                              Boolean(savingGameId) ||
+                              (editScores && editScores !== game._id)
+                            }
+                          >
+                            <Pencil size={18} />
+                          </button>
+                        )}
+
+                        {canDeleteGame && (
+                          <button
+                            className="abenddetail-button-round-delete"
+                            onClick={() => handleDeleteGame(game._id)}
+                            title="Spiel löschen"
+                            disabled={savingGameId === game._id}
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        )}
                       </div>
                     )}
                   </div>
@@ -518,6 +627,8 @@ export default function AbendDetail() {
                         {editScores === game._id && canEditScores ? (
                           <input
                             type="number"
+                            min="0"
+                            step="1"
                             className="input abenddetail-score-input"
                             value={getScoreInputValue(
                               game._id,
@@ -555,11 +666,12 @@ export default function AbendDetail() {
                             }
                             onClick={() => {
                               if (canEditScores) {
-                                setEditScores(game._id);
-                                setFocusedField(`${game._id}-${s.userId}`);
+                                handleEditScores(game._id, s.userId);
                               }
                             }}
-                            title={isPrivileged ? "Klicken zum Bearbeiten" : ""}
+                            title={
+                              canEditScores ? "Klicken zum Bearbeiten" : ""
+                            }
                           >
                             {s.points} Punkte
                           </span>
@@ -571,10 +683,20 @@ export default function AbendDetail() {
                   {editScores === game._id && canEditScores && (
                     <div className="abenddetail-game-footer">
                       <button
+                        className="button neutral"
+                        onClick={handleCancelScores}
+                        disabled={savingGameId === game._id}
+                      >
+                        Abbrechen
+                      </button>
+                      <button
                         className="button primary"
                         onClick={() => handleSaveScores(game._id)}
+                        disabled={savingGameId === game._id}
                       >
-                        Speichern
+                        {savingGameId === game._id
+                          ? "Speichere..."
+                          : "Speichern"}
                       </button>
                     </div>
                   )}

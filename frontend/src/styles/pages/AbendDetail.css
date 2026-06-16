@@ -434,8 +434,10 @@
 .abenddetail-game-actions {
   display: flex;
   align-items: center;
+  gap: var(--spacing-s);
 }
 
+.abenddetail-button-round-edit,
 .abenddetail-button-round-delete {
   width: 40px;
   height: 40px;
@@ -446,8 +448,22 @@
   align-items: center;
   justify-content: center;
   box-shadow: var(--shadow-m);
-  background: linear-gradient(180deg, #f87171, var(--danger));
   color: #ffffff;
+}
+
+.abenddetail-button-round-edit {
+  background: linear-gradient(180deg, var(--primary-light), var(--primary));
+}
+
+.abenddetail-button-round-delete {
+  background: linear-gradient(180deg, #f87171, var(--danger));
+}
+
+.abenddetail-button-round-edit:disabled,
+.abenddetail-button-round-delete:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  box-shadow: none;
 }
 
 /* Punkte */
@@ -492,6 +508,7 @@
   margin-top: var(--spacing-s);
   display: flex;
   justify-content: flex-end;
+  gap: var(--spacing-s);
 }
 
 /* ====== Gruppenfoto ====== */
