@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { Navigate, useOutletContext } from "react-router-dom";
 import { Gamepad2, Pencil, Plus, Save, Trash2, X } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
@@ -14,6 +15,34 @@ const emptyForm = {
   imageUrl: "",
 };
 
+function GameImage({ imageUrl, name, className = "", onPreview }) {
+  const hasImage = Boolean(imageUrl);
+  const Component = hasImage ? "button" : "span";
+
+  return (
+    <Component
+      className={`game-image ${hasImage ? "game-image--clickable" : ""} ${className}`}
+      type={hasImage ? "button" : undefined}
+      aria-label={hasImage ? `${name} Bild vergrössern` : undefined}
+      aria-hidden={!hasImage}
+      onClick={hasImage ? onPreview : undefined}
+    >
+      <Gamepad2 size={22} />
+      {hasImage && (
+        <img
+          src={imageUrl}
+          alt={name ? `${name} Bild` : ""}
+          loading="lazy"
+          referrerPolicy="no-referrer"
+          onError={(event) => {
+            event.currentTarget.style.display = "none";
+          }}
+        />
+      )}
+    </Component>
+  );
+}
+
 export default function AdminGames() {
   const { user } = useAuth();
   const { testMode } = useTestMode();
@@ -25,6 +54,7 @@ export default function AdminGames() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [previewGame, setPreviewGame] = useState(null);
   const [toast, setToast] = useState("");
   const [error, setError] = useState("");
 
@@ -255,7 +285,19 @@ export default function AdminGames() {
                   </div>
                 ) : (
                   <div className="admin-game-info">
-                    <strong>{game.name}</strong>
+                    <div className="admin-game-title-row">
+                      <GameImage
+                        imageUrl={game.imageUrl}
+                        name={game.name}
+                        onPreview={() =>
+                          setPreviewGame({
+                            name: game.name,
+                            imageUrl: game.imageUrl,
+                          })
+                        }
+                      />
+                      <strong>{game.name}</strong>
+                    </div>
                     <div className="admin-game-meta">
                       {game.category || "Keine Kategorie"}
                       {isLiveReadonly && (
@@ -323,6 +365,32 @@ export default function AdminGames() {
 
       {error && <Toast message={error} onClose={() => setError("")} />}
       {toast && <Toast message={toast} onClose={() => setToast("")} />}
+      {previewGame &&
+        createPortal(
+          <div
+            className="game-image-preview-overlay"
+            onClick={() => setPreviewGame(null)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(event) => {
+              if (event.key === "Escape" || event.key === "Enter") {
+                setPreviewGame(null);
+              }
+            }}
+          >
+            <div
+              className="game-image-preview"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <img
+                src={previewGame.imageUrl}
+                alt={previewGame.name ? `${previewGame.name} Bild` : ""}
+              />
+              <strong>{previewGame.name}</strong>
+            </div>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

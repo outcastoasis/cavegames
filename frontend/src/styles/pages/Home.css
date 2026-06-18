@@ -7,19 +7,26 @@
   padding: var(--spacing-m);
 }
 
-/* ---------- Willkommen Box ---------- */
+.home-page {
+  padding-bottom: var(--spacing-l);
+}
+
+/* ---------- Willkommen ---------- */
 .welcome-box {
   background: white;
   border-radius: var(--card-radius);
-  padding: var(--spacing-m) var(--spacing-m);
+  padding: var(--spacing-m);
   margin-bottom: var(--spacing-m);
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
 }
 
+.home-welcome {
+  padding: var(--spacing-s) var(--spacing-m);
+}
+
 .welcome-title {
-  font-size: 1.6rem;
-  font-weight: 600;
-  margin-bottom: var(--spacing-xs);
+  font-size: 1.35rem;
+  font-weight: 700;
   color: var(--primary);
 }
 
@@ -29,6 +36,10 @@
 }
 
 /* ---------- Alerts ---------- */
+.home-alerts {
+  margin-bottom: var(--spacing-m);
+}
+
 .dashboard-alert {
   padding: var(--spacing-m);
   border-radius: var(--border-radius-sm);
@@ -53,7 +64,6 @@
   flex-shrink: 0;
 }
 
-/* Farbvarianten */
 .dashboard-alert.info {
   background: var(--secondary);
   color: white;
@@ -74,7 +84,235 @@
   color: white;
 }
 
-/* ---------- Kartenabstand ---------- */
+/* ---------- Sections ---------- */
+.home-section {
+  margin-top: var(--spacing-m);
+}
+
+.home-section-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-s);
+  margin-bottom: var(--spacing-s);
+}
+
+.home-section-heading h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.home-section-heading span {
+  color: var(--primary);
+  font-size: var(--font-size-small);
+  font-weight: 700;
+}
+
+/* ---------- Evening Cards ---------- */
+.home-evening-card {
+  background: white;
+  border-left: 5px solid transparent;
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-s);
+  cursor: pointer;
+  padding: var(--spacing-m);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.home-evening-card .badge-abende {
+  flex: 0 0 auto;
+}
+
+.home-evening-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-m);
+}
+
+.home-evening-card-status-offen {
+  border-left-color: var(--secondary);
+}
+
+.home-evening-card-status-fixiert {
+  border-left-color: var(--accent);
+}
+
+.home-evening-card-status-abgeschlossen {
+  border-left-color: var(--primary);
+}
+
+.home-evening-card-status-gesperrt {
+  border-left-color: var(--neutral-dark);
+}
+
+.home-evening-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-s);
+  margin-bottom: var(--spacing-s);
+}
+
+.home-evening-date {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-s);
+  min-width: 0;
+  color: var(--text);
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.home-evening-date svg {
+  flex: 0 0 auto;
+  color: var(--primary);
+}
+
+.home-evening-date span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.home-evening-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-top: var(--spacing-s);
+}
+
+.home-evening-host {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  min-width: 0;
+  color: var(--text);
+  font-size: var(--font-size-small);
+}
+
+.home-evening-host svg {
+  flex: 0 0 auto;
+  color: var(--primary);
+}
+
+.home-evening-facts {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.8rem;
+  color: var(--text-muted);
+  font-size: var(--font-size-small);
+}
+
+.home-evening-facts span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.home-evening-facts svg {
+  color: var(--primary);
+}
+
+.home-evening-result {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-s);
+  padding-top: var(--spacing-s);
+  border-top: 1px solid var(--neutral);
+  color: var(--primary);
+  font-size: var(--font-size-small);
+  font-weight: 700;
+}
+
+.home-evening-actions {
+  margin-top: var(--spacing-m);
+}
+
+.home-participation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-s);
+  padding-top: var(--spacing-s);
+  border-top: 1px solid var(--neutral);
+}
+
+.home-participation-label {
+  color: var(--text-muted);
+  font-size: var(--font-size-small);
+  font-weight: 700;
+}
+
+/* ---------- Stats ---------- */
+.home-stats-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--neutral);
+  border-radius: var(--border-radius-sm);
+  background: white;
+}
+
+.home-stat-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-s);
+  border-bottom: 1px solid var(--neutral);
+  border-radius: 0;
+  padding: var(--spacing-s);
+  box-shadow: none;
+}
+
+.home-stat-card:last-child {
+  border-bottom: 0;
+}
+
+.home-stat-card span {
+  display: block;
+  color: var(--text-muted);
+  font-size: var(--font-size-small);
+  line-height: 1.2;
+}
+
+.home-stat-card strong {
+  display: block;
+  color: var(--primary);
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+/* ---------- Funfact ---------- */
+.home-funfact {
+  margin-top: var(--spacing-m);
+  padding: var(--spacing-s) var(--spacing-m);
+  border-left: 4px solid var(--primary);
+  border-radius: var(--border-radius-sm);
+  background: white;
+  color: var(--text);
+  box-shadow: var(--shadow-s);
+}
+
+.home-funfact-label {
+  display: block;
+  margin-bottom: 0.2rem;
+  color: var(--primary);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.home-funfact p {
+  margin: 0;
+  color: var(--text);
+  font-size: var(--font-size-small);
+  line-height: 1.35;
+}
+
+/* ---------- Legacy hooks ---------- */
 .dashboard-section {
   margin-top: var(--spacing-l);
 }
@@ -85,8 +323,38 @@
 
 /* ---------- Mobile ---------- */
 @media (max-width: 600px) {
-  .welcome-title {
-    font-size: 1.3rem;
+  .home-page {
+    padding-inline: var(--spacing-s);
   }
-}
 
+  .home-welcome {
+    margin-bottom: var(--spacing-s);
+    padding: 0.75rem 0.9rem;
+  }
+
+  .welcome-title {
+    font-size: 1.15rem;
+  }
+
+  .dashboard-alert {
+    padding: var(--spacing-s);
+  }
+
+  .home-evening-card {
+    padding: 0.85rem;
+    border-radius: var(--border-radius-sm);
+  }
+
+  .home-evening-date {
+    font-size: 1.1rem;
+  }
+
+  .home-evening-meta {
+    gap: 0.5rem;
+  }
+
+  .home-participation {
+    align-items: center;
+  }
+
+}

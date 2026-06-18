@@ -93,10 +93,32 @@ export default function Polls() {
     return Array.from(new Set(names));
   };
 
+  const sortByDateAsc = (a, b) => new Date(a.date) - new Date(b.date);
+
+  const formatPollDate = (dateValue) =>
+    new Date(dateValue).toLocaleString("de-CH", {
+      weekday: "short",
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+  const formatFinalizedDate = (dateValue) =>
+    new Date(dateValue).toLocaleDateString("de-CH", {
+      weekday: "long",
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+
   if (loading) return <p className="text-center">Lade Umfragen...</p>;
 
   const activePoll = polls.find((p) => !p.finalizedOption);
-  const pastPolls = polls.filter((p) => p.finalizedOption);
+  const pastPolls = polls
+    .filter((p) => p.finalizedOption)
+    .sort((a, b) => new Date(b.finalizedOption) - new Date(a.finalizedOption));
 
   return (
     <div className="polls-page">
@@ -113,7 +135,7 @@ export default function Polls() {
                 ...(activePoll.options?.map((o) => o.votes?.length || 0) || []),
               );
 
-              return activePoll.options.map((opt, idx) => {
+              return [...(activePoll.options || [])].sort(sortByDateAsc).map((opt, idx) => {
                 const iso = new Date(opt.date).toISOString();
                 const isSelected = selectedDates.includes(iso);
 
@@ -131,13 +153,7 @@ export default function Polls() {
                   >
                     <div className="option-date">
                       <CalendarDays size={16} />
-                      {new Date(opt.date).toLocaleString("de-CH", {
-                        weekday: "short",
-                        day: "2-digit",
-                        month: "short",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+                      {formatPollDate(opt.date)}
                     </div>
 
                     <div className="option-progress">
@@ -204,16 +220,12 @@ export default function Polls() {
                 Fixierter Termin:
                 <br />
                 <span className="finalized-date">
-                  {new Date(poll.finalizedOption).toLocaleDateString("de-CH", {
-                    weekday: "long",
-                    day: "2-digit",
-                    month: "long",
-                  })}
+                  {formatFinalizedDate(poll.finalizedOption)}
                 </span>
               </h4>
 
               <div className="poll-options">
-                {poll.options.map((opt, idx) => {
+                {[...(poll.options || [])].sort(sortByDateAsc).map((opt, idx) => {
                   const iso = new Date(opt.date).toISOString();
                   const isFinal =
                     new Date(opt.date).toISOString() ===
@@ -231,13 +243,7 @@ export default function Polls() {
                     >
                       <div className="option-date">
                         <CalendarDays size={16} />
-                        {new Date(opt.date).toLocaleString("de-CH", {
-                          weekday: "short",
-                          day: "2-digit",
-                          month: "short",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                        {formatPollDate(opt.date)}
                       </div>
 
                       <div className="option-votes">

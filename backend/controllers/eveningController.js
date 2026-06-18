@@ -137,7 +137,7 @@ exports.getEveningById = async (req, res) => {
     )
       .populate("spielleiterId", "displayName profileImageUrl")
       .populate("participantIds", "displayName profileImageUrl")
-      .populate("games.gameId", "name category")
+      .populate("games.gameId", "name category imageUrl")
       .populate("games.scores.userId", "displayName");
 
     if (!evening) {
@@ -439,7 +439,7 @@ exports.changeEveningStatus = async (req, res) => {
     )
       .populate("spielleiterId", "displayName profileImageUrl")
       .populate("participantIds", "displayName profileImageUrl")
-      .populate("games.gameId", "name category")
+      .populate("games.gameId", "name category imageUrl")
       .populate("games.scores.userId", "displayName");
 
     const response = {
@@ -545,7 +545,7 @@ exports.getEveningGames = async (req, res) => {
     const evening = await Evening.findOne(
       scopedFilter(req, { _id: req.params.id }),
     )
-      .populate("games.gameId", "name category")
+      .populate("games.gameId", "name category imageUrl")
       .populate("games.scores.userId", "displayName");
 
     if (!evening) {
@@ -593,7 +593,7 @@ exports.addEveningGame = async (req, res) => {
     const updated = await Evening.findOne(
       scopedFilter(req, { _id: req.params.id }),
     )
-      .populate("games.gameId", "name category")
+      .populate("games.gameId", "name category imageUrl")
       .populate("games.scores.userId", "displayName");
 
     res.status(201).json(updated.games);

@@ -26,12 +26,23 @@ export default function AdminPolls() {
     fetchPolls();
   }, [setTitle]);
 
+  const getSortedOptions = (poll) =>
+    [...(poll.options || [])].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  const getPollStartDate = (poll) => getSortedOptions(poll)[0]?.date || poll.createdAt;
+
   const activePolls = useMemo(
-    () => polls.filter((poll) => !poll.finalizedOption),
+    () =>
+      polls
+        .filter((poll) => !poll.finalizedOption)
+        .sort((a, b) => new Date(getPollStartDate(a)) - new Date(getPollStartDate(b))),
     [polls],
   );
   const finalizedPolls = useMemo(
-    () => polls.filter((poll) => poll.finalizedOption),
+    () =>
+      polls
+        .filter((poll) => poll.finalizedOption)
+        .sort((a, b) => new Date(b.finalizedOption) - new Date(a.finalizedOption)),
     [polls],
   );
 
@@ -61,9 +72,32 @@ export default function AdminPolls() {
       weekday: "short",
       day: "2-digit",
       month: "short",
+      year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
     });
+
+  const formatDateOnly = (dateValue) =>
+    new Date(dateValue).toLocaleDateString("de-CH", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+
+  const getPollTitle = (poll) => {
+    const options = getSortedOptions(poll);
+    const firstDate = options[0]?.date;
+    const lastDate = options[options.length - 1]?.date;
+
+    if (!firstDate) return `Terminumfrage ${poll.eveningId?.spieljahr || ""}`.trim();
+
+    const dateLabel =
+      firstDate === lastDate
+        ? formatDateOnly(firstDate)
+        : `${formatDateOnly(firstDate)} - ${formatDateOnly(lastDate)}`;
+
+    return `Terminumfrage ${dateLabel}`;
+  };
 
   const handleFinalize = async (pollId, date) => {
     if (!window.confirm("Diesen Termin wirklich fixieren?")) return;
@@ -106,13 +140,16 @@ export default function AdminPolls() {
 
   const renderPoll = (poll) => {
     const evening = poll.eveningId;
+    const sortedOptions = getSortedOptions(poll);
+
     return (
       <article key={poll._id} className="card admin-poll-card">
         <div className="admin-poll-header">
           <div>
-            <strong>Jahr {evening?.spieljahr || "-"}</strong>
+            <strong>{getPollTitle(poll)}</strong>
             <div className="admin-poll-meta">
-              Status Abend: {evening?.status || "-"}
+              Jahr {evening?.spieljahr || "-"} | Status Abend:{" "}
+              {evening?.status || "-"}
             </div>
             {poll.finalizedOption && (
               <div className="admin-poll-meta">
@@ -149,7 +186,7 @@ export default function AdminPolls() {
         </div>
 
         <div className="admin-poll-options">
-          {poll.options.map((option) => {
+          {sortedOptions.map((option) => {
             const isFinal =
               poll.finalizedOption &&
               new Date(option.date).toISOString() ===

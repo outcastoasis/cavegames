@@ -22,8 +22,8 @@
 - [x] Benutzerverwaltung: Selbst-Deaktivierung verhindern
 - [x] Benutzerverwaltung: Sortieren/Filtern nach aktiv, Rolle und Testuser
 - [ ] Benutzerverwaltung: Rollen feiner machen (admin, spieler, spielleiter)
-- [ ] Abendverwaltung Fixieren muss per Datumauswahl funktionieren und nicht texteingabe
-- [ ] Abendverwaltung Bearbeiten PopUp erscheint mittig und nicht oben
+- [x] Abendverwaltung Fixieren muss per Datumauswahl funktionieren und nicht texteingabe
+- [x] Abendverwaltung Bearbeiten PopUp erscheint mittig und nicht oben
 - [ ] Abende Gruppenbild hinzufügen implementieren
-- [ ] Abende Bilder und Beschreibung von Spielen hinzufügen.
-- [ ] Abende Darstellung optimieren. Abstände zur Seite auf Mobile ist noch ein wenig zu gross, nimmt zu viel platz ein.
+- [x] Abende Bilder und Beschreibung von Spielen hinzufügen.
+- [x] Abende Darstellung optimieren. Abstände zur Seite auf Mobile ist noch ein wenig zu gross, nimmt zu viel platz ein.

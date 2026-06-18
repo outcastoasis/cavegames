@@ -1,5 +1,6 @@
 // src/pages/AbendDetail.jsx
 import { useEffect, useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useParams, useNavigate, useOutletContext } from "react-router-dom";
 import API from "../services/api";
 import { useAuth } from "../context/AuthContext";
@@ -23,6 +24,36 @@ import GameAddModal from "../components/forms/GameAddModal";
 import defaultAvatar from "../assets/images/avatar.jpg";
 import { AbendDetailSkeleton } from "../components/ui/Skeleton";
 
+function GameImage({ imageUrl, name, onPreview }) {
+  const hasImage = Boolean(imageUrl);
+  const Component = hasImage ? "button" : "span";
+
+  return (
+    <Component
+      className={`abenddetail-game-image ${
+        hasImage ? "abenddetail-game-image--clickable" : ""
+      }`}
+      type={hasImage ? "button" : undefined}
+      aria-label={hasImage ? `${name} Bild vergrössern` : undefined}
+      aria-hidden={!hasImage}
+      onClick={hasImage ? onPreview : undefined}
+    >
+      <Gamepad2 size={22} />
+      {hasImage && (
+        <img
+          src={imageUrl}
+          alt={name ? `${name} Bild` : ""}
+          loading="lazy"
+          referrerPolicy="no-referrer"
+          onError={(event) => {
+            event.currentTarget.style.display = "none";
+          }}
+        />
+      )}
+    </Component>
+  );
+}
+
 export default function AbendDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -31,6 +62,7 @@ export default function AbendDetail() {
   const [abend, setAbend] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showGameModal, setShowGameModal] = useState(false);
+  const [previewGame, setPreviewGame] = useState(null);
   const [busy, setBusy] = useState(false);
   const [editScores, setEditScores] = useState(null);
   const [originalScores, setOriginalScores] = useState(null);
@@ -356,32 +388,30 @@ export default function AbendDetail() {
       </button>
 
       <div className="abenddetail-card card">
-        <div className="abenddetail-info-cards">
-          <div className="abenddetail-info-card">
-            <CalendarDays size={18} />
-            <span>{formattedDate || "Termin wird abgestimmt"}</span>
-          </div>
-
-          <div className="abenddetail-info-card">
-            <UsersIcon size={18} />
-            <span>Spielleiter: {abend.spielleiterRef?.displayName}</span>
-          </div>
-
-          <div className="abenddetail-info-card">
-            <MapPinHouse size={18} />
-            <span>bei {abend.spielleiterRef?.displayName}</span>
-          </div>
-
-          <div className="abenddetail-info-card">
-            <Info size={18} />
-
+        <section className="abenddetail-event-summary">
+          <div className="abenddetail-event-summary-main">
+            <div className="abenddetail-event-date">
+              <CalendarDays size={20} />
+              <span>{formattedDate || "Termin wird abgestimmt"}</span>
+            </div>
             <span
               className={`abenddetail-status-badge abenddetail-status-badge--${abend.status}`}
             >
               {abend.status}
             </span>
           </div>
-        </div>
+
+          <div className="abenddetail-event-meta">
+            <div className="abenddetail-event-meta-item">
+              <UsersIcon size={16} />
+              <span>Spielleiter: {abend.spielleiterRef?.displayName}</span>
+            </div>
+            <div className="abenddetail-event-meta-item">
+              <MapPinHouse size={16} />
+              <span>bei {abend.spielleiterRef?.displayName}</span>
+            </div>
+          </div>
+        </section>
 
         {/* Teilnahme-Toggle */}
         {isFixiert && !isToday && (
@@ -601,9 +631,21 @@ export default function AbendDetail() {
                   className="abenddetail-game-card abenddetail-subcard"
                 >
                   <div className="abenddetail-game-header">
-                    <h3 className="abenddetail-game-title">
-                      {game.gameId?.name || "Unbekanntes Spiel"}
-                    </h3>
+                    <div className="abenddetail-game-title-row">
+                      <GameImage
+                        imageUrl={game.gameId?.imageUrl}
+                        name={game.gameId?.name}
+                        onPreview={() =>
+                          setPreviewGame({
+                            name: game.gameId?.name,
+                            imageUrl: game.gameId?.imageUrl,
+                          })
+                        }
+                      />
+                      <h3 className="abenddetail-game-title">
+                        {game.gameId?.name || "Unbekanntes Spiel"}
+                      </h3>
+                    </div>
 
                     {(canEditScores || canDeleteGame) && (
                       <div className="abenddetail-game-actions">
@@ -637,7 +679,14 @@ export default function AbendDetail() {
 
                   <ul className="abenddetail-score-list">
                     {game.scores.map((s) => (
-                      <li key={s.userId} className="abenddetail-score-item">
+                      <li
+                        key={s.userId}
+                        className={`abenddetail-score-item ${
+                          editScores === game._id && canEditScores
+                            ? "abenddetail-score-item--editing"
+                            : ""
+                        }`}
+                      >
                         <span className="abenddetail-score-name">
                           {s.userName}
                         </span>
@@ -782,6 +831,33 @@ export default function AbendDetail() {
           onSuccess={fetchAbend}
         />
       )}
+
+      {previewGame &&
+        createPortal(
+          <div
+            className="abenddetail-game-preview-overlay"
+            onClick={() => setPreviewGame(null)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(event) => {
+              if (event.key === "Escape" || event.key === "Enter") {
+                setPreviewGame(null);
+              }
+            }}
+          >
+            <div
+              className="abenddetail-game-preview"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <img
+                src={previewGame.imageUrl}
+                alt={previewGame.name ? `${previewGame.name} Bild` : ""}
+              />
+              <strong>{previewGame.name}</strong>
+            </div>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

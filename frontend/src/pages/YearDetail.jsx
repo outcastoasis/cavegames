@@ -1,5 +1,6 @@
 // src/pages/YearDetail.jsx
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useParams, useNavigate, useOutletContext } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import API from "../services/api";
@@ -28,6 +29,8 @@ export default function YearDetail() {
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState(null);
   const [editEvening, setEditEvening] = useState(null);
+  const [fixEvening, setFixEvening] = useState(null);
+  const [fixDate, setFixDate] = useState("");
   const [editForm, setEditForm] = useState({
     spieljahr: "",
     spielleiterId: "",
@@ -36,6 +39,7 @@ export default function YearDetail() {
   const [users, setUsers] = useState([]);
   const [years, setYears] = useState([]);
   const [savingEdit, setSavingEdit] = useState(false);
+  const [savingFix, setSavingFix] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -137,22 +141,31 @@ export default function YearDetail() {
   };
 
   const handleFixEvening = async (abend) => {
-    const value = window.prompt(
-      "Termin fixieren (Format: YYYY-MM-DDTHH:mm)",
-      toDateInputValue(abend.date),
-    );
-    if (!value) return;
+    setFixEvening(abend);
+    setFixDate(toDateInputValue(abend.date));
+    setError("");
+  };
 
+  const handleSaveFixing = async (event) => {
+    event.preventDefault();
+    if (!fixEvening || !fixDate) return;
+
+    setSavingFix(true);
+    setError("");
     try {
-      await API.patch(`/evenings/${abend._id}/status`, {
+      await API.patch(`/evenings/${fixEvening._id}/status`, {
         status: "fixiert",
-        date: new Date(value).toISOString(),
+        date: new Date(fixDate).toISOString(),
       });
+      setFixEvening(null);
+      setFixDate("");
       await fetchYearData();
     } catch (err) {
       setError(
         err?.response?.data?.error || "Abend konnte nicht fixiert werden",
       );
+    } finally {
+      setSavingFix(false);
     }
   };
 
@@ -315,8 +328,9 @@ export default function YearDetail() {
         </div>
       )}
 
-      {editEvening && (
-        <div className="modal-overlay">
+      {editEvening &&
+        createPortal(
+          <div className="modal-overlay">
           <div className="modal">
             <h2>Abend bearbeiten</h2>
             <form className="modal-form" onSubmit={handleSaveEvening}>
@@ -384,8 +398,50 @@ export default function YearDetail() {
               </div>
             </form>
           </div>
-        </div>
-      )}
+          </div>,
+          document.body,
+        )}
+
+      {fixEvening &&
+        createPortal(
+          <div className="modal-overlay">
+          <div className="modal">
+            <h2>Termin fixieren</h2>
+            <form className="modal-form" onSubmit={handleSaveFixing}>
+              <label>Datum und Zeit</label>
+              <input
+                className="input"
+                type="datetime-local"
+                value={fixDate}
+                onChange={(event) => setFixDate(event.target.value)}
+                required
+              />
+
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  className="button neutral"
+                  onClick={() => {
+                    setFixEvening(null);
+                    setFixDate("");
+                  }}
+                  disabled={savingFix}
+                >
+                  Abbrechen
+                </button>
+                <button
+                  className="button primary"
+                  type="submit"
+                  disabled={savingFix || !fixDate}
+                >
+                  {savingFix ? "Fixiert..." : "Fixieren"}
+                </button>
+              </div>
+            </form>
+          </div>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

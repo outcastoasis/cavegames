@@ -4,17 +4,57 @@ import { useAuth } from "../context/AuthContext";
 import { useOutletContext, useNavigate } from "react-router-dom";
 import API from "../services/api";
 import {
-  CalendarDays,
-  Users,
-  Gamepad2,
-  Calendar,
-  MapPinHouse,
-  Info,
   AlertTriangle,
+  Calendar,
+  CalendarDays,
+  Gamepad2,
+  Info,
+  MapPinHouse,
+  Trophy,
+  Users,
 } from "lucide-react";
 import "../styles/pages/Home.css";
-import "../styles/pages/Abende.css"; // Re-use Abende Card Styles
+import "../styles/pages/Abende.css"; // Re-use Abende badge/toggle styles
 import { EveningListSkeleton } from "../components/ui/Skeleton";
+
+const homeSayings = {
+  today: [
+    "Heute zählt nur eins: Regeln kennen. Oder sehr überzeugend so tun.",
+    "Heute wird gespielt. Snacks sind Strategie, keine Nebensache.",
+    "Heute ist Revanche-Zeit. Freundschaften halten das aus. Meistens.",
+    "Heute entscheidet sich, wer Glück hatte und wer es Taktik nennt.",
+    "Wer die Regeln erklärt, hat automatisch ein bisschen Macht.",
+  ],
+  countdown: [
+    "Noch genug Zeit, um die Regeln falsch zu erinnern.",
+    "Die Vorfreude steigt. Die Ausreden vermutlich auch.",
+    "Noch ein paar Tage Training im Kopfkino.",
+    "Bald wird wieder taktiert, geblufft und freundlich diskutiert.",
+    "Noch Zeit, um Lieblingsspiele subtil ins Gespräch zu bringen.",
+    "Die Ruhe vor dem Würfelwurf.",
+  ],
+  recap: [
+    "Der letzte Abend ist vorbei, aber die Diskussionen leben weiter.",
+    "Statistiken sind objektiv. Ausser sie sprechen gegen einen.",
+    "Nach dem Spiel ist vor der Revanche.",
+    "Ein Abend endet erst, wenn alle erklärt haben, warum sie eigentlich gewonnen hätten.",
+    "Ruhm vergeht. Punkte bleiben in der Statistik.",
+  ],
+  empty: [
+    "Kein Abend geplant. Das Regelheft ruht. Noch.",
+    "Der Kalender ist leer, aber die Spielesammlung wartet.",
+    "Noch kein Termin. Perfekter Moment, um ein neues Lieblingsspiel vorzuschlagen.",
+    "Keine Planung offen. Verdächtig friedlich.",
+  ],
+  facts: [
+    "Catan erschien 1995 und wurde schnell zu einem modernen Brettspielklassiker.",
+    "UNO wurde 1971 von Merle Robbins erfunden.",
+    "Carcassonne gewann 2001 das Spiel des Jahres.",
+    "Ein guter Bluff braucht Selbstvertrauen. Ein sehr guter Bluff braucht ein Pokerface.",
+    "Hausregeln entstehen oft genau dann, wenn jemand gerade verloren hat.",
+    "Würfel sind kleine Zufallsgeneratoren mit sehr grosser Meinung.",
+  ],
+};
 
 export default function Home() {
   const { user } = useAuth();
@@ -27,11 +67,38 @@ export default function Home() {
   const [todayEvening, setTodayEvening] = useState(null);
   const [lastEvening, setLastEvening] = useState(null);
   const [notificationList, setNotificationList] = useState([]);
+  const [dashboardStats, setDashboardStats] = useState({
+    hostedEvenings: 0,
+    lastPoints: null,
+    myEvenings: 0,
+  });
+  const [sayingSeed] = useState(() => Math.random());
 
   useEffect(() => {
     setTitle("Cavegames");
     fetchNextEvening();
   }, []);
+
+  const buildDashboardStats = (evenings) => {
+    const myEvenings = evenings.filter((e) =>
+      e.participantRefs?.some((p) => p._id === user._id),
+    );
+    const hostedEvenings = evenings.filter(
+      (e) => e.spielleiterRef?._id === user._id,
+    ).length;
+    const lastPlayedEvening = myEvenings
+      .filter((e) => e.status === "abgeschlossen" && e.date)
+      .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+    const lastPoints =
+      lastPlayedEvening?.playerPoints?.find((p) => p.userId === user._id)
+        ?.points ?? null;
+
+    return {
+      hostedEvenings,
+      lastPoints,
+      myEvenings: myEvenings.length,
+    };
+  };
 
   const fetchNextEvening = async () => {
     let active = [];
@@ -67,10 +134,11 @@ export default function Home() {
       setTodayEvening(today);
       setNextEvening(future[0] || null);
       setLastEvening(past[0] || null);
+      setDashboardStats(buildDashboardStats(active));
     } catch (err) {
       console.error("Fehler beim Laden:", err);
     } finally {
-      await fetchNotifications(active); // active existiert jetzt sicher
+      await fetchNotifications(active);
       setLoading(false);
     }
   };
@@ -101,7 +169,6 @@ export default function Home() {
     const now = new Date();
     const target = new Date(dateStr);
 
-    // Uhrzeiten entfernen → reine Kalendertage vergleichen
     now.setHours(0, 0, 0, 0);
     target.setHours(0, 0, 0, 0);
 
@@ -112,7 +179,6 @@ export default function Home() {
   const fetchNotifications = async (activeEvenings) => {
     const notes = [];
 
-    // 1) Spielleiter-Benachrichtigung
     activeEvenings.forEach((e) => {
       const isLeader = e.spielleiterRef?._id === user._id;
 
@@ -125,7 +191,6 @@ export default function Home() {
       }
     });
 
-    // 2) Umfrage-Benachrichtigung
     for (const e of activeEvenings) {
       if (e.status === "offen" && e.pollId && !e.date) {
         try {
@@ -168,17 +233,45 @@ export default function Home() {
     setNotificationList(notes);
   };
 
-  const renderEveningCard = (abend) => {
+  const formatEveningDate = (date) =>
+    date
+      ? new Date(date).toLocaleDateString("de-CH", {
+          weekday: "short",
+          day: "2-digit",
+          month: "short",
+        })
+      : "Datum offen";
+
+  const getHomeSaying = () => {
+    let pool = homeSayings.facts;
+
+    if (todayEvening) {
+      pool = [...homeSayings.today, ...homeSayings.facts];
+    } else if (nextEvening) {
+      pool = [...homeSayings.countdown, ...homeSayings.facts];
+    } else if (lastEvening) {
+      pool = [...homeSayings.recap, ...homeSayings.facts];
+    } else {
+      pool = [...homeSayings.empty, ...homeSayings.facts];
+    }
+
+    return pool[Math.floor(sayingSeed * pool.length)];
+  };
+
+  const renderEveningCard = (abend, variant = "default") => {
     const isFixiert = abend.status === "fixiert";
     const isTeilnehmer = abend.participantRefs?.some((p) => p._id === user._id);
     const hasOpenPoll = abend.status === "offen" && !abend.date && abend.pollId;
+    const winnerNames = (abend.winnerIds || [])
+      .map((id) => abend.participantRefs?.find((p) => p._id === id)?.displayName)
+      .filter(Boolean);
 
     return (
       <div
         key={abend._id}
-        className={`card abend-card status-${abend.status}`}
-        onClick={(e) => {
-          if (e.target.closest(".abend-actions")) return;
+        className={`home-evening-card home-evening-card--${variant} home-evening-card-status-${abend.status}`}
+        onClick={(event) => {
+          if (event.target.closest(".home-evening-actions")) return;
 
           if (hasOpenPoll) {
             navigate("/umfragen");
@@ -187,17 +280,16 @@ export default function Home() {
 
           navigate(`/abende/${abend._id}`);
         }}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") navigate(`/abende/${abend._id}`);
+        }}
       >
-        <div className="abend-card-header">
-          <div className="abend-date">
-            <CalendarDays size={16} />
-            {abend.date
-              ? new Date(abend.date).toLocaleDateString("de-CH", {
-                  weekday: "short",
-                  day: "2-digit",
-                  month: "short",
-                })
-              : "Datum offen"}
+        <div className="home-evening-header">
+          <div className="home-evening-date">
+            <CalendarDays size={18} />
+            <span>{formatEveningDate(abend.date)}</span>
           </div>
 
           <span className={`badge-abende status-${abend.status}`}>
@@ -205,65 +297,75 @@ export default function Home() {
           </span>
         </div>
 
-        <div className="abend-meta">
-          <div className="meta-item">
+        <div className="home-evening-meta">
+          <div className="home-evening-host">
             <MapPinHouse size={16} />
-            {abend.spielleiterRef?.displayName || "—"}
+            {abend.spielleiterRef?.displayName || "-"}
           </div>
-          <div className="meta-item">
-            <Users size={16} />
-            {abend.participantRefs?.length ?? 0} Teilnehmer
-          </div>
-          <div className="meta-item">
-            <Gamepad2 size={16} />
-            {abend.games?.length ?? 0} Spiele
-          </div>
-          <div className="meta-item">
-            <Calendar size={16} />
-            Jahr {abend.spieljahr}
+          <div className="home-evening-facts">
+            <span>
+              <Users size={14} />
+              {abend.participantRefs?.length ?? 0}
+            </span>
+            <span>
+              <Gamepad2 size={14} />
+              {abend.games?.length ?? 0}
+            </span>
+            <span>
+              <Calendar size={14} />
+              {abend.spieljahr}
+            </span>
           </div>
         </div>
 
-        <div className="abend-actions">
-          {isFixiert && (
-            <div
-              className="abend-toggle-wrapper"
-              onClick={(e) => e.stopPropagation()}
-            >
+        {variant === "last" && winnerNames.length > 0 && (
+          <div className="home-evening-result">
+            <Trophy size={16} />
+            <span>Tagessieger: {winnerNames.join(", ")}</span>
+          </div>
+        )}
+
+        {isFixiert && (
+          <div
+            className="home-evening-actions"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="home-participation">
+              <span className="home-participation-label">Teilnahme</span>
               <label className="toggle-label small">
                 <input
                   type="checkbox"
                   checked={isTeilnehmer}
-                  onChange={(e) =>
-                    e.target.checked
+                  onChange={(event) =>
+                    event.target.checked
                       ? handleJoin(abend._id)
                       : handleLeave(abend._id)
                   }
                 />
-                <span className="toggle-slider"></span>
+                <span className="toggle-slider" />
                 <span className="toggle-text">
-                  {isTeilnehmer ? "Dabei" : "Weg"}
+                  {isTeilnehmer ? "Dabei" : "Nicht dabei"}
                 </span>
               </label>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     );
   };
 
   return (
-    <div className="abende-page">
-      {loading && <EveningListSkeleton count={2} />}
-
-      <div className="welcome-box">
+    <div className="abende-page home-page">
+      <div className="welcome-box home-welcome">
         <div className="welcome-title">
           Willkommen zurück, {user.displayName}!
         </div>
       </div>
 
+      {loading && <EveningListSkeleton count={2} />}
+
       {!loading && notificationList.length > 0 && (
-        <div style={{ marginBottom: "1rem" }}>
+        <div className="home-alerts">
           {notificationList.map((n, i) => (
             <div
               key={i}
@@ -291,26 +393,60 @@ export default function Home() {
       )}
 
       {!loading && todayEvening && (
-        <div className="card abend-highlight">
-          <h3>Heute Abend!</h3>
-          {renderEveningCard(todayEvening)}
-        </div>
+        <section className="home-section home-section--primary">
+          <div className="home-section-heading">
+            <h3>Heute Abend</h3>
+          </div>
+          {renderEveningCard(todayEvening, "primary")}
+        </section>
       )}
 
-      {!loading && nextEvening && (
-        <div className="card abend-highlight">
-          <h3>
-            Nächster Spieleabend in {calculateDaysLeft(nextEvening.date)} Tagen
-          </h3>
-          {renderEveningCard(nextEvening)}
-        </div>
+      {!loading && !todayEvening && nextEvening && (
+        <section className="home-section home-section--primary">
+          <div className="home-section-heading">
+            <h3>Nächster Spieleabend</h3>
+            <span>in {calculateDaysLeft(nextEvening.date)} Tagen</span>
+          </div>
+          {renderEveningCard(nextEvening, "primary")}
+        </section>
       )}
 
       {!loading && lastEvening && (
-        <>
-          <h3>Letzter Spieleabend</h3>
-          {renderEveningCard(lastEvening)}
-        </>
+        <section className="home-section">
+          <div className="home-section-heading">
+            <h3>Letzter Spieleabend</h3>
+          </div>
+          {renderEveningCard(lastEvening, "last")}
+        </section>
+      )}
+
+      {!loading && (
+        <section className="home-section">
+          <div className="home-section-heading">
+            <h3>Deine Übersicht</h3>
+          </div>
+          <div className="home-stats-grid">
+            <div className="home-stat-card">
+              <span>Deine Teilnahmen</span>
+              <strong>{dashboardStats.myEvenings}</strong>
+            </div>
+            <div className="home-stat-card">
+              <span>Als Spielleiter</span>
+              <strong>{dashboardStats.hostedEvenings}</strong>
+            </div>
+            <div className="home-stat-card">
+              <span>Letzte Punkte</span>
+              <strong>{dashboardStats.lastPoints ?? "-"}</strong>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {!loading && (
+        <section className="home-funfact" aria-label="Cavegames Spruch">
+          <span className="home-funfact-label">Cavegames meint</span>
+          <p>{getHomeSaying()}</p>
+        </section>
       )}
 
       {!loading && !todayEvening && !nextEvening && !lastEvening && (
