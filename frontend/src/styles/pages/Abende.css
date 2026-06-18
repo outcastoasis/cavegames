@@ -1,84 +1,57 @@
 @import "../variables.css";
 
-/* ====== Seitenlayout ====== */
 .abende-page {
-  padding: var(--spacing-m);
   max-width: 900px;
   margin: 0 auto;
+  padding: var(--spacing-m);
+  padding-bottom: var(--spacing-l);
 }
 
 .abende-header {
-  margin-bottom: var(--spacing-m);
   display: flex;
   justify-content: flex-end;
+  margin-bottom: var(--spacing-m);
 }
 
-/* ====== Liste & Karten ====== */
 .abend-list {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-m);
+  gap: var(--spacing-l);
 }
 
-.abend-list h3 {
-  margin: var(--spacing-m) 0 var(--spacing-s);
-  font-size: 1.1rem;
-  color: var(--text);
-  font-weight: 600;
-  border-bottom: 2px solid var(--neutral-dark);
-  padding-bottom: var(--spacing-xs);
+.abend-list .home-section {
+  margin-top: 0;
 }
 
-.abend-card {
-  background: #fff;
-  border-radius: var(--card-radius);
-  padding: var(--spacing-m);
-  cursor: pointer;
-  /* weiche, moderne Schatten statt --shadow-m */
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  transition: transform var(--transition-fast),
-    box-shadow var(--transition-fast);
-  border-left: 6px solid transparent; /* Statusindikator */
-  margin-bottom: 1rem;
-}
-
-.abend-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.14);
-}
-
-/* dezente Status-Markierung am Kartenrand */
-.abend-card.status-offen {
-  border-left-color: var(--secondary);
-}
-.abend-card.status-fixiert {
-  border-left-color: var(--accent);
-}
-.abend-card.status-abgeschlossen {
-  border-left-color: var(--primary);
-}
-.abend-card.status-gesperrt {
-  border-left-color: var(--neutral-dark);
-}
-
-/* ====== Kopfzeile (Datum + Status) ====== */
-.abend-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.abend-list .home-section-heading {
   margin-bottom: var(--spacing-s);
 }
 
-.abend-date {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-s);
-  font-weight: 600;
-  font-size: var(--font-size-large);
-  color: var(--text);
+.abende-card-item + .abende-card-item {
+  margin-top: var(--spacing-s);
 }
 
-/* ====== Status-Badge ====== */
+.abende-page .home-evening-card {
+  border-top: 1px solid rgba(31, 41, 55, 0.08);
+  border-right: 1px solid rgba(31, 41, 55, 0.08);
+  border-bottom: 1px solid rgba(31, 41, 55, 0.08);
+  box-shadow: 0 4px 14px rgba(31, 41, 55, 0.12);
+}
+
+.abende-page .home-evening-card:hover {
+  box-shadow: 0 8px 18px rgba(31, 41, 55, 0.16);
+}
+
+.abende-empty {
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.abende-create-poll-button {
+  align-self: flex-start;
+}
+
 .badge-abende {
   padding: 0.3rem 0.8rem;
   border-radius: var(--border-radius-full);
@@ -88,107 +61,24 @@
   box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.3);
 }
 
-/* neue Farblogik passend zur variables.css */
 .status-offen {
   background: var(--secondary);
   color: #fff;
 }
+
 .status-fixiert {
   background: var(--accent);
   color: #1f2937;
 }
+
 .status-abgeschlossen {
   background: var(--primary);
   color: #fff;
 }
+
 .status-gesperrt {
   background: var(--neutral-dark);
   color: #fff;
-}
-
-/* ====== Meta-Infos ====== */
-.abend-meta {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: var(--spacing-s);
-  margin-top: var(--spacing-s);
-  font-size: var(--font-size-small);
-  color: var(--text-muted);
-}
-
-.meta-item {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  color: var(--text);
-}
-
-.date-placeholder {
-  color: var(--neutral-dark);
-  font-style: italic;
-}
-
-/* ===== Teilnahme-Buttons ===== */
-.abend-actions {
-  display: flex;
-  justify-content: flex-start;
-  margin-top: var(--spacing-s);
-  gap: var(--spacing-s);
-}
-
-/* nur Grösse anpassen – 3D/Shadow kommt aus .button in variables.css */
-.button.small {
-  padding: 0.45rem 1rem;
-  font-size: 0.85rem;
-  border-radius: var(--border-radius-full);
-}
-
-/* ====== Mobile ====== */
-@media (max-width: 600px) {
-  .abend-meta {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .abend-card {
-    padding: var(--spacing-s);
-  }
-
-  .badge-abende {
-    font-size: 0.75rem;
-    padding: 0.25rem 0.6rem;
-  }
-
-  .button.small {
-    width: 100%;
-    justify-content: center;
-  }
-
-  /* Toggle auf Mobile nach rechts verschieben */
-  .abend-toggle-wrapper {
-    justify-content: flex-end;
-    margin-top: var(--spacing-s);
-  }
-
-  .toggle-label.small {
-    flex-direction: row-reverse;
-    justify-content: flex-end;
-    gap: 0.4rem;
-  }
-
-  .toggle-text {
-    font-size: 1rem;
-  }
-
-  .abend-highlight h3 {
-    font-size: 1rem;
-  }
-}
-
-.abend-toggle-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  margin-top: var(--spacing-s);
 }
 
 .toggle-label.small {
@@ -206,13 +96,13 @@
 }
 
 .toggle-slider {
+  position: relative;
   width: 56px;
   height: 32px;
-  background: var(--neutral);
   border-radius: var(--border-radius-full);
-  position: relative;
-  transition: all 0.25s ease;
+  background: var(--neutral);
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.15);
+  transition: all 0.25s ease;
 }
 
 .toggle-slider::after {
@@ -222,23 +112,20 @@
   left: 3px;
   width: 26px;
   height: 26px;
-  background: #ffffff;
   border-radius: 50%;
-  transition: transform 0.25s ease;
+  background: #ffffff;
   box-shadow: 0 2px 3px rgba(0, 0, 0, 0.25);
+  transition: transform 0.25s ease;
 }
 
-/* Aktiv nach rechts → GRÜN */
 .toggle-label.small input:checked + .toggle-slider {
   background: linear-gradient(180deg, #4ade80, #059669);
 }
 
-/* WICHTIG: Bewegung nach rechts */
 .toggle-label.small input:checked + .toggle-slider::after {
   transform: translateX(24px);
 }
 
-/* Textfarben */
 .toggle-label.small input:checked ~ .toggle-text {
   color: #059669;
 }
@@ -247,20 +134,27 @@
   color: var(--danger);
 }
 
-/* Hover-Effekt */
 .toggle-label.small:hover .toggle-slider {
   box-shadow: 0 0 0 2px rgba(109, 40, 217, 0.1);
 }
 
-.abend-highlight h3 {
-  margin-top: 0;
-  margin-bottom: var(--spacing-s);
-  font-size: 1.2rem;
-  font-weight: 600;
-}
+@media (max-width: 600px) {
+  .abende-page {
+    padding-inline: var(--spacing-s);
+  }
 
-.abende-empty {
-  padding: 1.5rem;
-  text-align: center;
-  opacity: 0.7;
+  .abende-header .button {
+    width: auto;
+    justify-content: center;
+  }
+
+  .badge-abende {
+    padding: 0.25rem 0.6rem;
+    font-size: 0.75rem;
+  }
+
+  .abende-create-poll-button {
+    width: 100%;
+    justify-content: center;
+  }
 }

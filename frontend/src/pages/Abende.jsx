@@ -4,14 +4,15 @@ import { useAuth } from "../context/AuthContext";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import API from "../services/api";
 import {
-  CalendarDays,
-  Users,
-  Gamepad2,
   Calendar,
+  CalendarDays,
+  Clock,
+  Gamepad2,
   MapPinHouse,
-  XCircle,
+  Users,
 } from "lucide-react";
 import "../styles/pages/Abende.css";
+import "../styles/pages/Home.css";
 import EveningCreateModal from "../components/forms/EveningCreateModal";
 import PollCreateModal from "../components/forms/PollCreateModal";
 import { EveningListSkeleton } from "../components/ui/Skeleton";
@@ -27,6 +28,7 @@ export default function Abende() {
     future: [],
     past: [],
     openWithoutPoll: [],
+    withOpenPoll: [],
   });
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -50,8 +52,8 @@ export default function Abende() {
       const future = [];
       let todayEvening = null;
       let nextEvening = null;
-      let openWithoutPoll = [];
-      let withOpenPoll = [];
+      const openWithoutPoll = [];
+      const withOpenPoll = [];
 
       active.forEach((e) => {
         if (!e.date) return;
@@ -72,7 +74,6 @@ export default function Abende() {
           openWithoutPoll.push(e);
         }
 
-        // NEU: Abende mit offener Umfrage
         if (e.status === "offen" && !e.date && e.pollId) {
           withOpenPoll.push(e);
         }
@@ -108,7 +109,7 @@ export default function Abende() {
       await fetchEvenings();
     } catch (err) {
       alert(
-        "Fehler beim Beitreten: " + (err.response?.data?.error || err.message)
+        "Fehler beim Beitreten: " + (err.response?.data?.error || err.message),
       );
     } finally {
       setBusy(false);
@@ -123,7 +124,7 @@ export default function Abende() {
       await fetchEvenings();
     } catch (err) {
       alert(
-        "Fehler beim Verlassen: " + (err.response?.data?.error || err.message)
+        "Fehler beim Verlassen: " + (err.response?.data?.error || err.message),
       );
     } finally {
       setBusy(false);
@@ -134,13 +135,29 @@ export default function Abende() {
     const now = new Date();
     const target = new Date(dateStr);
 
-    // Uhrzeiten entfernen → reine Kalendertage vergleichen
     now.setHours(0, 0, 0, 0);
     target.setHours(0, 0, 0, 0);
 
     const diffTime = target - now;
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
+
+  const formatEveningDate = (date) =>
+    date
+      ? new Date(date).toLocaleDateString("de-CH", {
+          weekday: "short",
+          day: "2-digit",
+          month: "short",
+        })
+      : "Datum offen";
+
+  const formatEveningTime = (date) =>
+    date
+      ? new Date(date).toLocaleTimeString("de-CH", {
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : null;
 
   const renderEveningCard = (abend) => {
     const isFixiert = abend.status === "fixiert";
@@ -150,15 +167,15 @@ export default function Abende() {
       new Date(abend.date).toDateString() === new Date().toDateString();
     const isSpielleiter = user?._id === abend.spielleiterRef?._id;
     const isTeilnehmer = abend.participantRefs?.some((p) => p._id === user._id);
-    const hasPoll = !!abend.pollId;
+    const hasPoll = Boolean(abend.pollId);
     const hasOpenPoll = abend.status === "offen" && !abend.date && abend.pollId;
 
     return (
-      <div key={abend._id}>
+      <div key={abend._id} className="abende-card-item">
         <div
-          className={`card abend-card status-${abend.status}`}
-          onClick={(e) => {
-            if (e.target.closest(".abend-actions")) return;
+          className={`home-evening-card home-evening-card-status-${abend.status}`}
+          onClick={(event) => {
+            if (event.target.closest(".home-evening-actions")) return;
 
             if (hasOpenPoll) {
               navigate("/umfragen");
@@ -167,60 +184,72 @@ export default function Abende() {
 
             navigate(`/abende/${abend._id}`);
           }}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(event) => {
+            if (event.target.closest(".home-evening-actions")) return;
+            if (event.key === "Enter") navigate(`/abende/${abend._id}`);
+          }}
         >
-          <div className="abend-card-header">
-            <div className="abend-date">
-              <CalendarDays size={16} />
-              {abend.date
-                ? new Date(abend.date).toLocaleDateString("de-CH", {
-                    weekday: "short",
-                    day: "2-digit",
-                    month: "short",
-                  })
-                : "Datum offen"}
+          <div className="home-evening-header">
+            <div className="home-evening-schedule">
+              <div className="home-evening-date">
+                <CalendarDays size={18} />
+                <span>{formatEveningDate(abend.date)}</span>
+              </div>
             </div>
+
             <span className={`badge-abende status-${abend.status}`}>
               {abend.status.toUpperCase()}
             </span>
           </div>
 
-          <div className="abend-meta">
-            <div className="meta-item">
+          <div className="home-evening-meta">
+            <div className="home-evening-host">
+              {formatEveningTime(abend.date) && (
+                <span className="home-evening-time">
+                  <Clock size={14} />
+                  <span>{formatEveningTime(abend.date)} Uhr</span>
+                </span>
+              )}
               <MapPinHouse size={16} />
-              {abend.spielleiterRef?.displayName || "—"}
+              <span>{abend.spielleiterRef?.displayName || "-"}</span>
             </div>
-            <div className="meta-item">
-              <Users size={16} />
-              {abend.participantRefs?.length ?? 0} Teilnehmer
-            </div>
-            <div className="meta-item">
-              <Gamepad2 size={16} />
-              {abend.games?.length ?? 0} Spiele
-            </div>
-            <div className="meta-item">
-              <Calendar size={16} />
-              Jahr {abend.spieljahr}
+            <div className="home-evening-facts">
+              <span>
+                <Users size={14} />
+                {abend.participantRefs?.length ?? 0}
+              </span>
+              <span>
+                <Gamepad2 size={14} />
+                {abend.games?.length ?? 0}
+              </span>
+              <span>
+                <Calendar size={14} />
+                {abend.spieljahr}
+              </span>
             </div>
           </div>
 
-          <div className="abend-actions">
+          <div className="home-evening-actions">
             {isFixiert && !isToday && (
               <div
-                className="abend-toggle-wrapper"
-                onClick={(e) => e.stopPropagation()}
+                className="home-participation"
+                onClick={(event) => event.stopPropagation()}
               >
+                <span className="home-participation-label">Teilnahme</span>
                 <label className="toggle-label small">
                   <input
                     type="checkbox"
                     checked={isTeilnehmer}
-                    onChange={(e) =>
-                      e.target.checked
+                    onChange={(event) =>
+                      event.target.checked
                         ? handleJoin(abend._id)
                         : handleLeave(abend._id)
                     }
                     disabled={busy}
                   />
-                  <span className="toggle-slider"></span>
+                  <span className="toggle-slider" />
                   <span className="toggle-text">
                     {isTeilnehmer ? "Dabei" : "Weg"}
                   </span>
@@ -230,7 +259,8 @@ export default function Abende() {
 
             {isSpielleiter && isOffen && !hasPoll && (
               <button
-                className="button secondary small"
+                className="button secondary small abende-create-poll-button"
+                type="button"
                 onClick={() => setSelectedPollEveningId(abend._id)}
               >
                 <Calendar size={14} /> Umfrage erstellen
@@ -279,48 +309,60 @@ export default function Abende() {
           ) : (
             <>
               {evenings.openWithoutPoll.length > 0 && (
-                <div>
-                  <h3>Abende ohne Umfrage</h3>
+                <section className="home-section">
+                  <div className="home-section-heading">
+                    <h3>Abende ohne Umfrage</h3>
+                  </div>
                   {evenings.openWithoutPoll.map(renderEveningCard)}
-                </div>
+                </section>
               )}
 
               {evenings.withOpenPoll.length > 0 && (
-                <div>
-                  <h3>Abende mit offener Umfrage</h3>
+                <section className="home-section">
+                  <div className="home-section-heading">
+                    <h3>Abende mit offener Umfrage</h3>
+                  </div>
                   {evenings.withOpenPoll.map(renderEveningCard)}
-                </div>
+                </section>
               )}
 
               {evenings.todayEvening && (
-                <div className="card abend-highlight">
-                  <h3>Heute Abend!</h3>
+                <section className="home-section home-section--primary">
+                  <div className="home-section-heading">
+                    <h3>Heute Abend</h3>
+                  </div>
                   {renderEveningCard(evenings.todayEvening)}
-                </div>
+                </section>
               )}
 
               {evenings.nextEvening && (
-                <div className="card abend-highlight">
-                  <h3>
-                    Nächster Spieleabend in{" "}
-                    {calculateDaysLeft(evenings.nextEvening.date)} Tagen
-                  </h3>
+                <section className="home-section home-section--primary">
+                  <div className="home-section-heading">
+                    <h3>Nächster Spieleabend</h3>
+                    <span>
+                      in {calculateDaysLeft(evenings.nextEvening.date)} Tagen
+                    </span>
+                  </div>
                   {renderEveningCard(evenings.nextEvening)}
-                </div>
+                </section>
               )}
 
               {evenings.future.length > 0 && (
-                <div>
-                  <h3>Bevorstehend</h3>
+                <section className="home-section">
+                  <div className="home-section-heading">
+                    <h3>Bevorstehend</h3>
+                  </div>
                   {evenings.future.map(renderEveningCard)}
-                </div>
+                </section>
               )}
 
               {evenings.past.length > 0 && (
-                <div>
-                  <h3>Vergangene Abende</h3>
+                <section className="home-section">
+                  <div className="home-section-heading">
+                    <h3>Vergangene Abende</h3>
+                  </div>
                   {evenings.past.map(renderEveningCard)}
-                </div>
+                </section>
               )}
             </>
           )}

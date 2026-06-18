@@ -2,6 +2,8 @@
 
 .polls-page {
   padding: var(--spacing-m);
+  max-width: 900px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-l);
@@ -10,7 +12,8 @@
 .poll-card {
   background: white;
   border-radius: var(--card-radius);
-  box-shadow: var(--shadow-m);
+  border: 1px solid rgba(31, 41, 55, 0.08);
+  box-shadow: 0 4px 14px rgba(31, 41, 55, 0.12);
   padding: var(--spacing-m);
 }
 
@@ -29,8 +32,8 @@
 }
 
 .poll-option {
-  background: var(--bg);
-  border: 2px solid transparent;
+  background: #ffffff;
+  border: 1px solid rgba(31, 41, 55, 0.1);
   border-radius: var(--border-radius-sm);
   padding: var(--spacing-s) var(--spacing-m);
   display: flex;
@@ -41,22 +44,24 @@
 }
 
 .poll-option:hover {
-  background: #f3f3f3;
+  background: #f9fafb;
+  border-color: rgba(109, 40, 217, 0.25);
 }
 
 .poll-option.selected {
-  border-color: var(--secondary);
+  border-color: var(--primary);
   background: #ecfeff;
 }
 
 .poll-option.finalized {
   cursor: default;
-  background: #fafafa;
+  background: #ffffff;
 }
 
 .poll-option.chosen {
   border-color: var(--accent);
   background: #fff8e1;
+  box-shadow: 0 0 0 1px var(--accent);
 }
 
 .option-date {
@@ -126,4 +131,29 @@
   font-size: 0.85rem;
   opacity: 0.9;
   line-height: 1.3;
+}
+
+@media (max-width: 600px) {
+  .polls-page {
+    padding: var(--spacing-s);
+    gap: var(--spacing-m);
+  }
+
+  .poll-card {
+    padding: 0.9rem;
+    border-radius: var(--border-radius-sm);
+  }
+
+  .poll-card h3,
+  .poll-card h4 {
+    margin-bottom: var(--spacing-s);
+  }
+
+  .poll-option {
+    padding: 0.75rem;
+  }
+
+  .past-polls .poll-card {
+    margin-bottom: var(--spacing-s);
+  }
 }
