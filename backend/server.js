@@ -33,6 +33,10 @@ app.get("/api/test", (req, res) => {
   res.json({ message: "API läuft korrekt" });
 });
 
+app.get("/api/health", (req, res) => {
+  res.json({ status: "ok" });
+});
+
 // Auth-Routen
 app.use("/api/auth", authRoutes);
 

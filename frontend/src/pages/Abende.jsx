@@ -14,6 +14,7 @@ import {
 import "../styles/pages/Abende.css";
 import EveningCreateModal from "../components/forms/EveningCreateModal";
 import PollCreateModal from "../components/forms/PollCreateModal";
+import { EveningListSkeleton } from "../components/ui/Skeleton";
 
 export default function Abende() {
   const { user } = useAuth();
@@ -263,7 +264,7 @@ export default function Abende() {
       )}
 
       {loading ? (
-        <p>Lade Abende...</p>
+        <EveningListSkeleton />
       ) : (
         <div className="abend-list">
           {evenings.openWithoutPoll.length === 0 &&

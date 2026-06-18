@@ -20,6 +20,7 @@ import {
 import "../styles/pages/AbendDetail.css";
 import GameAddModal from "../components/forms/GameAddModal";
 import defaultAvatar from "../assets/images/avatar.jpg";
+import { AbendDetailSkeleton } from "../components/ui/Skeleton";
 
 export default function AbendDetail() {
   const { id } = useParams();
@@ -264,8 +265,7 @@ export default function AbendDetail() {
     }
   };
 
-  if (loading)
-    return <p className="abenddetail-loading">Lade Abenddetails...</p>;
+  if (loading) return <AbendDetailSkeleton />;
   if (!abend) return <p className="abenddetail-error">Abend nicht gefunden.</p>;
 
   const isAdmin = user?.role === "admin";

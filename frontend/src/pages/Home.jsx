@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import "../styles/pages/Home.css";
 import "../styles/pages/Abende.css"; // Re-use Abende Card Styles
+import { EveningListSkeleton } from "../components/ui/Skeleton";
 
 export default function Home() {
   const { user } = useAuth();
@@ -253,7 +254,7 @@ export default function Home() {
 
   return (
     <div className="abende-page">
-      {loading && <p>Lade Daten...</p>}
+      {loading && <EveningListSkeleton count={2} />}
 
       <div className="welcome-box">
         <div className="welcome-title">
@@ -261,7 +262,7 @@ export default function Home() {
         </div>
       </div>
 
-      {notificationList.length > 0 && (
+      {!loading && notificationList.length > 0 && (
         <div style={{ marginBottom: "1rem" }}>
           {notificationList.map((n, i) => (
             <div

@@ -79,6 +79,10 @@ body {
   background: transparent;
 }
 
+.icon-input:has(input:disabled) {
+  opacity: 0.7;
+}
+
 .text-small {
   text-align: center;
   font-size: var(--font-size-small);
@@ -96,6 +100,35 @@ body {
   border-radius: var(--border-radius-sm);
   cursor: pointer;
   transition: background var(--transition-fast);
+  min-height: 2.75rem;
+}
+
+.button.login-button .spinner {
+  color: white;
+}
+
+.login-status {
+  margin-top: var(--spacing-m);
+  padding: 0.75rem 0.9rem;
+  border-radius: var(--border-radius-sm);
+  background: #eef2ff;
+  color: var(--primary);
+  font-size: var(--font-size-small);
+  text-align: center;
+  border: 1px solid rgba(109, 40, 217, 0.18);
+}
+
+.login-status--warning {
+  background: #fff7ed;
+  color: #9a3412;
+  border-color: rgba(250, 204, 21, 0.65);
+}
+
+.login-error {
+  color: var(--danger);
+  margin: var(--spacing-s) 0 0;
+  font-size: var(--font-size-small);
+  text-align: center;
 }
 
 .register-link {
