@@ -251,7 +251,7 @@ export default function Abende() {
                   />
                   <span className="toggle-slider" />
                   <span className="toggle-text">
-                    {isTeilnehmer ? "Dabei" : "Weg"}
+                    {isTeilnehmer ? "Dabei" : "Nicht dabei"}
                   </span>
                 </label>
               </div>
