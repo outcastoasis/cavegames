@@ -12,6 +12,35 @@ const {
 } = require("../utils/uploadService");
 const Poll = require("../models/Poll");
 
+const STAT_FINAL_STATUSES = new Set(["abgeschlossen", "gesperrt"]);
+
+function hasGeneratedEveningStats(evening) {
+  return (
+    STAT_FINAL_STATUSES.has(evening.status) ||
+    evening.totalPoints != null ||
+    evening.maxPoints != null ||
+    evening.gamesPlayedCount != null ||
+    evening.participantCount != null ||
+    Boolean(evening.winnerIds?.length) ||
+    Boolean(evening.placements?.length) ||
+    Boolean(evening.playerPoints?.length) ||
+    Boolean(evening.gameCount?.length)
+  );
+}
+
+async function saveEveningAndRefreshStatsIfGenerated(evening) {
+  if (!hasGeneratedEveningStats(evening)) {
+    await evening.save();
+    return false;
+  }
+
+  const stats = calculateEveningStats(evening);
+  Object.assign(evening, stats);
+  await evening.save();
+  await rebuildUserStatsForYear(evening.spieljahr);
+  return true;
+}
+
 exports.getEvenings = async (req, res) => {
   try {
     const evenings = await Evening.find()
@@ -455,9 +484,9 @@ exports.updateEveningGame = async (req, res) => {
 
     if (scores) entry.scores = scores;
     if (notes) entry.notes = notes;
-    await evening.save();
+    const statsRefreshed = await saveEveningAndRefreshStatsIfGenerated(evening);
 
-    res.json({ message: "Spiel aktualisiert", game: entry });
+    res.json({ message: "Spiel aktualisiert", game: entry, statsRefreshed });
   } catch (err) {
     console.error("Fehler bei updateEveningGame:", err.message);
     res.status(500).json({ error: "Fehler beim Aktualisieren des Spiels" });
@@ -482,9 +511,9 @@ exports.deleteEveningGame = async (req, res) => {
     evening.games = evening.games.filter(
       (g) => g._id.toString() !== gameEntryId.toString(),
     );
-    await evening.save();
+    const statsRefreshed = await saveEveningAndRefreshStatsIfGenerated(evening);
 
-    res.json({ message: "Spiel gelöscht" });
+    res.json({ message: "Spiel gelöscht", statsRefreshed });
   } catch (err) {
     console.error("Fehler bei deleteEveningGame:", err.message);
     res.status(500).json({ error: "Fehler beim Löschen des Spiels" });

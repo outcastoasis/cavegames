@@ -185,7 +185,6 @@ export default function AbendDetail() {
           points: s.points,
         })),
       });
-      await API.patch(`/evenings/${id}/recalculate`);
       setEditScores(null);
       setOriginalScores(null);
       setScoreInputs({});
