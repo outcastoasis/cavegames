@@ -9,6 +9,7 @@ import {
   Trophy,
   PlusCircle,
   CalendarDays,
+  Clock,
   Users as UsersIcon,
   Image as ImageIcon,
   XCircle,
@@ -350,6 +351,12 @@ export default function AbendDetail() {
         month: "long",
       })
     : null;
+  const formattedTime = abend.date
+    ? new Date(abend.date).toLocaleTimeString("de-CH", {
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : null;
 
   const getScoreInputValue = (gameId, userId, defaultValue) => {
     return scoreInputs[`${gameId}-${userId}`] ?? defaultValue;
@@ -406,9 +413,17 @@ export default function AbendDetail() {
               <UsersIcon size={16} />
               <span>Spielleiter: {abend.spielleiterRef?.displayName}</span>
             </div>
-            <div className="abenddetail-event-meta-item">
-              <MapPinHouse size={16} />
-              <span>bei {abend.spielleiterRef?.displayName}</span>
+            <div className="abenddetail-event-meta-item abenddetail-event-meta-item--place-time">
+              <span className="abenddetail-event-meta-group">
+                <MapPinHouse size={16} />
+                <span>bei {abend.spielleiterRef?.displayName}</span>
+              </span>
+              {formattedTime && (
+                <span className="abenddetail-event-meta-group">
+                  <Clock size={16} />
+                  <span>{formattedTime} Uhr</span>
+                </span>
+              )}
             </div>
           </div>
         </section>

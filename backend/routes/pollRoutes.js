@@ -22,7 +22,7 @@ const {
 router.use(checkAuth);
 
 // Routen
-router.post("/", checkEveningRole("spielleiter"), createPoll); // Umfrage anlegen
+router.post("/", checkEveningRole(["spielleiter", "admin"]), createPoll); // Umfrage anlegen
 router.get("/:id", getPoll); // Umfrage anzeigen
 router.patch("/:id/vote", votePoll); // Stimme abgeben
 router.patch("/:id/finalize", checkPollRole("spielleiter"), finalizePoll);

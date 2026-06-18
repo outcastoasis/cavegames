@@ -154,6 +154,13 @@
   margin-bottom: var(--spacing-s);
 }
 
+.home-evening-schedule {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
 .home-evening-date {
   display: flex;
   align-items: center;
@@ -174,6 +181,21 @@
   overflow-wrap: anywhere;
 }
 
+.home-evening-time {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  min-width: 0;
+  color: var(--text-muted);
+  font-size: var(--font-size-small);
+  font-weight: 700;
+}
+
+.home-evening-time svg {
+  flex: 0 0 auto;
+  color: var(--primary);
+}
+
 .home-evening-meta {
   display: flex;
   flex-direction: column;
@@ -185,6 +207,7 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-xs);
+  flex-wrap: wrap;
   min-width: 0;
   color: var(--text);
   font-size: var(--font-size-small);

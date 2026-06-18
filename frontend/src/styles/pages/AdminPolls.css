@@ -17,6 +17,10 @@
   margin-bottom: var(--spacing-m);
 }
 
+.admin-poll-card--missing {
+  border-left: 4px solid var(--accent);
+}
+
 .admin-poll-header {
   display: flex;
   justify-content: space-between;
@@ -58,6 +62,12 @@
 .admin-poll-option.final {
   border-color: var(--primary);
   background: #f5f3ff;
+}
+
+.admin-poll-missing-text {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--font-size-small);
 }
 
 @media (max-width: 700px) {

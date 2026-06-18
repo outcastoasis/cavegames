@@ -7,6 +7,7 @@ import {
   AlertTriangle,
   Calendar,
   CalendarDays,
+  Clock,
   Gamepad2,
   Info,
   MapPinHouse,
@@ -269,6 +270,14 @@ export default function Home() {
         })
       : "Datum offen";
 
+  const formatEveningTime = (date) =>
+    date
+      ? new Date(date).toLocaleTimeString("de-CH", {
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : null;
+
   const getHomeSaying = () => {
     let pool = homeSayings.facts;
 
@@ -314,9 +323,11 @@ export default function Home() {
         }}
       >
         <div className="home-evening-header">
-          <div className="home-evening-date">
-            <CalendarDays size={18} />
-            <span>{formatEveningDate(abend.date)}</span>
+          <div className="home-evening-schedule">
+            <div className="home-evening-date">
+              <CalendarDays size={18} />
+              <span>{formatEveningDate(abend.date)}</span>
+            </div>
           </div>
 
           <span className={`badge-abende status-${abend.status}`}>
@@ -326,8 +337,14 @@ export default function Home() {
 
         <div className="home-evening-meta">
           <div className="home-evening-host">
+            {formatEveningTime(abend.date) && (
+              <span className="home-evening-time">
+                <Clock size={14} />
+                <span>{formatEveningTime(abend.date)} Uhr</span>
+              </span>
+            )}
             <MapPinHouse size={16} />
-            {abend.spielleiterRef?.displayName || "-"}
+            <span>{abend.spielleiterRef?.displayName || "-"}</span>
           </div>
           <div className="home-evening-facts">
             <span>

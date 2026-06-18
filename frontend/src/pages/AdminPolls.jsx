@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Navigate, useNavigate, useOutletContext } from "react-router-dom";
 import {
+  CalendarPlus,
   CalendarDays,
   CheckCircle2,
   Lock,
@@ -10,6 +11,7 @@ import {
 import { useAuth } from "../context/AuthContext";
 import API from "../services/api";
 import Toast from "../components/ui/Toast";
+import PollCreateModal from "../components/forms/PollCreateModal";
 import "../styles/pages/AdminPolls.css";
 
 export default function AdminPolls() {
@@ -17,6 +19,8 @@ export default function AdminPolls() {
   const navigate = useNavigate();
   const { setTitle } = useOutletContext();
   const [polls, setPolls] = useState([]);
+  const [eveningsWithoutPoll, setEveningsWithoutPoll] = useState([]);
+  const [selectedPollEveningId, setSelectedPollEveningId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [toast, setToast] = useState("");
@@ -49,8 +53,32 @@ export default function AdminPolls() {
   const fetchPolls = async () => {
     setLoading(true);
     try {
-      const res = await API.get("/polls");
-      setPolls(res.data);
+      const [pollsRes, eveningsRes] = await Promise.all([
+        API.get("/polls"),
+        API.get("/evenings"),
+      ]);
+      const pollsData = pollsRes.data;
+      const pollEveningIds = new Set(
+        pollsData
+          .map((poll) =>
+            typeof poll.eveningId === "string"
+              ? poll.eveningId
+              : poll.eveningId?._id,
+          )
+          .filter(Boolean),
+      );
+      const missingPollEvenings = eveningsRes.data
+        .filter(
+          (evening) =>
+            evening.status === "offen" &&
+            !evening.date &&
+            !evening.pollId &&
+            !pollEveningIds.has(evening._id),
+        )
+        .sort((a, b) => Number(a.spieljahr || 0) - Number(b.spieljahr || 0));
+
+      setPolls(pollsData);
+      setEveningsWithoutPoll(missingPollEvenings);
       setError("");
     } catch (err) {
       setError(
@@ -59,6 +87,11 @@ export default function AdminPolls() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePollCreated = async () => {
+    setToast("Umfrage erstellt");
+    await fetchPolls();
   };
 
   const voterNames = (option) =>
@@ -224,6 +257,43 @@ export default function AdminPolls() {
     );
   };
 
+  const renderEveningWithoutPoll = (evening) => (
+    <article
+      key={evening._id}
+      className="card admin-poll-card admin-poll-card--missing"
+    >
+      <div className="admin-poll-header">
+        <div>
+          <strong>Abend ohne Umfrage</strong>
+          <div className="admin-poll-meta">
+            Jahr {evening.spieljahr || "-"} | Status Abend: {evening.status}
+          </div>
+          <div className="admin-poll-meta">
+            Spielleiter: {evening.spielleiterRef?.displayName || "-"}
+          </div>
+        </div>
+        <div className="admin-poll-actions">
+          <button
+            className="button neutral small"
+            onClick={() => navigate(`/abende/${evening._id}`)}
+          >
+            Abend
+          </button>
+          <button
+            className="button primary small"
+            onClick={() => setSelectedPollEveningId(evening._id)}
+          >
+            <CalendarPlus size={16} />
+            Umfrage erstellen
+          </button>
+        </div>
+      </div>
+      <p className="admin-poll-missing-text">
+        Für diesen Abend wurde noch keine Terminumfrage erstellt.
+      </p>
+    </article>
+  );
+
   if (!user || user.role !== "admin") {
     return <Navigate to="/" replace />;
   }
@@ -234,6 +304,15 @@ export default function AdminPolls() {
         <p>Lade Umfragen...</p>
       ) : (
         <>
+          <section className="admin-polls-section">
+            <h2>Abende ohne Umfrage</h2>
+            {eveningsWithoutPoll.length ? (
+              eveningsWithoutPoll.map(renderEveningWithoutPoll)
+            ) : (
+              <p>Keine Abende ohne Umfrage.</p>
+            )}
+          </section>
+
           <section className="admin-polls-section">
             <h2>Aktive Umfragen</h2>
             {activePolls.length ? (
@@ -252,6 +331,14 @@ export default function AdminPolls() {
             )}
           </section>
         </>
+      )}
+
+      {selectedPollEveningId && (
+        <PollCreateModal
+          eveningId={selectedPollEveningId}
+          onClose={() => setSelectedPollEveningId(null)}
+          onSuccess={handlePollCreated}
+        />
       )}
 
       {error && <Toast message={error} onClose={() => setError("")} />}
