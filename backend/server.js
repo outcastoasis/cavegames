@@ -10,6 +10,7 @@ const authRoutes = require("./routes/auth");
 const pollRoutes = require("./routes/pollRoutes");
 const uploadRoutes = require("./routes/uploads");
 const multer = require("multer");
+const { testModeMiddleware } = require("./utils/testMode");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -20,10 +21,11 @@ app.use(
     origin: process.env.CLIENT_ORIGIN,
     credentials: true, // <— WICHTIG!
     methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Test-Mode"],
   })
 );
 app.use(express.json());
+app.use(testModeMiddleware);
 
 // MongoDB verbinden
 connectDB();
@@ -53,6 +55,7 @@ app.use("/api/games", require("./routes/gameRoutes"));
 app.use("/api/stats", require("./routes/statsRoutes"));
 
 app.use("/api/uploads", uploadRoutes);
+app.use("/api/test-mode", require("./routes/testModeRoutes"));
 
 app.use((err, req, res, next) => {
   if (err instanceof multer.MulterError) {

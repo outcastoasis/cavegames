@@ -92,14 +92,17 @@ export default function UserEditModal({ user, onClose, onSuccess }) {
             onChange={handleChange}
           />
 
-          <label className="checkbox-label">
+          <label className="modal-toggle-label">
             <input
               type="checkbox"
               name="active"
               checked={form.active}
               onChange={handleChange}
             />
-            Konto aktiv
+            <span className="modal-toggle-slider" />
+            <span className="modal-toggle-text">
+              {form.active ? "Konto aktiv" : "Konto deaktiviert"}
+            </span>
           </label>
 
           {error && <p className="error-text">{error}</p>}

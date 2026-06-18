@@ -76,10 +76,18 @@ const userStatSchema = new mongoose.Schema(
       type: [placementTrendEntry],
       default: [],
     },
+    isTestData: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
   },
   { timestamps: true }
 );
 
-userStatSchema.index({ userId: 1, spieljahr: 1 }, { unique: true });
+userStatSchema.index(
+  { userId: 1, spieljahr: 1, isTestData: 1 },
+  { unique: true }
+);
 
 module.exports = mongoose.model("UserStat", userStatSchema);

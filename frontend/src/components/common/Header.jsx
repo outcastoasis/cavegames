@@ -1,11 +1,20 @@
 import { useState, useRef, useEffect } from "react";
-import { User, Settings, Users, CalendarCheck } from "lucide-react";
+import {
+  CalendarCheck,
+  FlaskConical,
+  Gamepad2,
+  ListChecks,
+  Settings,
+  Users,
+} from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { useTestMode } from "../../context/TestModeContext";
 import { useNavigate } from "react-router-dom";
 import "../../styles/Header.css";
 
 export default function Header({ title = "Cavegames" }) {
   const { user } = useAuth();
+  const { testMode, setTestMode } = useTestMode();
   const navigate = useNavigate();
   const [adminOpen, setAdminOpen] = useState(false);
   const menuRef = useRef();
@@ -16,6 +25,24 @@ export default function Header({ title = "Cavegames" }) {
       desc: "Rollen & Zugänge verwalten",
       icon: <Users size={18} />,
       path: "/admin/users",
+    },
+    {
+      label: "Spiele",
+      desc: "Katalog verwalten",
+      icon: <Gamepad2 size={18} />,
+      path: "/admin/games",
+    },
+    {
+      label: "Umfragen",
+      desc: "Termine & Stimmen",
+      icon: <ListChecks size={18} />,
+      path: "/admin/polls",
+    },
+    {
+      label: "Testmodus",
+      desc: "Testdaten verwalten",
+      icon: <FlaskConical size={18} />,
+      path: "/admin/test-mode",
     },
     {
       label: "Jahre verwalten",
@@ -46,6 +73,18 @@ export default function Header({ title = "Cavegames" }) {
   return (
     <header className="header">
       <div className="header-bar">
+        {user?.role === "admin" && (
+          <button
+            type="button"
+            className={`header-testmode ${testMode ? "active" : ""}`}
+            onClick={() => setTestMode(!testMode)}
+            title={testMode ? "Testmodus ausschalten" : "Testmodus einschalten"}
+            aria-pressed={testMode}
+          >
+            <FlaskConical size={16} strokeWidth={2} />
+            <span>{testMode ? "Test" : "Live"}</span>
+          </button>
+        )}
         <span className="header-title">{title}</span>
         {user?.role === "admin" && (
           <div

@@ -2,11 +2,14 @@
 
 import AppRouter from "./router";
 import { AuthProvider } from "./context/AuthContext";
+import { TestModeProvider } from "./context/TestModeContext";
 
 export default function App() {
   return (
     <AuthProvider>
-      <AppRouter />
+      <TestModeProvider>
+        <AppRouter />
+      </TestModeProvider>
     </AuthProvider>
   );
 }

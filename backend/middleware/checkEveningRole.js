@@ -1,6 +1,7 @@
 // middleware/checkEveningRole.js
 const Evening = require("../models/Evening");
 const Poll = require("../models/Poll");
+const { scopedFilter } = require("../utils/testMode");
 
 function checkEveningRole(allowedRoles) {
   return async (req, res, next) => {
@@ -12,7 +13,7 @@ function checkEveningRole(allowedRoles) {
     }
 
     try {
-      const abend = await Evening.findById(eveningId);
+      const abend = await Evening.findOne(scopedFilter(req, { _id: eveningId }));
       if (!abend)
         return res.status(404).json({ error: "Abend nicht gefunden" });
 
@@ -44,10 +45,12 @@ function checkEveningRole(allowedRoles) {
 function checkPollRole(role) {
   return async (req, res, next) => {
     try {
-      const poll = await Poll.findById(req.params.id);
+      const poll = await Poll.findOne(scopedFilter(req, { _id: req.params.id }));
       if (!poll) return res.status(404).json({ error: "Poll nicht gefunden" });
 
-      const abend = await Evening.findById(poll.eveningId);
+      const abend = await Evening.findOne(
+        scopedFilter(req, { _id: poll.eveningId })
+      );
       if (!abend)
         return res.status(404).json({ error: "Abend nicht gefunden" });
 

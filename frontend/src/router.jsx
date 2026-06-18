@@ -7,6 +7,9 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import DashboardLayout from "./layouts/DashboardLayout";
 import AdminUsers from "./pages/AdminUsers";
 import AdminYears from "./pages/AdminYears";
+import AdminGames from "./pages/AdminGames";
+import AdminPolls from "./pages/AdminPolls";
+import AdminTestMode from "./pages/AdminTestMode";
 import YearDetail from "./pages/YearDetail";
 import Abende from "./pages/Abende";
 import AbendDetail from "./pages/AbendDetail";
@@ -35,6 +38,9 @@ export default function AppRouter() {
           <Route index element={<Home />} />
           {/* Admin-Unterseiten */}
           <Route path="admin/users" element={<AdminUsers />} />
+          <Route path="admin/games" element={<AdminGames />} />
+          <Route path="admin/polls" element={<AdminPolls />} />
+          <Route path="admin/test-mode" element={<AdminTestMode />} />
           <Route path="admin/years" element={<AdminYears />} />
           <Route path="admin/years/:year" element={<YearDetail />} />{" "}
           <Route path="abende" element={<Abende />} />

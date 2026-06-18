@@ -21,6 +21,11 @@ const pollSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    isTestData: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
   },
   { timestamps: true }
 );

@@ -54,6 +54,11 @@ const eveningSchema = new mongoose.Schema(
     ],
     participantCount: Number,
     gamesPlayedCount: Number,
+    isTestData: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
   },
   { timestamps: true }
 );

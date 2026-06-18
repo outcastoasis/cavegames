@@ -40,3 +40,22 @@
     animation: none;
   }
 }
+
+.testmode-banner {
+  position: fixed;
+  top: 3.3rem;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 0.35rem var(--spacing-m);
+  background: var(--accent);
+  color: #1f2937;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.18);
+}
+
+.testmode-banner + .dashboard-main {
+  margin-top: 5.4rem;
+}

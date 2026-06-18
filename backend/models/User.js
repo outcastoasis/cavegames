@@ -31,6 +31,11 @@ const userSchema = new mongoose.Schema(
     },
     profileImageUrl: String,
     profileImagePublicId: String,
+    isTestData: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
   },
   { timestamps: true }
 );

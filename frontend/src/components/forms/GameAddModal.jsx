@@ -9,6 +9,8 @@ export default function GameAddModal({ eveningId, onClose, onSuccess }) {
   const [selectedGame, setSelectedGame] = useState("");
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [description, setDescription] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -37,6 +39,8 @@ export default function GameAddModal({ eveningId, onClose, onSuccess }) {
         const res = await API.post("/games", {
           name: name.trim(),
           category: category.trim(),
+          imageUrl: imageUrl.trim(),
+          description: description.trim(),
         });
         gameId = res.data._id;
       }
@@ -91,6 +95,22 @@ export default function GameAddModal({ eveningId, onClose, onSuccess }) {
                     placeholder="z. B. Party, Strategie, Karten..."
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
+                  />
+
+                  <label>Bild-URL (optional)</label>
+                  <input
+                    className="input"
+                    placeholder="Link zu einem Spielbild"
+                    value={imageUrl}
+                    onChange={(e) => setImageUrl(e.target.value)}
+                  />
+
+                  <label>Beschreibung (optional)</label>
+                  <input
+                    className="input"
+                    placeholder="Kurzbeschreibung oder Hinweise"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
                   />
                 </>
               )}

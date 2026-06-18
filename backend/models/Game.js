@@ -10,6 +10,11 @@ const gameSchema = new mongoose.Schema(
     imageUrl: { type: String },
     imagePublicId: { type: String },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    isTestData: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
   },
   { timestamps: true }
 );

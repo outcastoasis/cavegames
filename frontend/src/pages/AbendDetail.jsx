@@ -16,6 +16,7 @@ import {
   MapPinHouse,
   Gamepad2,
   Info,
+  RefreshCw,
 } from "lucide-react";
 import "../styles/pages/AbendDetail.css";
 import GameAddModal from "../components/forms/GameAddModal";
@@ -34,6 +35,7 @@ export default function AbendDetail() {
   const [editScores, setEditScores] = useState(null);
   const [originalScores, setOriginalScores] = useState(null);
   const [savingGameId, setSavingGameId] = useState(null);
+  const [recalculatingStats, setRecalculatingStats] = useState(false);
   const [eligibleUsers, setEligibleUsers] = useState([]);
   const [scoreInputs, setScoreInputs] = useState({});
   const [focusedField, setFocusedField] = useState(null);
@@ -103,15 +105,14 @@ export default function AbendDetail() {
 
   const buildScoreInputs = (game) =>
     Object.fromEntries(
-      game.scores.map((score) => [
-        `${game._id}-${score.userId}`,
-        score.points,
-      ]),
+      game.scores.map((score) => [`${game._id}-${score.userId}`, score.points]),
     );
 
   const handleEditScores = (gameId, focusUserId = null) => {
     if (editScores && editScores !== gameId) {
-      alert("Bitte speichere oder brich die aktuelle Punktebearbeitung zuerst ab.");
+      alert(
+        "Bitte speichere oder brich die aktuelle Punktebearbeitung zuerst ab.",
+      );
       return;
     }
 
@@ -236,6 +237,23 @@ export default function AbendDetail() {
     }
   };
 
+  const handleRecalculateStats = async () => {
+    if (!confirm("Statistik für diesen Abend neu berechnen?")) return;
+
+    setRecalculatingStats(true);
+    try {
+      await API.patch(`/evenings/${id}/recalculate`);
+      await fetchAbend();
+    } catch (err) {
+      alert(
+        "Fehler beim Neuberechnen: " +
+          (err.response?.data?.error || err.message),
+      );
+    } finally {
+      setRecalculatingStats(false);
+    }
+  };
+
   const fetchEligibleUsers = async () => {
     try {
       const res = await API.get(`/evenings/${id}/eligible-users`);
@@ -291,6 +309,7 @@ export default function AbendDetail() {
     !isGesperrt &&
     ((isAdmin && (isFixiert || isAbgeschlossen)) ||
       (isSpielleiter && isFixiert));
+  const canRecalculateStats = isPrivileged && (isAbgeschlossen || isGesperrt);
 
   const formattedDate = abend.date
     ? new Date(abend.date).toLocaleDateString("de-CH", {
@@ -738,6 +757,19 @@ export default function AbendDetail() {
             <button className="button primary" onClick={handleFinishEvening}>
               <Trophy size={18} />
               <span>Abend abschliessen</span>
+            </button>
+          )}
+
+          {canRecalculateStats && (
+            <button
+              className="button neutral"
+              onClick={handleRecalculateStats}
+              disabled={recalculatingStats}
+            >
+              <RefreshCw size={18} />
+              <span>
+                {recalculatingStats ? "Berechne..." : "Statistik neu berechnen"}
+              </span>
             </button>
           )}
         </footer>

@@ -11,8 +11,9 @@ const {
   getUserById,
   createUser,
   updateUser,
-  deactivateUser,
+  deleteUser,
   uploadUserAvatar,
+  removeUserAvatar,
 } = require("../controllers/userController");
 
 // Alle Routen benötigen Login
@@ -25,7 +26,8 @@ router.get("/", checkRole("admin"), getAllUsers);
 router.get("/:id", checkRole("admin"), getUserById);
 router.post("/", checkRole("admin"), createUser);
 router.patch("/:id", checkRole("admin"), updateUser);
-router.delete("/:id", checkRole("admin"), deactivateUser);
+router.delete("/:id", checkRole("admin"), deleteUser);
+router.delete("/:id/avatar", checkRole("admin"), removeUserAvatar);
 
 // ==============================
 //      Avatar Upload (Admin + User selbst)

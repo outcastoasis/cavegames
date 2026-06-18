@@ -33,7 +33,11 @@ router.get("/:id", getEveningById);
 router.get("/:id/eligible-users", getEligibleUsers);
 
 // *** WICHTIG: Recalculate ZUERST ***
-router.patch("/:id/recalculate", eveningController.recalculateEveningStats);
+router.patch(
+  "/:id/recalculate",
+  checkEveningRole(["spielleiter", "admin"]),
+  eveningController.recalculateEveningStats
+);
 
 router.patch(
   "/:id/status",
@@ -73,7 +77,7 @@ router.patch(
 );
 
 // *** GENERISCHE UPDATE-ROUTE GANZ ZULETZT ***
-router.patch("/:id", updateEvening);
+router.patch("/:id", checkRole("admin"), updateEvening);
 
 router.delete("/:id", checkRole("admin"), deleteEvening);
 

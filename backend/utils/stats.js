@@ -2,6 +2,7 @@
 const mongoose = require("mongoose");
 const Evening = require("../models/Evening");
 const UserStat = require("../models/UserStat");
+const { modeFilter } = require("./testMode");
 
 /**
  * Berechnet alle finalen Abendstatistiken.
@@ -128,15 +129,20 @@ function calculateEveningStats(evening) {
  * - berechnet totalPoints, wins, streaks, best/worst usw.
  * - speichert alles in UserStat (upsert)
  */
-async function rebuildUserStatsForYear(year) {
+async function rebuildUserStatsForYear(year, options = {}) {
   if (!year) return;
 
-  const evenings = await Evening.find({
-    spieljahr: year,
-    status: { $in: ["abgeschlossen", "gesperrt"] },
-  }).sort({ date: 1, createdAt: 1 });
+  const isTestData = options.isTestData === true;
+  const evenings = await Evening.find(
+    modeFilter(isTestData, {
+      spieljahr: year,
+      status: { $in: ["abgeschlossen", "gesperrt"] },
+    })
+  ).sort({ date: 1, createdAt: 1 });
 
-  await UserStat.deleteMany({ spieljahr: year });
+  await UserStat.deleteMany(modeFilter(isTestData, { spieljahr: year }));
+
+  if (isTestData) return;
 
   if (!evenings.length) return;
 
@@ -289,6 +295,7 @@ async function rebuildUserStatsForYear(year) {
         },
         update: {
           $set: {
+            isTestData,
             totalPoints,
             totalWins,
             eveningsAttended,

@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const checkAuth = require("../middleware/checkAuth");
+const checkRole = require("../middleware/checkRole");
 const {
   getGames,
   createGame,
@@ -15,7 +16,7 @@ router.use(checkAuth);
 router.get("/", getGames);
 router.post("/", createGame);
 router.get("/:id", getGameById);
-router.patch("/:id", updateGame);
-router.delete("/:id", deleteGame);
+router.patch("/:id", checkRole("admin"), updateGame);
+router.delete("/:id", checkRole("admin"), deleteGame);
 
 module.exports = router;

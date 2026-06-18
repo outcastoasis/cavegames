@@ -20,7 +20,7 @@ header {
 .header-bar {
   width: 100%;
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
   position: relative;
 }
@@ -30,6 +30,30 @@ header {
   left: 50%;
   transform: translateX(-50%);
   font-weight: 600;
+}
+
+.header-testmode {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 34px;
+  padding: 0 0.7rem;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: var(--border-radius-full);
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+}
+
+.header-testmode.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #1f2937;
 }
 
 .header-icon-wrapper {

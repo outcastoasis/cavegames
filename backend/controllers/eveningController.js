@@ -11,6 +11,8 @@ const {
   deleteFromCloudinary,
 } = require("../utils/uploadService");
 const Poll = require("../models/Poll");
+const User = require("../models/User");
+const { scopedFilter } = require("../utils/testMode");
 
 const STAT_FINAL_STATUSES = new Set(["abgeschlossen", "gesperrt"]);
 
@@ -37,13 +39,15 @@ async function saveEveningAndRefreshStatsIfGenerated(evening) {
   const stats = calculateEveningStats(evening);
   Object.assign(evening, stats);
   await evening.save();
-  await rebuildUserStatsForYear(evening.spieljahr);
+  await rebuildUserStatsForYear(evening.spieljahr, {
+    isTestData: evening.isTestData === true,
+  });
   return true;
 }
 
 exports.getEvenings = async (req, res) => {
   try {
-    const evenings = await Evening.find()
+    const evenings = await Evening.find(scopedFilter(req))
       .populate("pollId") // ← WICHTIG!
       .populate("spielleiterId", "displayName profileImageUrl")
       .populate("participantIds", "displayName profileImageUrl")
@@ -80,7 +84,7 @@ exports.createEvening = async (req, res) => {
     }
 
     // Blockieren, falls Jahr abgeschlossen ist
-    if (year.closed === true) {
+    if (!req.isTestMode && year.closed === true) {
       return res.status(400).json({
         error:
           "Das gewählte Spieljahr ist bereits abgeschlossen. Es können keine neuen Abende erstellt werden.",
@@ -88,7 +92,9 @@ exports.createEvening = async (req, res) => {
     }
 
     // Nur 1 offener Abend pro Jahr zulässig
-    const existing = await Evening.findOne({ spieljahr, status: "offen" });
+    const existing = await Evening.findOne(
+      scopedFilter(req, { spieljahr, status: "offen" }),
+    );
     if (existing) {
       return res.status(400).json({
         error: "Es existiert bereits ein offener Abend in diesem Jahr.",
@@ -101,6 +107,7 @@ exports.createEvening = async (req, res) => {
       participantIds: [spielleiterId],
       status: "offen",
       date: null,
+      isTestData: req.isTestMode,
     });
 
     await newEvening.save();
@@ -125,7 +132,9 @@ exports.createEvening = async (req, res) => {
 
 exports.getEveningById = async (req, res) => {
   try {
-    const evening = await Evening.findById(req.params.id)
+    const evening = await Evening.findOne(
+      scopedFilter(req, { _id: req.params.id }),
+    )
       .populate("spielleiterId", "displayName profileImageUrl")
       .populate("participantIds", "displayName profileImageUrl")
       .populate("games.gameId", "name category")
@@ -193,14 +202,88 @@ exports.getEveningById = async (req, res) => {
 
 exports.updateEvening = async (req, res) => {
   try {
-    const updated = await Evening.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-    })
+    const evening = await Evening.findOne(
+      scopedFilter(req, { _id: req.params.id }),
+    );
+
+    if (!evening)
+      return res.status(404).json({ error: "Abend nicht gefunden" });
+
+    const oldYear = evening.spieljahr;
+    const { spieljahr, spielleiterId, date } = req.body;
+
+    if (spieljahr != null) {
+      const nextYear = Number(spieljahr);
+      if (!Number.isInteger(nextYear)) {
+        return res.status(400).json({ error: "Ungültiges Spieljahr" });
+      }
+
+      const year = await Year.findOne({ year: nextYear });
+      if (!year) {
+        return res.status(404).json({ error: "Spieljahr nicht gefunden" });
+      }
+      if (!req.isTestMode && year.closed) {
+        return res.status(400).json({
+          error: "Das gewählte Spieljahr ist bereits abgeschlossen.",
+        });
+      }
+
+      evening.spieljahr = nextYear;
+    }
+
+    if (spielleiterId != null) {
+      if (!mongoose.Types.ObjectId.isValid(spielleiterId)) {
+        return res.status(400).json({ error: "Ungültiger Spielleiter" });
+      }
+
+      const userFilter = req.isTestMode
+        ? {
+            _id: spielleiterId,
+            active: true,
+            $or: [{ isTestData: true }, { _id: req.user._id }],
+          }
+        : { _id: spielleiterId, active: true, isTestData: { $ne: true } };
+      const spielleiter = await User.findOne(userFilter);
+      if (!spielleiter) {
+        return res.status(404).json({ error: "Spielleiter nicht gefunden" });
+      }
+
+      const isAlreadyParticipant = evening.participantIds.some(
+        (id) => id.toString() === spielleiterId.toString(),
+      );
+      if (!isAlreadyParticipant && evening.games.length > 0) {
+        return res.status(400).json({
+          error:
+            "Spielleiter kann bei bereits erfassten Spielen nur auf bestehende Teilnehmer geändert werden.",
+        });
+      }
+      if (!isAlreadyParticipant) {
+        evening.participantIds.push(spielleiterId);
+      }
+
+      evening.spielleiterId = spielleiterId;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(req.body, "date")) {
+      evening.date = date ? new Date(date) : null;
+    }
+
+    await evening.save();
+
+    if (oldYear !== evening.spieljahr && hasGeneratedEveningStats(evening)) {
+      await rebuildUserStatsForYear(oldYear, {
+        isTestData: evening.isTestData === true,
+      });
+      await rebuildUserStatsForYear(evening.spieljahr, {
+        isTestData: evening.isTestData === true,
+      });
+    }
+
+    const updated = await Evening.findOne(
+      scopedFilter(req, { _id: req.params.id }),
+    )
       .populate("spielleiterId", "displayName profileImageUrl")
       .populate("participantIds", "displayName profileImageUrl");
-
-    if (!updated)
-      return res.status(404).json({ error: "Abend nicht gefunden" });
 
     const response = {
       ...updated.toObject(),
@@ -217,7 +300,9 @@ exports.updateEvening = async (req, res) => {
 
 exports.deleteEvening = async (req, res) => {
   try {
-    const evening = await Evening.findById(req.params.id);
+    const evening = await Evening.findOne(
+      scopedFilter(req, { _id: req.params.id }),
+    );
     if (!evening) {
       return res.status(404).json({ error: "Abend nicht gefunden" });
     }
@@ -229,11 +314,15 @@ exports.deleteEvening = async (req, res) => {
       });
     }
 
-    // 1) Poll löschen (robust ueber eveningId)
-    const poll = await Poll.findOneAndDelete({ eveningId: evening._id });
+    // 1) Poll löschen (robust über eveningId)
+    const poll = await Poll.findOneAndDelete(
+      scopedFilter(req, { eveningId: evening._id }),
+    );
     if (poll) {
       // defensiv: pollId am Abend lösen
-      await Evening.updateOne({ _id: evening._id }, { $set: { pollId: null } });
+      await Evening.updateOne(scopedFilter(req, { _id: evening._id }), {
+        $set: { pollId: null },
+      });
     }
 
     // 2) Gruppenfoto löschen
@@ -242,11 +331,13 @@ exports.deleteEvening = async (req, res) => {
     }
 
     // 3) Abend löschen
-    await Evening.deleteOne({ _id: evening._id });
+    await Evening.deleteOne(scopedFilter(req, { _id: evening._id }));
 
     // 4) Stats neu bauen
     try {
-      await rebuildUserStatsForYear(evening.spieljahr);
+      await rebuildUserStatsForYear(evening.spieljahr, {
+        isTestData: evening.isTestData === true,
+      });
     } catch (e) {
       console.error("Rebuild failed after delete:", e);
       return res.status(500).json({
@@ -256,7 +347,7 @@ exports.deleteEvening = async (req, res) => {
     }
 
     return res.json({
-      message: "Abend inkl. Umfrage und Stats-Verknuepfungen gelöscht",
+      message: "Abend inkl. Umfrage und Stats-Verknüpfungen gelöscht",
     });
   } catch (err) {
     console.error("Fehler beim Löschen:", err.message);
@@ -266,8 +357,10 @@ exports.deleteEvening = async (req, res) => {
 
 exports.changeEveningStatus = async (req, res) => {
   try {
-    const { status } = req.body;
-    const evening = await Evening.findById(req.params.id);
+    const { status, date } = req.body;
+    const evening = await Evening.findOne(
+      scopedFilter(req, { _id: req.params.id }),
+    );
 
     if (!evening) {
       return res.status(404).json({ error: "Abend nicht gefunden" });
@@ -288,6 +381,41 @@ exports.changeEveningStatus = async (req, res) => {
       });
     }
 
+    if (
+      ["abgeschlossen", "gesperrt"].includes(oldStatus) &&
+      status === "offen"
+    ) {
+      return res.status(400).json({
+        error:
+          "Abgeschlossene oder gesperrte Abende können nicht geöffnet werden",
+      });
+    }
+
+    if (status === "offen") {
+      if (evening.games.length > 0) {
+        return res.status(400).json({
+          error:
+            "Terminfixierung kann nicht zurückgesetzt werden, solange Spiele erfasst sind.",
+        });
+      }
+      evening.date = null;
+      if (evening.pollId) {
+        await Poll.updateOne(scopedFilter(req, { _id: evening.pollId }), {
+          $unset: { finalizedOption: "" },
+        });
+      }
+    }
+
+    if (status === "fixiert") {
+      const nextDate = date ? new Date(date) : evening.date;
+      if (!nextDate || Number.isNaN(nextDate.getTime())) {
+        return res.status(400).json({
+          error: "Zum Fixieren ist ein Termin erforderlich",
+        });
+      }
+      evening.date = nextDate;
+    }
+
     // ===========================================
     // 1. Statistiken NUR bei fixiert → abgeschlossen
     // ===========================================
@@ -301,10 +429,14 @@ exports.changeEveningStatus = async (req, res) => {
     // ===========================================
     evening.status = status;
     await evening.save();
-    await rebuildUserStatsForYear(evening.spieljahr);
+    await rebuildUserStatsForYear(evening.spieljahr, {
+      isTestData: evening.isTestData === true,
+    });
 
     // Rückgabe
-    const updated = await Evening.findById(req.params.id)
+    const updated = await Evening.findOne(
+      scopedFilter(req, { _id: req.params.id }),
+    )
       .populate("spielleiterId", "displayName profileImageUrl")
       .populate("participantIds", "displayName profileImageUrl")
       .populate("games.gameId", "name category")
@@ -326,7 +458,9 @@ exports.changeEveningStatus = async (req, res) => {
 // 🧍‍♂️ Teilnahme hinzufügen
 exports.addParticipant = async (req, res) => {
   try {
-    const evening = await Evening.findById(req.params.id);
+    const evening = await Evening.findOne(
+      scopedFilter(req, { _id: req.params.id }),
+    );
     if (!evening) {
       return res.status(404).json({ error: "Abend nicht gefunden" });
     }
@@ -351,7 +485,9 @@ exports.addParticipant = async (req, res) => {
     evening.participantIds.push(userId);
     await evening.save();
 
-    const updated = await Evening.findById(req.params.id)
+    const updated = await Evening.findOne(
+      scopedFilter(req, { _id: req.params.id }),
+    )
       .populate("spielleiterId", "displayName profileImageUrl")
       .populate("participantIds", "displayName profileImageUrl");
 
@@ -369,7 +505,9 @@ exports.addParticipant = async (req, res) => {
 exports.removeParticipant = async (req, res) => {
   try {
     const { userId } = req.params;
-    const evening = await Evening.findById(req.params.id);
+    const evening = await Evening.findOne(
+      scopedFilter(req, { _id: req.params.id }),
+    );
     if (!evening) {
       return res.status(404).json({ error: "Abend nicht gefunden" });
     }
@@ -385,7 +523,9 @@ exports.removeParticipant = async (req, res) => {
     );
     await evening.save();
 
-    const updated = await Evening.findById(req.params.id)
+    const updated = await Evening.findOne(
+      scopedFilter(req, { _id: req.params.id }),
+    )
       .populate("spielleiterId", "displayName profileImageUrl")
       .populate("participantIds", "displayName profileImageUrl");
 
@@ -402,7 +542,9 @@ exports.removeParticipant = async (req, res) => {
 // 🎮 Spiele eines Abends abrufen
 exports.getEveningGames = async (req, res) => {
   try {
-    const evening = await Evening.findById(req.params.id)
+    const evening = await Evening.findOne(
+      scopedFilter(req, { _id: req.params.id }),
+    )
       .populate("games.gameId", "name category")
       .populate("games.scores.userId", "displayName");
 
@@ -426,10 +568,9 @@ exports.addEveningGame = async (req, res) => {
       return res.status(400).json({ error: "Ungültige Spiel-ID." });
     }
 
-    const evening = await Evening.findById(req.params.id).populate(
-      "participantIds",
-      "displayName profileImageUrl",
-    );
+    const evening = await Evening.findOne(
+      scopedFilter(req, { _id: req.params.id }),
+    ).populate("participantIds", "displayName profileImageUrl");
 
     if (!evening) {
       return res.status(404).json({ error: "Abend nicht gefunden" });
@@ -449,7 +590,9 @@ exports.addEveningGame = async (req, res) => {
     evening.games.push({ gameId, scores, notes });
     await evening.save();
 
-    const updated = await Evening.findById(req.params.id)
+    const updated = await Evening.findOne(
+      scopedFilter(req, { _id: req.params.id }),
+    )
       .populate("games.gameId", "name category")
       .populate("games.scores.userId", "displayName");
 
@@ -466,7 +609,9 @@ exports.updateEveningGame = async (req, res) => {
     const { gameEntryId } = req.params;
     const { scores, notes } = req.body;
 
-    const evening = await Evening.findById(req.params.id);
+    const evening = await Evening.findOne(
+      scopedFilter(req, { _id: req.params.id }),
+    );
     if (!evening) {
       return res.status(404).json({ error: "Abend nicht gefunden" });
     }
@@ -497,7 +642,9 @@ exports.updateEveningGame = async (req, res) => {
 exports.deleteEveningGame = async (req, res) => {
   try {
     const { gameEntryId } = req.params;
-    const evening = await Evening.findById(req.params.id);
+    const evening = await Evening.findOne(
+      scopedFilter(req, { _id: req.params.id }),
+    );
     if (!evening) {
       return res.status(404).json({ error: "Abend nicht gefunden" });
     }
@@ -522,7 +669,9 @@ exports.deleteEveningGame = async (req, res) => {
 
 exports.getArchivedEvenings = async (req, res) => {
   try {
-    const evenings = await Evening.find({ status: "gesperrt" })
+    const evenings = await Evening.find(
+      scopedFilter(req, { status: "gesperrt" }),
+    )
       .populate("spielleiterId", "displayName profileImageUrl")
       .populate("participantIds", "displayName profileImageUrl")
       .sort({ date: -1 });
@@ -542,7 +691,9 @@ exports.getArchivedEvenings = async (req, res) => {
 
 exports.recalculateEveningStats = async (req, res) => {
   try {
-    const evening = await Evening.findById(req.params.id);
+    const evening = await Evening.findOne(
+      scopedFilter(req, { _id: req.params.id }),
+    );
 
     if (!evening) {
       return res.status(404).json({ error: "Abend nicht gefunden" });
@@ -555,7 +706,9 @@ exports.recalculateEveningStats = async (req, res) => {
     await evening.save();
 
     // WICHTIG: Jahres-Statistiken vollständig neu berechnen
-    await rebuildUserStatsForYear(evening.spieljahr);
+    await rebuildUserStatsForYear(evening.spieljahr, {
+      isTestData: evening.isTestData === true,
+    });
 
     res.json({ message: "Statistiken aktualisiert", stats });
   } catch (err) {
@@ -567,18 +720,21 @@ exports.recalculateEveningStats = async (req, res) => {
 // 👤 Benutzer, die noch nicht Teilnehmer sind (für Dropdown)
 exports.getEligibleUsers = async (req, res) => {
   try {
-    const evening = await Evening.findById(req.params.id);
+    const evening = await Evening.findOne(
+      scopedFilter(req, { _id: req.params.id }),
+    );
     if (!evening) {
       return res.status(404).json({ error: "Abend nicht gefunden" });
     }
 
     // Hole alle aktiven Benutzer ausser bereits Teilnehmende
-    const users = await require("../models/User")
-      .find({
-        active: true,
-        _id: { $nin: evening.participantIds },
-      })
-      .select("_id displayName role");
+    const users = await User.find({
+      active: true,
+      ...(req.isTestMode
+        ? { isTestData: true }
+        : { isTestData: { $ne: true } }),
+      _id: { $nin: evening.participantIds },
+    }).select("_id displayName role");
 
     res.json(users);
   } catch (err) {
@@ -593,7 +749,7 @@ exports.uploadGroupPhoto = async (req, res) => {
 
   if (!file) return res.status(400).json({ error: "No file uploaded" });
 
-  const evening = await Evening.findById(id);
+  const evening = await Evening.findOne(scopedFilter(req, { _id: id }));
   if (!evening) return res.status(404).json({ error: "Evening not found" });
 
   const folder = `spielabend/evenings/${id}`;

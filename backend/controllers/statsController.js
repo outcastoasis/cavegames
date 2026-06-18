@@ -4,6 +4,7 @@ const User = require("../models/User");
 const Game = require("../models/Game");
 const UserStat = require("../models/UserStat");
 const { rebuildUserStatsForYear } = require("../utils/stats");
+const { scopedFilter } = require("../utils/testMode");
 
 /**
  * 🔢 Leaderboard für ein Jahr
@@ -14,14 +15,14 @@ exports.getLeaderboard = async (req, res) => {
     const year = parseInt(req.query.year);
     if (!year) return res.status(400).json({ error: "Year erforderlich" });
 
-    let stats = await UserStat.find({ spieljahr: year })
+    let stats = await UserStat.find(scopedFilter(req, { spieljahr: year }))
       .populate("userId", "displayName")
       .sort({ totalPoints: -1 });
 
     // Falls noch keine Stats existieren → neu aufbauen
     if (!stats.length) {
-      await rebuildUserStatsForYear(year);
-      stats = await UserStat.find({ spieljahr: year })
+      await rebuildUserStatsForYear(year, { isTestData: req.isTestMode });
+      stats = await UserStat.find(scopedFilter(req, { spieljahr: year }))
         .populate("userId", "displayName")
         .sort({ totalPoints: -1 });
     }
@@ -57,12 +58,12 @@ exports.getUserStats = async (req, res) => {
     const year = parseInt(req.query.year);
     if (!year) return res.status(400).json({ error: "Jahr erforderlich" });
 
-    let stat = await UserStat.findOne({ userId, spieljahr: year });
+    let stat = await UserStat.findOne(scopedFilter(req, { userId, spieljahr: year }));
 
     // Falls noch nichts existiert → Stats für Jahr aufbauen und erneut versuchen
     if (!stat) {
-      await rebuildUserStatsForYear(year);
-      stat = await UserStat.findOne({ userId, spieljahr: year });
+      await rebuildUserStatsForYear(year, { isTestData: req.isTestMode });
+      stat = await UserStat.findOne(scopedFilter(req, { userId, spieljahr: year }));
       if (!stat)
         return res.status(404).json({ error: "Keine Statistik gefunden" });
     }
@@ -83,10 +84,10 @@ exports.getEveningStats = async (req, res) => {
     const year = parseInt(req.query.year);
     if (!year) return res.status(400).json({ error: "Jahr erforderlich" });
 
-    const evenings = await Evening.find({
+    const evenings = await Evening.find(scopedFilter(req, {
       spieljahr: year,
       status: "gesperrt",
-    });
+    }));
 
     const totalEvenings = evenings.length;
     const totalParticipants = evenings.reduce(
@@ -133,7 +134,10 @@ exports.getGameStats = async (req, res) => {
     const year = parseInt(req.query.year);
 
     const evenings = await Evening.find(
-      year ? { spieljahr: year, status: "gesperrt" } : { status: "gesperrt" }
+      scopedFilter(
+        req,
+        year ? { spieljahr: year, status: "gesperrt" } : { status: "gesperrt" }
+      )
     );
 
     const gameCountMap = {};
@@ -168,7 +172,7 @@ exports.getUserStatsAllYears = async (req, res) => {
     const { userId } = req.params;
 
     // Alle Statistiken dieses Users laden
-    const stats = await UserStat.find({ userId }).sort({ spieljahr: 1 });
+    const stats = await UserStat.find(scopedFilter(req, { userId })).sort({ spieljahr: 1 });
 
     if (!stats.length) {
       return res.status(404).json({ error: "Keine Statistiken vorhanden" });

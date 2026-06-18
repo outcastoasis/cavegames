@@ -6,10 +6,27 @@ const {
   uploadToCloudinary,
   deleteFromCloudinary,
 } = require("../utils/uploadService");
+const { scopedFilter } = require("../utils/testMode");
+const { ensureTestUsers } = require("../utils/testUsers");
 
 exports.getAllUsers = async (req, res) => {
   try {
-    const users = await User.find({}, "-passwordHash").sort({ displayName: 1 });
+    if (req.isTestMode) {
+      await ensureTestUsers();
+
+      const [currentUser, testUsers] = await Promise.all([
+        User.findById(req.user._id, "-passwordHash"),
+        User.find({ isTestData: true }, "-passwordHash").sort({
+          displayName: 1,
+        }),
+      ]);
+
+      return res.json(currentUser ? [currentUser, ...testUsers] : testUsers);
+    }
+
+    const users = await User.find(scopedFilter(req), "-passwordHash").sort({
+      displayName: 1,
+    });
     res.json(users);
   } catch (err) {
     res.status(500).json({ error: "Benutzer konnten nicht geladen werden" });
@@ -18,7 +35,10 @@ exports.getAllUsers = async (req, res) => {
 
 exports.getUserById = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id, "-passwordHash");
+    const user = await User.findOne(
+      scopedFilter(req, { _id: req.params.id }),
+      "-passwordHash",
+    );
     if (!user)
       return res.status(404).json({ error: "Benutzer nicht gefunden" });
     res.json(user);
@@ -45,6 +65,7 @@ exports.createUser = async (req, res) => {
       passwordHash,
       role,
       active: true,
+      isTestData: req.isTestMode,
     });
 
     await newUser.save();
@@ -58,9 +79,19 @@ exports.updateUser = async (req, res) => {
   const { displayName, role, active, password } = req.body;
 
   try {
-    const user = await User.findById(req.params.id);
+    const user = await User.findOne(scopedFilter(req, { _id: req.params.id }));
     if (!user)
       return res.status(404).json({ error: "Benutzer nicht gefunden" });
+
+    if (
+      typeof active === "boolean" &&
+      active === false &&
+      req.params.id.toString() === req.user._id.toString()
+    ) {
+      return res
+        .status(400)
+        .json({ error: "Du kannst dich nicht selbst deaktivieren" });
+    }
 
     if (displayName) user.displayName = displayName;
     if (role) user.role = role;
@@ -74,20 +105,48 @@ exports.updateUser = async (req, res) => {
   }
 };
 
-exports.deactivateUser = async (req, res) => {
+exports.deleteUser = async (req, res) => {
   try {
-    const user = await User.findByIdAndUpdate(
-      req.params.id,
-      { active: false },
-      { new: true },
+    if (req.params.id.toString() === req.user._id.toString()) {
+      return resö
+        .status(400)
+        .json({ error: "Du kannst dich nicht selbst löschen" });
+    }
+
+    const user = await User.findOneAndDelete(
+      scopedFilter(req, { _id: req.params.id }),
     );
 
     if (!user)
       return res.status(404).json({ error: "Benutzer nicht gefunden" });
 
-    res.json({ message: "Benutzer deaktiviert" });
+    if (user.profileImagePublicId) {
+      await deleteFromCloudinary(user.profileImagePublicId);
+    }
+
+    res.json({ message: "Benutzer gelöscht" });
   } catch (err) {
-    res.status(500).json({ error: "Fehler beim Deaktivieren" });
+    res.status(500).json({ error: "Fehler beim Löschen" });
+  }
+};
+
+exports.removeUserAvatar = async (req, res) => {
+  try {
+    const user = await User.findOne(scopedFilter(req, { _id: req.params.id }));
+    if (!user)
+      return res.status(404).json({ error: "Benutzer nicht gefunden" });
+
+    if (user.profileImagePublicId) {
+      await deleteFromCloudinary(user.profileImagePublicId);
+    }
+
+    user.profileImageUrl = undefined;
+    user.profileImagePublicId = undefined;
+    await user.save();
+
+    res.json({ message: "Profilbild entfernt" });
+  } catch (err) {
+    res.status(500).json({ error: "Profilbild konnte nicht entfernt werden" });
   }
 };
 
@@ -98,7 +157,7 @@ exports.uploadUserAvatar = async (req, res) => {
   if (!file) return res.status(400).json({ error: "No file uploaded" });
 
   try {
-    const user = await User.findById(id);
+    const user = await User.findOne(scopedFilter(req, { _id: id }));
     if (!user) return res.status(404).json({ error: "User not found" });
 
     const folder = `spielabend/users/${id}`;

@@ -5,3 +5,25 @@
 - [x] Alle Jahre Graphen noch nicht eingebaut
 - [x] User Statistiken aktuell noch "forbidden" aufgrund der /years Route
 - [x] Toast bei Jahr abschliessen
+- [x] Neues Spiel direkt in AbendDetail mit Kategorie, Bild-URL und Beschreibung erfassen
+- [x] Admin: Abend bearbeiten ueber Jahresdetail
+- [x] Admin: Abend manuell fixieren und Terminfixierung zuruecksetzen
+- [x] Admin: Statistik neu berechnen Button im Abend anzeigen
+- [x] Admin: Umfragenverwaltung mit Anzeigen, Löschen, Finalisieren und ggf. neu öffnen
+- [x] Testmodus: Testdaten zuruecksetzen/löschen
+- [x] Testmodus: Testspieler neu erzeugen
+- [x] Testmodus: klarer Hinweis im Layout
+- [ ] Jahresverwaltung: Jahr wieder öffnen
+- [ ] Jahresverwaltung: Abschluss-Vorschau mit fehlenden/offenen Abenden
+- [ ] Jahresverwaltung: Vor Abschluss offene Abende, fehlende Scores und fehlende Teilnehmer pruefen
+- [ ] Jahresverwaltung: Statistik-Rebuild pro Jahr als Admin-Aktion
+- [x] Benutzerverwaltung: Passwort zuruecksetzen
+- [x] Benutzerverwaltung: Profilbild entfernen
+- [x] Benutzerverwaltung: Selbst-Deaktivierung verhindern
+- [x] Benutzerverwaltung: Sortieren/Filtern nach aktiv, Rolle und Testuser
+- [ ] Benutzerverwaltung: Rollen feiner machen (admin, spieler, spielleiter)
+- [ ] Abendverwaltung Fixieren muss per Datumauswahl funktionieren und nicht texteingabe
+- [ ] Abendverwaltung Bearbeiten PopUp erscheint mittig und nicht oben
+- [ ] Abende Gruppenbild hinzufügen implementieren
+- [ ] Abende Bilder und Beschreibung von Spielen hinzufügen.
+- [ ] Abende Darstellung optimieren. Abstände zur Seite auf Mobile ist noch ein wenig zu gross, nimmt zu viel platz ein.
