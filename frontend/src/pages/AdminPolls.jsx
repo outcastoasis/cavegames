@@ -13,6 +13,10 @@ import API from "../services/api";
 import Toast from "../components/ui/Toast";
 import PollCreateModal from "../components/forms/PollCreateModal";
 import "../styles/pages/AdminPolls.css";
+import {
+  formatSwissDate,
+  formatSwissDateTime,
+} from "../utils/swissDateTime";
 
 export default function AdminPolls() {
   const { user } = useAuth();
@@ -101,7 +105,7 @@ export default function AdminPolls() {
       .join(", ");
 
   const formatDate = (dateValue) =>
-    new Date(dateValue).toLocaleString("de-CH", {
+    formatSwissDateTime(dateValue, {
       weekday: "short",
       day: "2-digit",
       month: "short",
@@ -111,7 +115,7 @@ export default function AdminPolls() {
     });
 
   const formatDateOnly = (dateValue) =>
-    new Date(dateValue).toLocaleDateString("de-CH", {
+    formatSwissDate(dateValue, {
       day: "2-digit",
       month: "short",
       year: "numeric",

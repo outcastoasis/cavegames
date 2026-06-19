@@ -17,6 +17,12 @@ import {
 import "../styles/pages/Home.css";
 import "../styles/pages/Abende.css"; // Re-use Abende badge/toggle styles
 import { EveningListSkeleton } from "../components/ui/Skeleton";
+import {
+  formatSwissDate,
+  formatSwissTime,
+  getSwissCalendarDayDiff,
+  getSwissDateKey,
+} from "../utils/swissDateTime";
 
 const homeSayings = {
   today: [
@@ -136,7 +142,7 @@ export default function Home() {
       active = res.data.filter((e) => e.status !== "gesperrt");
 
       const now = new Date();
-      const todayStr = now.toDateString();
+      const todayStr = getSwissDateKey(now);
 
       let today = null;
       const future = [];
@@ -145,7 +151,7 @@ export default function Home() {
       active.forEach((e) => {
         if (!e.date) return;
         const eDate = new Date(e.date);
-        const eStr = eDate.toDateString();
+        const eStr = getSwissDateKey(e.date);
 
         if (eStr === todayStr) {
           today = e;
@@ -194,14 +200,7 @@ export default function Home() {
   };
 
   const calculateDaysLeft = (dateStr) => {
-    const now = new Date();
-    const target = new Date(dateStr);
-
-    now.setHours(0, 0, 0, 0);
-    target.setHours(0, 0, 0, 0);
-
-    const diffTime = target - now;
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return getSwissCalendarDayDiff(dateStr);
   };
 
   const fetchNotifications = async (activeEvenings) => {
@@ -263,16 +262,17 @@ export default function Home() {
 
   const formatEveningDate = (date) =>
     date
-      ? new Date(date).toLocaleDateString("de-CH", {
+      ? formatSwissDate(date, {
           weekday: "short",
           day: "2-digit",
           month: "short",
+          year: "numeric",
         })
       : "Datum offen";
 
   const formatEveningTime = (date) =>
     date
-      ? new Date(date).toLocaleTimeString("de-CH", {
+      ? formatSwissTime(date, {
           hour: "2-digit",
           minute: "2-digit",
         })
@@ -383,13 +383,13 @@ export default function Home() {
                   onChange={(event) =>
                     event.target.checked
                       ? handleJoin(abend._id)
-                      : handleLeave(abend._id)
+                    : handleLeave(abend._id)
                   }
                 />
-                <span className="toggle-slider" />
                 <span className="toggle-text">
                   {isTeilnehmer ? "Dabei" : "Nicht dabei"}
                 </span>
+                <span className="toggle-slider" />
               </label>
             </div>
           </div>

@@ -8,12 +8,13 @@ import {
   YAxis,
   Tooltip,
 } from "recharts";
+import { formatSwissDate } from "../../utils/swissDateTime";
 
 export default function LinePointsChart({ data }) {
   if (!data?.length) return null;
 
   const formatted = data.map((e) => ({
-    date: new Date(e.date).toLocaleDateString("de-CH", {
+    date: formatSwissDate(e.date, {
       day: "2-digit",
       month: "short",
     }),

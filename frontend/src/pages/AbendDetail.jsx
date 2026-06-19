@@ -24,6 +24,13 @@ import "../styles/pages/AbendDetail.css";
 import GameAddModal from "../components/forms/GameAddModal";
 import defaultAvatar from "../assets/images/avatar.jpg";
 import { AbendDetailSkeleton } from "../components/ui/Skeleton";
+import {
+  formatSwissDate,
+  formatSwissTime,
+  getSwissDateKey,
+  swissDateTimeInputToIso,
+  toSwissDateTimeInputValue,
+} from "../utils/swissDateTime";
 
 function GameImage({ imageUrl, name, onPreview }) {
   const hasImage = Boolean(imageUrl);
@@ -72,6 +79,10 @@ export default function AbendDetail() {
   const [eligibleUsers, setEligibleUsers] = useState([]);
   const [scoreInputs, setScoreInputs] = useState({});
   const [focusedField, setFocusedField] = useState(null);
+  const [showDateEditModal, setShowDateEditModal] = useState(false);
+  const [dateEditValue, setDateEditValue] = useState("");
+  const [dateEditError, setDateEditError] = useState("");
+  const [savingDateEdit, setSavingDateEdit] = useState(false);
   const scoreInputRefs = useRef({});
 
   useEffect(() => {
@@ -123,6 +134,43 @@ export default function AbendDetail() {
       );
     } finally {
       setBusy(false);
+    }
+  };
+
+  const openDateEditModal = () => {
+    setDateEditValue(toSwissDateTimeInputValue(abend.date));
+    setDateEditError("");
+    setShowDateEditModal(true);
+  };
+
+  const handleSaveDateEdit = async (event) => {
+    event.preventDefault();
+    if (!dateEditValue) {
+      setDateEditError("Bitte Datum und Uhrzeit auswählen.");
+      return;
+    }
+
+    const nextDate = swissDateTimeInputToIso(dateEditValue);
+    if (!nextDate) {
+      setDateEditError("Bitte einen gültigen Termin auswählen.");
+      return;
+    }
+
+    setSavingDateEdit(true);
+    setDateEditError("");
+    try {
+      await API.patch(`/evenings/${id}/status`, {
+        status: "fixiert",
+        date: nextDate,
+      });
+      setShowDateEditModal(false);
+      await fetchAbend();
+    } catch (err) {
+      setDateEditError(
+        err.response?.data?.error || "Termin konnte nicht gespeichert werden.",
+      );
+    } finally {
+      setSavingDateEdit(false);
     }
   };
 
@@ -326,6 +374,7 @@ export default function AbendDetail() {
   const isTeilnehmer = abend.participantRefs?.some((p) => p._id === user._id);
   const backTarget = abend.status === "gesperrt" ? "/historie" : "/abende";
   const isGesperrt = abend.status === "gesperrt";
+  const canEditDate = isPrivileged && isFixiert;
   const canEditScores =
     !isGesperrt &&
     ((isAdmin && (isFixiert || isAbgeschlossen)) ||
@@ -333,7 +382,7 @@ export default function AbendDetail() {
 
   const isToday =
     abend.date &&
-    new Date(abend.date).toDateString() === new Date().toDateString();
+    getSwissDateKey(abend.date) === getSwissDateKey(new Date());
 
   const canAddGame =
     !isGesperrt && ((isAdmin && isFixiert) || (isSpielleiter && isFixiert));
@@ -345,14 +394,15 @@ export default function AbendDetail() {
   const canRecalculateStats = isPrivileged && (isAbgeschlossen || isGesperrt);
 
   const formattedDate = abend.date
-    ? new Date(abend.date).toLocaleDateString("de-CH", {
+    ? formatSwissDate(abend.date, {
         weekday: "long",
         day: "2-digit",
         month: "long",
+        year: "numeric",
       })
     : null;
   const formattedTime = abend.date
-    ? new Date(abend.date).toLocaleTimeString("de-CH", {
+    ? formatSwissTime(abend.date, {
         hour: "2-digit",
         minute: "2-digit",
       })
@@ -401,29 +451,44 @@ export default function AbendDetail() {
               <CalendarDays size={20} />
               <span>{formattedDate || "Termin wird abgestimmt"}</span>
             </div>
-            <span
-              className={`abenddetail-status-badge abenddetail-status-badge--${abend.status}`}
-            >
-              {abend.status}
-            </span>
+            <div className="abenddetail-event-summary-actions">
+              <span
+                className={`abenddetail-status-badge abenddetail-status-badge--${abend.status}`}
+              >
+                {abend.status}
+              </span>
+              {canEditDate && (
+                <button
+                  type="button"
+                  className="abenddetail-edit-date-button"
+                  onClick={openDateEditModal}
+                  aria-label="Termin bearbeiten"
+                  title="Termin bearbeiten"
+                >
+                  <Pencil size={17} />
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="abenddetail-event-meta">
-            <div className="abenddetail-event-meta-item">
-              <UsersIcon size={16} />
-              <span>Spielleiter: {abend.spielleiterRef?.displayName}</span>
+            <div className="abenddetail-event-meta-item abenddetail-event-meta-item--time">
+              {formattedTime && (
+                <>
+                  <Clock size={16} />
+                  <span>{formattedTime} Uhr</span>
+                </>
+              )}
             </div>
-            <div className="abenddetail-event-meta-item abenddetail-event-meta-item--place-time">
+            <div className="abenddetail-event-meta-item abenddetail-event-meta-item--host-place">
+              <span className="abenddetail-event-meta-group">
+                <UsersIcon size={16} />
+                <span>Spielleiter: {abend.spielleiterRef?.displayName}</span>
+              </span>
               <span className="abenddetail-event-meta-group">
                 <MapPinHouse size={16} />
                 <span>bei {abend.spielleiterRef?.displayName}</span>
               </span>
-              {formattedTime && (
-                <span className="abenddetail-event-meta-group">
-                  <Clock size={16} />
-                  <span>{formattedTime} Uhr</span>
-                </span>
-              )}
             </div>
           </div>
         </section>
@@ -447,7 +512,7 @@ export default function AbendDetail() {
                 />
                 <span className="abenddetail-toggle-slider" />
                 <span className="abenddetail-toggle-text">
-                  {isTeilnehmer ? "Ich nehme teil" : "Ich bin nicht dabei"}
+                  {isTeilnehmer ? "Dabei" : "Nicht dabei"}
                 </span>
               </label>
             </div>
@@ -846,6 +911,53 @@ export default function AbendDetail() {
           onSuccess={fetchAbend}
         />
       )}
+
+      {showDateEditModal &&
+        createPortal(
+          <div className="abenddetail-modal-overlay">
+            <div className="abenddetail-date-modal" role="dialog" aria-modal="true">
+              <h2>Termin bearbeiten</h2>
+              <form
+                className="abenddetail-date-modal-form"
+                onSubmit={handleSaveDateEdit}
+              >
+                <label>
+                  Datum und Uhrzeit
+                  <input
+                    type="datetime-local"
+                    className="input"
+                    value={dateEditValue}
+                    onChange={(event) => setDateEditValue(event.target.value)}
+                    disabled={savingDateEdit}
+                  />
+                </label>
+                {dateEditError && (
+                  <p className="abenddetail-date-modal-error">
+                    {dateEditError}
+                  </p>
+                )}
+                <div className="abenddetail-date-modal-actions">
+                  <button
+                    type="button"
+                    className="button neutral"
+                    onClick={() => setShowDateEditModal(false)}
+                    disabled={savingDateEdit}
+                  >
+                    Abbrechen
+                  </button>
+                  <button
+                    type="submit"
+                    className="button primary"
+                    disabled={savingDateEdit}
+                  >
+                    {savingDateEdit ? "Speichern..." : "Speichern"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>,
+          document.body,
+        )}
 
       {previewGame &&
         createPortal(

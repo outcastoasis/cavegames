@@ -3,6 +3,10 @@ import { useState } from "react";
 import { createPortal } from "react-dom";
 import API from "../../services/api";
 import "../../styles/components/PollCreateModal.css";
+import {
+  getSwissTodayInputValue,
+  swissDateTimeToIso,
+} from "../../utils/swissDateTime";
 
 export default function PollCreateModal({ onClose, eveningId, onSuccess }) {
   const [options, setOptions] = useState([{ date: "", time: "" }]);
@@ -36,7 +40,7 @@ export default function PollCreateModal({ onClose, eveningId, onSuccess }) {
     const payload = {
       eveningId,
       options: validOptions.map((opt) => ({
-        date: new Date(`${opt.date}T${opt.time}`).toISOString(),
+        date: swissDateTimeToIso(opt.date, opt.time),
       })),
     };
 
@@ -74,7 +78,7 @@ export default function PollCreateModal({ onClose, eveningId, onSuccess }) {
               <div className="poll-input-group">
                 <input
                   type="date"
-                  min={new Date().toISOString().split("T")[0]}
+                  min={getSwissTodayInputValue()}
                   value={opt.date}
                   onChange={(e) => handleChange(idx, "date", e.target.value)}
                   className="input"

@@ -16,6 +16,12 @@ import "../styles/pages/Home.css";
 import EveningCreateModal from "../components/forms/EveningCreateModal";
 import PollCreateModal from "../components/forms/PollCreateModal";
 import { EveningListSkeleton } from "../components/ui/Skeleton";
+import {
+  formatSwissDate,
+  formatSwissTime,
+  getSwissCalendarDayDiff,
+  getSwissDateKey,
+} from "../utils/swissDateTime";
 
 export default function Abende() {
   const { user } = useAuth();
@@ -45,7 +51,7 @@ export default function Abende() {
       const res = await API.get("/evenings");
       const active = res.data.filter((e) => e.status !== "gesperrt");
 
-      const todayStr = new Date().toDateString();
+      const todayStr = getSwissDateKey(new Date());
       const now = new Date();
 
       const past = [];
@@ -58,7 +64,7 @@ export default function Abende() {
       active.forEach((e) => {
         if (!e.date) return;
         const eDate = new Date(e.date);
-        const eStr = eDate.toDateString();
+        const eStr = getSwissDateKey(e.date);
 
         if (eStr === todayStr) {
           todayEvening = e;
@@ -132,28 +138,22 @@ export default function Abende() {
   };
 
   const calculateDaysLeft = (dateStr) => {
-    const now = new Date();
-    const target = new Date(dateStr);
-
-    now.setHours(0, 0, 0, 0);
-    target.setHours(0, 0, 0, 0);
-
-    const diffTime = target - now;
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return getSwissCalendarDayDiff(dateStr);
   };
 
   const formatEveningDate = (date) =>
     date
-      ? new Date(date).toLocaleDateString("de-CH", {
+      ? formatSwissDate(date, {
           weekday: "short",
           day: "2-digit",
           month: "short",
+          year: "numeric",
         })
       : "Datum offen";
 
   const formatEveningTime = (date) =>
     date
-      ? new Date(date).toLocaleTimeString("de-CH", {
+      ? formatSwissTime(date, {
           hour: "2-digit",
           minute: "2-digit",
         })
@@ -164,7 +164,7 @@ export default function Abende() {
     const isOffen = abend.status === "offen";
     const isToday =
       abend.date &&
-      new Date(abend.date).toDateString() === new Date().toDateString();
+      getSwissDateKey(abend.date) === getSwissDateKey(new Date());
     const isSpielleiter = user?._id === abend.spielleiterRef?._id;
     const isTeilnehmer = abend.participantRefs?.some((p) => p._id === user._id);
     const hasPoll = Boolean(abend.pollId);
@@ -249,10 +249,10 @@ export default function Abende() {
                     }
                     disabled={busy}
                   />
-                  <span className="toggle-slider" />
                   <span className="toggle-text">
                     {isTeilnehmer ? "Dabei" : "Nicht dabei"}
                   </span>
+                  <span className="toggle-slider" />
                 </label>
               </div>
             )}

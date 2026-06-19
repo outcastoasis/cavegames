@@ -118,11 +118,11 @@
   transition: transform 0.25s ease;
 }
 
-.toggle-label.small input:checked + .toggle-slider {
+.toggle-label.small input:checked ~ .toggle-slider {
   background: linear-gradient(180deg, #4ade80, #059669);
 }
 
-.toggle-label.small input:checked + .toggle-slider::after {
+.toggle-label.small input:checked ~ .toggle-slider::after {
   transform: translateX(24px);
 }
 

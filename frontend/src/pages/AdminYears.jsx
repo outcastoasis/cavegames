@@ -5,6 +5,7 @@ import API from "../services/api";
 import "../styles/pages/AdminYears.css";
 import { Link } from "react-router-dom";
 import Toast from "../components/ui/Toast";
+import { formatSwissDate } from "../utils/swissDateTime";
 
 export default function AdminYears() {
   const { user } = useAuth();
@@ -103,7 +104,7 @@ export default function AdminYears() {
                 {year.closedAt && (
                   <p className="small">
                     Abgeschlossen am:{" "}
-                    {new Date(year.closedAt).toLocaleDateString("de-CH")}
+                    {formatSwissDate(year.closedAt)}
                   </p>
                 )}
               </div>

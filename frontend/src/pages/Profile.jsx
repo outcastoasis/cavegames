@@ -14,6 +14,7 @@ import BarYearComparison from "../components/charts/BarYearComparison";
 import ActivityHeatmap from "../components/charts/ActivityHeatmap";
 import defaultAvatar from "../assets/images/avatar.jpg";
 import Toast from "../components/ui/Toast";
+import { formatSwissDate } from "../utils/swissDateTime";
 
 import "../styles/pages/Profile.css";
 
@@ -370,7 +371,7 @@ export default function Profile() {
                   {yearStats.scoreTrend.map((entry, i) => (
                     <tr key={i}>
                       <td>
-                        {new Date(entry.date).toLocaleDateString("de-CH")}
+                        {formatSwissDate(entry.date)}
                       </td>
                       <td>{entry.points}</td>
                       <td>{yearStats.placementTrend?.[i]?.place || "-"}</td>

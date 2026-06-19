@@ -18,6 +18,11 @@ import {
 } from "lucide-react";
 import "../styles/pages/YearDetail.css";
 import "../styles/components/Modal.css";
+import {
+  formatSwissDate,
+  swissDateTimeInputToIso,
+  toSwissDateTimeInputValue,
+} from "../utils/swissDateTime";
 
 export default function YearDetail() {
   const { user } = useAuth();
@@ -71,14 +76,6 @@ export default function YearDetail() {
     setYears(yearsRes.data);
   };
 
-  const toDateInputValue = (dateValue) => {
-    if (!dateValue) return "";
-    const date = new Date(dateValue);
-    if (Number.isNaN(date.getTime())) return "";
-    date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
-    return date.toISOString().slice(0, 16);
-  };
-
   const handleDeleteEvening = async (eveningId) => {
     const ok = window.confirm(
       "Willst du diesen Abend wirklich löschen? Umfrage und Statistiken für dieses Jahr werden entsprechend aktualisiert.",
@@ -105,7 +102,7 @@ export default function YearDetail() {
       setEditForm({
         spieljahr: String(abend.spieljahr || year),
         spielleiterId: abend.spielleiterRef?._id || "",
-        date: toDateInputValue(abend.date),
+        date: toSwissDateTimeInputValue(abend.date),
       });
       setError("");
     } catch (err) {
@@ -127,7 +124,7 @@ export default function YearDetail() {
       await API.patch(`/evenings/${editEvening._id}`, {
         spieljahr: Number(editForm.spieljahr),
         spielleiterId: editForm.spielleiterId,
-        date: editForm.date ? new Date(editForm.date).toISOString() : null,
+        date: editForm.date ? swissDateTimeInputToIso(editForm.date) : null,
       });
       setEditEvening(null);
       await fetchYearData();
@@ -142,7 +139,7 @@ export default function YearDetail() {
 
   const handleFixEvening = async (abend) => {
     setFixEvening(abend);
-    setFixDate(toDateInputValue(abend.date));
+    setFixDate(toSwissDateTimeInputValue(abend.date));
     setError("");
   };
 
@@ -155,7 +152,7 @@ export default function YearDetail() {
     try {
       await API.patch(`/evenings/${fixEvening._id}/status`, {
         status: "fixiert",
-        date: new Date(fixDate).toISOString(),
+        date: swissDateTimeInputToIso(fixDate),
       });
       setFixEvening(null);
       setFixDate("");
@@ -202,7 +199,7 @@ export default function YearDetail() {
             <span className="year-detail-pill year-detail-pill-closed">
               <Info size={14} />
               Abgeschlossen am{" "}
-              {new Date(yearObj.closedAt).toLocaleDateString("de-CH")}
+              {formatSwissDate(yearObj.closedAt)}
             </span>
           ) : (
             <span className="year-detail-pill year-detail-pill-open">
@@ -244,7 +241,7 @@ export default function YearDetail() {
                 <div className="year-detail-date">
                   <CalendarDays size={16} />
                   {abend.date
-                    ? new Date(abend.date).toLocaleDateString("de-CH", {
+                    ? formatSwissDate(abend.date, {
                         weekday: "short",
                         day: "2-digit",
                         month: "short",

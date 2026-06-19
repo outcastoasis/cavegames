@@ -5,6 +5,10 @@ import { useOutletContext } from "react-router-dom";
 import { CalendarDays, CheckCircle2, Lock } from "lucide-react";
 import "../styles/pages/Polls.css";
 import Toast from "../components/ui/Toast";
+import {
+  formatSwissDate,
+  formatSwissDateTime,
+} from "../utils/swissDateTime";
 
 export default function Polls() {
   const { user } = useAuth();
@@ -96,7 +100,7 @@ export default function Polls() {
   const sortByDateAsc = (a, b) => new Date(a.date) - new Date(b.date);
 
   const formatPollDate = (dateValue) =>
-    new Date(dateValue).toLocaleString("de-CH", {
+    formatSwissDateTime(dateValue, {
       weekday: "short",
       day: "2-digit",
       month: "short",
@@ -106,7 +110,7 @@ export default function Polls() {
     });
 
   const formatFinalizedDate = (dateValue) =>
-    new Date(dateValue).toLocaleDateString("de-CH", {
+    formatSwissDate(dateValue, {
       weekday: "long",
       day: "2-digit",
       month: "long",

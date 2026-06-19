@@ -4,6 +4,7 @@ import { useNavigate, useOutletContext } from "react-router-dom";
 import API from "../services/api";
 import "../styles/pages/Historie.css";
 import { MapPin, Users, Trophy } from "lucide-react";
+import { formatSwissDate } from "../utils/swissDateTime";
 
 export default function Historie() {
   const { setTitle } = useOutletContext();
@@ -156,7 +157,7 @@ export default function Historie() {
                 {/* Datum */}
                 <div className="history-date">
                   <strong>
-                    {new Date(e.date).toLocaleDateString("de-CH", {
+                    {formatSwissDate(e.date, {
                       day: "2-digit",
                       month: "long",
                       year: "numeric",
