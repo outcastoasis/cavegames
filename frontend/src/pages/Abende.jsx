@@ -1,6 +1,6 @@
 // src/pages/Abende.jsx
 import { useEffect, useState } from "react";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/authState";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import API from "../services/api";
 import {
@@ -44,7 +44,7 @@ export default function Abende() {
   useEffect(() => {
     setTitle("Abende");
     fetchEvenings();
-  }, []);
+  }, [setTitle]);
 
   const fetchEvenings = async () => {
     try {

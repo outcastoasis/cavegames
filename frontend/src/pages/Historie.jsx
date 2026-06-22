@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { useAuth } from "../context/AuthContext";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import API from "../services/api";
 import "../styles/pages/Historie.css";
@@ -8,7 +7,6 @@ import { formatSwissDate } from "../utils/swissDateTime";
 
 export default function Historie() {
   const { setTitle } = useOutletContext();
-  const { user } = useAuth();
   const navigate = useNavigate();
 
   const [grouped, setGrouped] = useState({});
@@ -16,12 +14,7 @@ export default function Historie() {
   const [selectedYear, setSelectedYear] = useState(null);
   const [summary, setSummary] = useState(null);
 
-  useEffect(() => {
-    setTitle("Historie");
-    fetchArchived();
-  }, []);
-
-  const fetchArchived = async () => {
+  const fetchArchived = useCallback(async () => {
     try {
       const res = await API.get("/evenings/archived");
 
@@ -44,20 +37,23 @@ export default function Historie() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    setTitle("Historie");
+    fetchArchived();
+  }, [fetchArchived, setTitle]);
 
   const years = Object.keys(grouped)
     .map(Number)
     .sort((a, b) => b - a);
 
-  const evenings = grouped[selectedYear] || [];
+  const evenings = useMemo(
+    () => grouped[selectedYear] || [],
+    [grouped, selectedYear],
+  );
 
-  useEffect(() => {
-    if (!selectedYear) return;
-    loadYearStats(selectedYear);
-  }, [selectedYear]);
-
-  const loadYearStats = async (year) => {
+  const loadYearStats = useCallback(async (year) => {
     try {
       const [leaderRes, eveningRes] = await Promise.all([
         API.get(`/stats/leaderboard?year=${year}`),
@@ -79,7 +75,12 @@ export default function Historie() {
     } catch (err) {
       console.error("Fehler beim Laden der Jahresstatistik:", err);
     }
-  };
+  }, [evenings]);
+
+  useEffect(() => {
+    if (!selectedYear) return;
+    loadYearStats(selectedYear);
+  }, [loadYearStats, selectedYear]);
 
   return (
     <div className="historie-page">

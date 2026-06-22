@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Navigate, useNavigate, useOutletContext } from "react-router-dom";
 import {
   CalendarPlus,
@@ -8,7 +8,7 @@ import {
   RotateCcw,
   Trash2,
 } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/authState";
 import API from "../services/api";
 import Toast from "../components/ui/Toast";
 import PollCreateModal from "../components/forms/PollCreateModal";
@@ -34,17 +34,25 @@ export default function AdminPolls() {
     fetchPolls();
   }, [setTitle]);
 
-  const getSortedOptions = (poll) =>
-    [...(poll.options || [])].sort((a, b) => new Date(a.date) - new Date(b.date));
+  const getSortedOptions = useCallback(
+    (poll) =>
+      [...(poll.options || [])].sort(
+        (a, b) => new Date(a.date) - new Date(b.date),
+      ),
+    [],
+  );
 
-  const getPollStartDate = (poll) => getSortedOptions(poll)[0]?.date || poll.createdAt;
+  const getPollStartDate = useCallback(
+    (poll) => getSortedOptions(poll)[0]?.date || poll.createdAt,
+    [getSortedOptions],
+  );
 
   const activePolls = useMemo(
     () =>
       polls
         .filter((poll) => !poll.finalizedOption)
         .sort((a, b) => new Date(getPollStartDate(a)) - new Date(getPollStartDate(b))),
-    [polls],
+    [getPollStartDate, polls],
   );
   const finalizedPolls = useMemo(
     () =>

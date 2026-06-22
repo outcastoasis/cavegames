@@ -1,7 +1,6 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
-
-const AuthContext = createContext();
+import { AuthContext } from "./authState";
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -60,7 +59,3 @@ export function AuthProvider({ children }) {
   );
 }
 
-// Custom Hook
-export function useAuth() {
-  return useContext(AuthContext);
-}

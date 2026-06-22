@@ -1,9 +1,9 @@
 // src/pages/AbendDetail.jsx
-import { useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useParams, useNavigate, useOutletContext } from "react-router-dom";
 import API from "../services/api";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/authState";
 import {
   ArrowLeft,
   Trophy,
@@ -85,17 +85,22 @@ export default function AbendDetail() {
   const [savingDateEdit, setSavingDateEdit] = useState(false);
   const scoreInputRefs = useRef({});
 
-  useEffect(() => {
-    fetchAbend();
-  }, [id]);
-
   const { setTitle } = useOutletContext();
 
   useEffect(() => {
     setTitle("Abenddetails");
   }, [setTitle]);
 
-  const fetchAbend = async () => {
+  const fetchEligibleUsers = useCallback(async () => {
+    try {
+      const res = await API.get(`/evenings/${id}/eligible-users`);
+      setEligibleUsers(res.data);
+    } catch (err) {
+      console.error("Fehler beim Laden der verfÃ¼gbaren Benutzer:", err);
+    }
+  }, [id]);
+
+  const fetchAbend = useCallback(async () => {
     try {
       const res = await API.get(`/evenings/${id}`);
       setAbend(res.data);
@@ -105,7 +110,11 @@ export default function AbendDetail() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [fetchEligibleUsers, id]);
+
+  useEffect(() => {
+    fetchAbend();
+  }, [fetchAbend]);
 
   const handleJoin = async () => {
     if (busy) return;
@@ -332,15 +341,6 @@ export default function AbendDetail() {
       );
     } finally {
       setRecalculatingStats(false);
-    }
-  };
-
-  const fetchEligibleUsers = async () => {
-    try {
-      const res = await API.get(`/evenings/${id}/eligible-users`);
-      setEligibleUsers(res.data);
-    } catch (err) {
-      console.error("Fehler beim Laden der verfügbaren Benutzer:", err);
     }
   };
 

@@ -4,7 +4,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import { useState } from "react";
 import Header from "../components/common/Header";
 import Navbar from "../components/common/Navbar";
-import { useTestMode } from "../context/TestModeContext";
+import { useTestMode } from "../context/testMode";
 import "../styles/layouts/DashboardLayout.css";
 
 export default function DashboardLayout() {

@@ -1,8 +1,8 @@
 // src/pages/YearDetail.jsx
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useParams, useNavigate, useOutletContext } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/authState";
 import API from "../services/api";
 import {
   ArrowLeft,
@@ -47,13 +47,7 @@ export default function YearDetail() {
   const [savingFix, setSavingFix] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    setTitle(`Jahr ${year}`);
-    setLoading(true);
-    fetchYearData();
-  }, [year]);
-
-  const fetchYearData = async () => {
+  const fetchYearData = useCallback(async () => {
     try {
       const res = await API.get(`/years/${year}`);
       setData(res.data);
@@ -64,7 +58,13 @@ export default function YearDetail() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [year]);
+
+  useEffect(() => {
+    setTitle(`Jahr ${year}`);
+    setLoading(true);
+    fetchYearData();
+  }, [fetchYearData, setTitle, year]);
 
   const fetchAdminOptions = async () => {
     if (users.length && years.length) return;
@@ -105,7 +105,7 @@ export default function YearDetail() {
         date: toSwissDateTimeInputValue(abend.date),
       });
       setError("");
-    } catch (err) {
+    } catch {
       setError("Daten für Bearbeitung konnten nicht geladen werden");
     }
   };

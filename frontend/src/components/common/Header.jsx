@@ -7,8 +7,8 @@ import {
   Settings,
   Users,
 } from "lucide-react";
-import { useAuth } from "../../context/AuthContext";
-import { useTestMode } from "../../context/TestModeContext";
+import { useAuth } from "../../context/authState";
+import { useTestMode } from "../../context/testMode";
 import { useNavigate } from "react-router-dom";
 import "../../styles/Header.css";
 

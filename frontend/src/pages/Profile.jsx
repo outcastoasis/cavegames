@@ -1,8 +1,8 @@
 // frontend/src/pages/Profile.jsx
 
-import { useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { useParams, useNavigate, useOutletContext } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/authState";
 import API from "../services/api";
 import ChartWrapper from "../components/charts/ChartWrapper";
 import ChartPlaceholder from "../components/charts/ChartPlaceholder";
@@ -40,12 +40,19 @@ export default function Profile() {
   const [toast, setToast] = useState(null);
   const toastTimer = useRef(null);
 
-  useEffect(() => {
-    setTitle("Profil");
-    loadAvailableYears();
-  }, []);
+  const loadYearStats = useCallback(async (year) => {
+    if (!year) return;
+    setLoadingYear(true);
+    try {
+      const res = await API.get(`/stats/user/${userId}?year=${year}`);
+      setYearStats(res.data);
+    } catch (err) {
+      console.error("Fehler beim Laden der Jahresstatistik:", err);
+    }
+    setLoadingYear(false);
+  }, [userId]);
 
-  async function loadAvailableYears() {
+  const loadAvailableYears = useCallback(async () => {
     try {
       const res = await API.get("/years");
       const yrs = res.data.map((y) => y.year).sort((a, b) => b - a);
@@ -56,21 +63,9 @@ export default function Profile() {
     } catch (err) {
       console.error("Fehler beim Laden der Jahre:", err);
     }
-  }
+  }, [loadYearStats]);
 
-  async function loadYearStats(year) {
-    if (!year) return;
-    setLoadingYear(true);
-    try {
-      const res = await API.get(`/stats/user/${userId}?year=${year}`);
-      setYearStats(res.data);
-    } catch (err) {
-      console.error("Fehler beim Laden der Jahresstatistik:", err);
-    }
-    setLoadingYear(false);
-  }
-
-  async function loadMultiYearStats() {
+  const loadMultiYearStats = useCallback(async () => {
     setLoadingMulti(true);
     try {
       const res = await API.get(`/stats/user/${userId}/all`);
@@ -79,7 +74,12 @@ export default function Profile() {
       console.error("Fehler Multi-Year:", err);
     }
     setLoadingMulti(false);
-  }
+  }, [userId]);
+
+  useEffect(() => {
+    setTitle("Profil");
+    loadAvailableYears();
+  }, [loadAvailableYears, setTitle]);
 
   // Toggle zwischen Jahresansicht und globaler Ansicht
   function toggleViewAll() {

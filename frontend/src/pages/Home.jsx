@@ -1,6 +1,6 @@
 // frontend/src/pages/Home.jsx
-import { useEffect, useState } from "react";
-import { useAuth } from "../context/AuthContext";
+import { useCallback, useEffect, useState } from "react";
+import { useAuth } from "../context/authState";
 import { useOutletContext, useNavigate } from "react-router-dom";
 import API from "../services/api";
 import {
@@ -108,12 +108,7 @@ export default function Home() {
   });
   const [sayingSeed] = useState(() => Math.random());
 
-  useEffect(() => {
-    setTitle("Cavegames");
-    fetchNextEvening();
-  }, []);
-
-  const buildDashboardStats = (evenings) => {
+  const buildDashboardStats = useCallback((evenings) => {
     const myEvenings = evenings.filter((e) =>
       e.participantRefs?.some((p) => p._id === user._id),
     );
@@ -132,78 +127,9 @@ export default function Home() {
       lastPoints,
       myEvenings: myEvenings.length,
     };
-  };
+  }, [user._id]);
 
-  const fetchNextEvening = async () => {
-    let active = [];
-
-    try {
-      const res = await API.get("/evenings");
-      active = res.data.filter((e) => e.status !== "gesperrt");
-
-      const now = new Date();
-      const todayStr = getSwissDateKey(now);
-
-      let today = null;
-      const future = [];
-      const past = [];
-
-      active.forEach((e) => {
-        if (!e.date) return;
-        const eDate = new Date(e.date);
-        const eStr = getSwissDateKey(e.date);
-
-        if (eStr === todayStr) {
-          today = e;
-        } else if (eDate > now) {
-          future.push(e);
-        } else {
-          past.push(e);
-        }
-      });
-
-      future.sort((a, b) => new Date(a.date) - new Date(b.date));
-      past.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-      setTodayEvening(today);
-      setNextEvening(future[0] || null);
-      setLastEvening(past[0] || null);
-      setDashboardStats(buildDashboardStats(active));
-    } catch (err) {
-      console.error("Fehler beim Laden:", err);
-    } finally {
-      await fetchNotifications(active);
-      setLoading(false);
-    }
-  };
-
-  const handleJoin = async (eveningId) => {
-    if (busy) return;
-    setBusy(true);
-    try {
-      await API.post(`/evenings/${eveningId}/participants`);
-      fetchNextEvening();
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const handleLeave = async (eveningId) => {
-    if (busy) return;
-    setBusy(true);
-    try {
-      await API.delete(`/evenings/${eveningId}/participants/${user._id}`);
-      fetchNextEvening();
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const calculateDaysLeft = (dateStr) => {
-    return getSwissCalendarDayDiff(dateStr);
-  };
-
-  const fetchNotifications = async (activeEvenings) => {
+  const fetchNotifications = useCallback(async (activeEvenings) => {
     const notes = [];
 
     activeEvenings.forEach((e) => {
@@ -258,6 +184,80 @@ export default function Home() {
     }
 
     setNotificationList(notes);
+  }, [user._id]);
+
+  const fetchNextEvening = useCallback(async () => {
+    let active = [];
+
+    try {
+      const res = await API.get("/evenings");
+      active = res.data.filter((e) => e.status !== "gesperrt");
+
+      const now = new Date();
+      const todayStr = getSwissDateKey(now);
+
+      let today = null;
+      const future = [];
+      const past = [];
+
+      active.forEach((e) => {
+        if (!e.date) return;
+        const eDate = new Date(e.date);
+        const eStr = getSwissDateKey(e.date);
+
+        if (eStr === todayStr) {
+          today = e;
+        } else if (eDate > now) {
+          future.push(e);
+        } else {
+          past.push(e);
+        }
+      });
+
+      future.sort((a, b) => new Date(a.date) - new Date(b.date));
+      past.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      setTodayEvening(today);
+      setNextEvening(future[0] || null);
+      setLastEvening(past[0] || null);
+      setDashboardStats(buildDashboardStats(active));
+    } catch (err) {
+      console.error("Fehler beim Laden:", err);
+    } finally {
+      await fetchNotifications(active);
+      setLoading(false);
+    }
+  }, [buildDashboardStats, fetchNotifications]);
+
+  useEffect(() => {
+    setTitle("Cavegames");
+    fetchNextEvening();
+  }, [fetchNextEvening, setTitle]);
+
+  const handleJoin = async (eveningId) => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await API.post(`/evenings/${eveningId}/participants`);
+      fetchNextEvening();
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleLeave = async (eveningId) => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await API.delete(`/evenings/${eveningId}/participants/${user._id}`);
+      fetchNextEvening();
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const calculateDaysLeft = (dateStr) => {
+    return getSwissCalendarDayDiff(dateStr);
   };
 
   const formatEveningDate = (date) =>

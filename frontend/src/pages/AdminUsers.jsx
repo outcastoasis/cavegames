@@ -8,7 +8,7 @@ import {
   UserPlus,
   Users,
 } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/authState";
 import API from "../services/api";
 import "../styles/pages/AdminUsers.css";
 import UserCreateModal from "../components/forms/UserCreateModal";

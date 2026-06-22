@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import API from "../services/api";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/authState";
 import { useOutletContext } from "react-router-dom";
 import { CalendarDays, CheckCircle2, Lock } from "lucide-react";
 import "../styles/pages/Polls.css";
@@ -23,7 +23,7 @@ export default function Polls() {
   useEffect(() => {
     setTitle("Umfragen");
     fetchPolls();
-  }, []);
+  }, [setTitle]);
 
   const fetchPolls = async () => {
     try {
@@ -230,7 +230,6 @@ export default function Polls() {
 
               <div className="poll-options">
                 {[...(poll.options || [])].sort(sortByDateAsc).map((opt, idx) => {
-                  const iso = new Date(opt.date).toISOString();
                   const isFinal =
                     new Date(opt.date).toISOString() ===
                     new Date(poll.finalizedOption).toISOString();

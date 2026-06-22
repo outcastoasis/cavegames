@@ -1,5 +1,5 @@
 import axios from "axios";
-import { isTestModeEnabled } from "../context/TestModeContext";
+import { isTestModeEnabled } from "../context/testMode";
 
 const API = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,

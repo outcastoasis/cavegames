@@ -1,17 +1,15 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
-
-const STORAGE_KEY = "testModeEnabled";
-const TestModeContext = createContext();
-
-export function isTestModeEnabled() {
-  return localStorage.getItem(STORAGE_KEY) === "true";
-}
+import { useEffect, useMemo, useState } from "react";
+import {
+  isTestModeEnabled,
+  setTestModeEnabled,
+  TestModeContext,
+} from "./testMode";
 
 export function TestModeProvider({ children }) {
   const [testMode, setTestModeState] = useState(isTestModeEnabled);
 
   const setTestMode = (enabled) => {
-    localStorage.setItem(STORAGE_KEY, enabled ? "true" : "false");
+    setTestModeEnabled(enabled);
     setTestModeState(enabled);
   };
 
@@ -31,8 +29,4 @@ export function TestModeProvider({ children }) {
       {children}
     </TestModeContext.Provider>
   );
-}
-
-export function useTestMode() {
-  return useContext(TestModeContext);
 }

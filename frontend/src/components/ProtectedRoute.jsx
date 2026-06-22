@@ -1,7 +1,7 @@
 // frontend/src/components/ProtectedRoute.jsx
 
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/authState";
 import PageLoader from "./ui/PageLoader";
 
 export default function ProtectedRoute({ children }) {

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/authState";
 import "../styles/pages/Login.css";
 import logo from "../assets/images/icon-512.png";
 import { LogIn, User, Lock } from "lucide-react";

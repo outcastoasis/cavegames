@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Navigate, useOutletContext } from "react-router-dom";
 import { FlaskConical, RotateCcw, Trash2, Users } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/authState";
 import API from "../services/api";
 import Toast from "../components/ui/Toast";
 import "../styles/pages/AdminTestMode.css";
