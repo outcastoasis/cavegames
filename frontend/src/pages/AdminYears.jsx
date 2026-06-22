@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useAuth } from "../context/AuthContext";
 import { Navigate, useNavigate, useOutletContext } from "react-router-dom";
 import API from "../services/api";
 import "../styles/pages/AdminYears.css";
-import { Link } from "react-router-dom";
 import Toast from "../components/ui/Toast";
 import { formatSwissDate } from "../utils/swissDateTime";
 
@@ -17,11 +17,15 @@ export default function AdminYears() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [closePreview, setClosePreview] = useState(null);
+  const [closePreviewYear, setClosePreviewYear] = useState(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [closingYear, setClosingYear] = useState(false);
 
   useEffect(() => {
     setTitle("Jahresverwaltung");
     fetchYears();
-  }, []);
+  }, [setTitle]);
 
   const fetchYears = async () => {
     setLoading(true);
@@ -29,7 +33,7 @@ export default function AdminYears() {
       const res = await API.get("/years");
       setYears(res.data);
       setError("");
-    } catch (err) {
+    } catch {
       setError("Fehler beim Laden der Jahre.");
     } finally {
       setLoading(false);
@@ -48,16 +52,83 @@ export default function AdminYears() {
     }
   };
 
-  const handleCloseYear = async (year) => {
+  const handleOpenClosePreview = async (year) => {
     setError("");
     setSuccess("");
+    setClosePreviewYear(year);
+    setClosePreview(null);
+    setPreviewLoading(true);
     try {
-      const res = await API.post(`/years/${year}/close`);
-      setSuccess(res.data.message || "Jahr erfolgreich abgeschlossen");
-      fetchYears();
+      const res = await API.get(`/years/${year}/close-preview`);
+      setClosePreview(res.data.preview);
     } catch (err) {
-      setError(err.response?.data?.error || "Fehler beim Abschliessen.");
+      setError(
+        err.response?.data?.error || "Abschluss-Vorschau konnte nicht geladen werden.",
+      );
+      setClosePreviewYear(null);
+    } finally {
+      setPreviewLoading(false);
     }
+  };
+
+  const handleClosePreviewModal = () => {
+    if (closingYear) return;
+    setClosePreview(null);
+    setClosePreviewYear(null);
+    setPreviewLoading(false);
+  };
+
+  const handleConfirmCloseYear = async () => {
+    if (!closePreviewYear || !closePreview?.canClose) return;
+
+    setError("");
+    setSuccess("");
+    setClosingYear(true);
+    try {
+      const res = await API.post(`/years/${closePreviewYear}/close`);
+      setSuccess(res.data.message || "Jahr erfolgreich abgeschlossen");
+      handleClosePreviewModal();
+      await fetchYears();
+    } catch (err) {
+      if (err.response?.data?.preview) {
+        setClosePreview(err.response.data.preview);
+      }
+      setError(err.response?.data?.error || "Fehler beim Abschliessen.");
+    } finally {
+      setClosingYear(false);
+    }
+  };
+
+  const renderPreviewIssues = (items, variant) => {
+    if (!items?.length) {
+      return (
+        <p className="admin-year-preview-empty">
+          {variant === "blocker"
+            ? "Keine blockierenden Probleme gefunden."
+            : "Keine Hinweise gefunden."}
+        </p>
+      );
+    }
+
+    return (
+      <div className="admin-year-preview-list">
+        {items.map((item) => (
+          <div key={`${variant}-${item.id}`} className="admin-year-preview-item">
+            <strong>{item.label}</strong>
+            <span>
+              {item.participantCount} Teilnehmer · {item.gamesCount} Spiele
+            </span>
+            <ul>
+              {(variant === "blocker" ? item.issues : item.warnings).map(
+                (issue) => (
+                  <li key={issue}>{issue}</li>
+                ),
+              )}
+            </ul>
+          </div>
+        ))}
+      </div>
+    );
   };
 
   if (!user || user.role !== "admin") {
@@ -120,7 +191,7 @@ export default function AdminYears() {
                 {!year.closed && (
                   <button
                     className="button danger"
-                    onClick={() => handleCloseYear(year.year)}
+                    onClick={() => handleOpenClosePreview(year.year)}
                   >
                     Jahr abschliessen
                   </button>
@@ -130,6 +201,80 @@ export default function AdminYears() {
           ))}
         </div>
       )}
+
+      {closePreviewYear &&
+        createPortal(
+          <div className="admin-year-preview-overlay" role="presentation">
+            <div
+              className="admin-year-preview-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="year-close-preview-title"
+            >
+              <h2 id="year-close-preview-title">
+                Jahr {closePreviewYear} abschliessen
+              </h2>
+
+              {previewLoading ? (
+                <p>Pruefe Abende...</p>
+              ) : closePreview ? (
+                <>
+                  <div className="admin-year-preview-summary">
+                    <span>{closePreview.summary.eveningsTotal} Abende</span>
+                    <span>{closePreview.summary.blockersTotal} Blocker</span>
+                    <span>{closePreview.summary.warningsTotal} Hinweise</span>
+                  </div>
+
+                  <section className="admin-year-preview-section">
+                    <h3>Blocker</h3>
+                    {renderPreviewIssues(closePreview.blockers, "blocker")}
+                  </section>
+
+                  <section className="admin-year-preview-section">
+                    <h3>Hinweise</h3>
+                    {renderPreviewIssues(closePreview.warnings, "warnings")}
+                  </section>
+
+                  <p
+                    className={`admin-year-preview-result ${
+                      closePreview.canClose
+                        ? "admin-year-preview-result-ok"
+                        : "admin-year-preview-result-blocked"
+                    }`}
+                  >
+                    {closePreview.canClose
+                      ? "Alle Pflichtpruefungen sind erfuellt. Das Jahr kann abgeschlossen werden."
+                      : "Das Jahr kann noch nicht abgeschlossen werden."}
+                  </p>
+                </>
+              ) : (
+                <p>Keine Vorschau verfuegbar.</p>
+              )}
+
+              <div className="admin-year-preview-actions">
+                <button
+                  type="button"
+                  className="button neutral"
+                  onClick={handleClosePreviewModal}
+                  disabled={closingYear}
+                >
+                  Abbrechen
+                </button>
+                <button
+                  type="button"
+                  className="button danger"
+                  onClick={handleConfirmCloseYear}
+                  disabled={
+                    previewLoading || closingYear || !closePreview?.canClose
+                  }
+                >
+                  {closingYear ? "Schliesse ab..." : "Jahr abschliessen"}
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

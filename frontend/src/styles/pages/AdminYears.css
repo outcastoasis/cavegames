@@ -102,6 +102,109 @@
   justify-content: flex-end;
 }
 
+.admin-year-preview-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-m);
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.admin-year-preview-modal {
+  width: min(680px, 100%);
+  max-height: min(82vh, 760px);
+  overflow: auto;
+  background: white;
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-raised);
+  padding: var(--spacing-l);
+}
+
+.admin-year-preview-modal h2,
+.admin-year-preview-modal h3 {
+  margin-top: 0;
+}
+
+.admin-year-preview-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-s);
+  margin: var(--spacing-m) 0;
+}
+
+.admin-year-preview-summary span {
+  padding: 0.35rem 0.8rem;
+  border-radius: var(--border-radius-full);
+  background: var(--neutral);
+  font-size: var(--font-size-small);
+  font-weight: 600;
+}
+
+.admin-year-preview-section {
+  margin-top: var(--spacing-m);
+}
+
+.admin-year-preview-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-s);
+}
+
+.admin-year-preview-item {
+  padding: var(--spacing-s);
+  border: 1px solid var(--neutral);
+  border-radius: var(--border-radius-sm);
+  background: var(--bg);
+}
+
+.admin-year-preview-item strong,
+.admin-year-preview-item span {
+  display: block;
+}
+
+.admin-year-preview-item span {
+  margin-top: 0.2rem;
+  color: var(--neutral-dark);
+  font-size: var(--font-size-small);
+}
+
+.admin-year-preview-item ul {
+  margin: var(--spacing-xs) 0 0;
+  padding-left: 1.2rem;
+}
+
+.admin-year-preview-empty {
+  margin: 0;
+  color: var(--neutral-dark);
+}
+
+.admin-year-preview-result {
+  margin: var(--spacing-m) 0 0;
+  padding: var(--spacing-s);
+  border-radius: var(--border-radius-sm);
+  font-weight: 600;
+}
+
+.admin-year-preview-result-ok {
+  background: rgba(34, 197, 94, 0.12);
+  color: #166534;
+}
+
+.admin-year-preview-result-blocked {
+  background: rgba(239, 68, 68, 0.12);
+  color: #991b1b;
+}
+
+.admin-year-preview-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-s);
+  margin-top: var(--spacing-l);
+}
+
 /* BUTTON FIX — benutze globale .button Variants */
 .admin-year-btn,
 .admin-year-btn-danger {
@@ -120,5 +223,13 @@
   .admin-year-actions {
     width: 100%;
     justify-content: space-between;
+  }
+
+  .admin-year-preview-modal {
+    padding: var(--spacing-m);
+  }
+
+  .admin-year-preview-actions {
+    flex-direction: column-reverse;
   }
 }

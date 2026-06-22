@@ -108,7 +108,7 @@ exports.updateUser = async (req, res) => {
 exports.deleteUser = async (req, res) => {
   try {
     if (req.params.id.toString() === req.user._id.toString()) {
-      return resö
+      return res
         .status(400)
         .json({ error: "Du kannst dich nicht selbst löschen" });
     }

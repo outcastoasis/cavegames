@@ -14,8 +14,8 @@
 - [x] Testmodus: Testspieler neu erzeugen
 - [x] Testmodus: klarer Hinweis im Layout
 - [ ] Jahresverwaltung: Jahr wieder öffnen
-- [ ] Jahresverwaltung: Abschluss-Vorschau mit fehlenden/offenen Abenden
-- [ ] Jahresverwaltung: Vor Abschluss offene Abende, fehlende Scores und fehlende Teilnehmer pruefen
+- [x] Jahresverwaltung: Abschluss-Vorschau mit fehlenden/offenen Abenden
+- [x] Jahresverwaltung: Vor Abschluss offene Abende, fehlende Scores und fehlende Teilnehmer pruefen
 - [ ] Jahresverwaltung: Statistik-Rebuild pro Jahr als Admin-Aktion
 - [x] Benutzerverwaltung: Passwort zuruecksetzen
 - [x] Benutzerverwaltung: Profilbild entfernen

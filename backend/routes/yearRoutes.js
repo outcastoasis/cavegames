@@ -4,6 +4,7 @@ const {
   getYears,
   createYear,
   getYearDetails,
+  getYearClosePreview,
   closeYear,
 } = require("../controllers/yearController");
 
@@ -18,6 +19,7 @@ router.get("/:year", getYearDetails);
 
 // 🔒 Nur Admin
 router.post("/", checkRole("admin"), createYear);
+router.get("/:year/close-preview", checkRole("admin"), getYearClosePreview);
 router.post("/:year/close", checkRole("admin"), closeYear);
 
 module.exports = router;
