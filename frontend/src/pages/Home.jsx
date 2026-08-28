@@ -298,6 +298,7 @@ export default function Home() {
     const isFixiert = abend.status === "fixiert";
     const isTeilnehmer = abend.participantRefs?.some((p) => p._id === user._id);
     const hasOpenPoll = abend.status === "offen" && !abend.date && abend.pollId;
+    const hasRecordedGames = (abend.games?.length || 0) > 0;
     const winnerNames = (abend.winnerIds || [])
       .map((id) => abend.participantRefs?.find((p) => p._id === id)?.displayName)
       .filter(Boolean);
@@ -369,7 +370,7 @@ export default function Home() {
           </div>
         )}
 
-        {isFixiert && (
+        {isFixiert && !hasRecordedGames && (
           <div
             className="home-evening-actions"
             onClick={(event) => event.stopPropagation()}
@@ -383,8 +384,9 @@ export default function Home() {
                   onChange={(event) =>
                     event.target.checked
                       ? handleJoin(abend._id)
-                    : handleLeave(abend._id)
+                      : handleLeave(abend._id)
                   }
+                  disabled={busy}
                 />
                 <span className="toggle-text">
                   {isTeilnehmer ? "Dabei" : "Nicht dabei"}

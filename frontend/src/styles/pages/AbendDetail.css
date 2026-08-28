@@ -673,6 +673,14 @@
   font-weight: 500;
 }
 
+.abenddetail-addparticipant-hint {
+  max-width: 620px;
+  margin: var(--spacing-s) 0 0;
+  color: #6b7280;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
 /* ===== Event Summary ===== */
 
 .abenddetail-event-summary {

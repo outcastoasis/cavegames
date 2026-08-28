@@ -25,6 +25,11 @@ function calculateEveningStats(evening) {
   }
 
   const playerPointsMap = {};
+  const participantIds = new Set(
+    (evening.participantIds || []).map(
+      (id) => id?._id?.toString?.() || id?.toString?.(),
+    ),
+  );
   let totalPoints = 0;
   let maxPoints = 0;
   const gameCountMap = {};
@@ -38,7 +43,12 @@ function calculateEveningStats(evening) {
 
     for (const score of game.scores || []) {
       const uid = score.userId?._id?.toString?.() || score.userId?.toString?.();
-      if (!uid || !mongoose.Types.ObjectId.isValid(uid)) continue;
+      if (
+        !uid ||
+        !mongoose.Types.ObjectId.isValid(uid) ||
+        !participantIds.has(uid)
+      )
+        continue;
 
       const pts = Number(score.points) || 0;
 

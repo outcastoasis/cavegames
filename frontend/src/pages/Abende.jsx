@@ -169,6 +169,7 @@ export default function Abende() {
     const isTeilnehmer = abend.participantRefs?.some((p) => p._id === user._id);
     const hasPoll = Boolean(abend.pollId);
     const hasOpenPoll = abend.status === "offen" && !abend.date && abend.pollId;
+    const hasRecordedGames = (abend.games?.length || 0) > 0;
 
     return (
       <div key={abend._id} className="abende-card-item">
@@ -232,7 +233,7 @@ export default function Abende() {
           </div>
 
           <div className="home-evening-actions">
-            {isFixiert && !isToday && (
+            {isFixiert && !isToday && !hasRecordedGames && (
               <div
                 className="home-participation"
                 onClick={(event) => event.stopPropagation()}

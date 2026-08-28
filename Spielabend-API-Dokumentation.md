@@ -90,6 +90,15 @@ Nur bestimmte Rollen dürfen Status ändern.
 | DELETE  | `/api/evenings/:id/participants/:userId` | Teilnahme entfernen     |
 | GET     | `/api/evenings/:id/participants`         | Teilnehmerliste abrufen |
 
+Sobald ein Spiel am Abend erfasst wurde, ist die Teilnehmerliste für die
+Selbstbedienung gesperrt. Bis zum Abschluss dürfen Spielleiter und Admins
+weiterhin Teilnehmer hinzufügen; für neue Teilnehmer wird in jedem bestehenden
+Spiel automatisch ein Punktestand von 0 angelegt. Sie können Teilnehmer auch
+gezielt entfernen. Bei vorhandenen Spielen muss der DELETE-Request dafür
+`{ "confirmScoreDeletion": true }` im JSON-Body enthalten; alle Scores des
+entfernten Teilnehmers werden dann aus sämtlichen Spielen gelöscht und bereits
+erzeugte Abend- und Jahresstatistiken neu berechnet.
+
 ---
 
 ## 📊 Umfragen (Polls)

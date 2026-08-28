@@ -13,6 +13,14 @@ const {
 const Poll = require("../models/Poll");
 const User = require("../models/User");
 const { scopedFilter } = require("../utils/testMode");
+const {
+  addParticipantAndScores,
+  getParticipantScoreSummary,
+  hasRecordedGames,
+  normalizeId,
+  removeParticipantAndScores,
+  validateScoresForParticipants,
+} = require("../utils/eveningParticipants");
 
 const STAT_FINAL_STATUSES = new Set(["abgeschlossen", "gesperrt"]);
 
@@ -465,7 +473,13 @@ exports.addParticipant = async (req, res) => {
       return res.status(404).json({ error: "Abend nicht gefunden" });
     }
 
-    if (evening.status === "abgeschlossen" && req.user?.role !== "admin") {
+    if (evening.status === "gesperrt") {
+      return res.status(400).json({
+        error: "Gesperrte Abende können nicht mehr verändert werden.",
+      });
+    }
+
+    if (evening.status === "abgeschlossen") {
       return res
         .status(400)
         .json({ error: "Abend ist abgeschlossen – Änderungen nicht erlaubt" });
@@ -478,11 +492,57 @@ exports.addParticipant = async (req, res) => {
         .json({ error: "Benutzer-ID fehlt (nicht eingeloggt?)" });
     }
 
-    if (evening.participantIds.includes(userId)) {
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: "Ungültige Benutzer-ID." });
+    }
+
+    const requesterId = normalizeId(req.user?._id);
+    const requestedUserId = normalizeId(userId);
+    const isSelf = requesterId === requestedUserId;
+    const isPrivileged =
+      req.user?.role === "admin" ||
+      normalizeId(evening.spielleiterId) === requesterId;
+
+    if (!isSelf && !isPrivileged) {
+      return res.status(403).json({
+        error: "Nur Spielleiter oder Admins dürfen andere Teilnehmer hinzufügen.",
+      });
+    }
+
+    if (hasRecordedGames(evening) && isSelf) {
+      return res.status(409).json({
+        code: "PARTICIPANTS_LOCKED",
+        error:
+          "Die eigene Teilnahme kann nach dem ersten erfassten Spiel nicht mehr geändert werden.",
+      });
+    }
+
+    const userFilter = req.isTestMode
+      ? {
+          _id: requestedUserId,
+          active: true,
+          $or: [{ isTestData: true }, { _id: requesterId }],
+        }
+      : {
+          _id: requestedUserId,
+          active: true,
+          isTestData: { $ne: true },
+        };
+    const participant = await User.findOne(userFilter).select("_id");
+    if (!participant) {
+      return res.status(404).json({
+        error: "Aktiver Benutzer nicht gefunden.",
+      });
+    }
+
+    const alreadyParticipating = evening.participantIds.some(
+      (id) => normalizeId(id) === requestedUserId,
+    );
+    if (alreadyParticipating) {
       return res.status(400).json({ error: "Bereits eingetragen." });
     }
 
-    evening.participantIds.push(userId);
+    const initializedScores = addParticipantAndScores(evening, userId);
     await evening.save();
 
     const updated = await Evening.findOne(
@@ -494,6 +554,7 @@ exports.addParticipant = async (req, res) => {
     res.json({
       message: "Teilnahme bestätigt",
       participants: updated.participantIds,
+      initializedScores,
     });
   } catch (err) {
     console.error("Fehler bei addParticipant:", err.message);
@@ -512,16 +573,73 @@ exports.removeParticipant = async (req, res) => {
       return res.status(404).json({ error: "Abend nicht gefunden" });
     }
 
+    if (evening.status === "gesperrt") {
+      return res.status(400).json({
+        error: "Gesperrte Abende können nicht mehr verändert werden.",
+      });
+    }
+
     if (evening.status === "abgeschlossen" && req.user.role !== "admin") {
       return res
         .status(400)
         .json({ error: "Abend ist abgeschlossen – Änderungen nicht erlaubt" });
     }
 
-    evening.participantIds = evening.participantIds.filter(
-      (id) => id.toString() !== userId.toString(),
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: "Ungültige Benutzer-ID." });
+    }
+
+    const requesterId = normalizeId(req.user?._id);
+    const targetUserId = normalizeId(userId);
+    const isSelf = requesterId === targetUserId;
+    const isPrivileged =
+      req.user?.role === "admin" ||
+      normalizeId(evening.spielleiterId) === requesterId;
+
+    if (!isSelf && !isPrivileged) {
+      return res.status(403).json({
+        error: "Nur Spielleiter oder Admins dürfen andere Teilnehmer entfernen.",
+      });
+    }
+
+    if (normalizeId(evening.spielleiterId) === targetUserId) {
+      return res.status(409).json({
+        code: "CANNOT_REMOVE_LEADER",
+        error:
+          "Der aktuelle Spielleiter kann nicht aus der Teilnehmerliste entfernt werden.",
+      });
+    }
+
+    const isParticipant = evening.participantIds.some(
+      (id) => normalizeId(id) === targetUserId,
     );
-    await evening.save();
+    if (!isParticipant) {
+      return res.status(404).json({ error: "Teilnehmer nicht gefunden." });
+    }
+
+    const hasGames = hasRecordedGames(evening);
+    if (hasGames && !isPrivileged) {
+      return res.status(409).json({
+        code: "PARTICIPANTS_LOCKED",
+        error:
+          "Die eigene Teilnahme kann nach dem ersten erfassten Spiel nicht mehr geändert werden.",
+      });
+    }
+
+    const scoreSummary = getParticipantScoreSummary(evening, targetUserId);
+    const scoreDeletionConfirmed = req.body?.confirmScoreDeletion === true;
+    if (hasGames && !scoreDeletionConfirmed) {
+      return res.status(409).json({
+        code: "SCORE_DELETION_CONFIRMATION_REQUIRED",
+        error:
+          "Beim Entfernen werden alle Punktestände dieses Teilnehmers an diesem Abend gelöscht.",
+        scoreSummary,
+      });
+    }
+
+    const removedScores = removeParticipantAndScores(evening, targetUserId);
+    const statsRefreshed =
+      await saveEveningAndRefreshStatsIfGenerated(evening);
 
     const updated = await Evening.findOne(
       scopedFilter(req, { _id: req.params.id }),
@@ -530,8 +648,13 @@ exports.removeParticipant = async (req, res) => {
       .populate("participantIds", "displayName profileImageUrl");
 
     res.json({
-      message: "Teilnahme entfernt",
+      message:
+        removedScores.scoreEntries > 0
+          ? "Teilnehmer und zugehörige Punktestände entfernt"
+          : "Teilnahme entfernt",
       participants: updated.participantIds,
+      removedScores,
+      statsRefreshed,
     });
   } catch (err) {
     console.error("Fehler bei removeParticipant:", err.message);
@@ -627,8 +750,17 @@ exports.updateEveningGame = async (req, res) => {
       return res.status(404).json({ error: "Spieleintrag nicht gefunden" });
     }
 
-    if (scores) entry.scores = scores;
-    if (notes) entry.notes = notes;
+    if (scores !== undefined) {
+      const validationError = validateScoresForParticipants(
+        scores,
+        evening.participantIds,
+      );
+      if (validationError) {
+        return res.status(400).json({ error: validationError });
+      }
+      entry.scores = scores;
+    }
+    if (notes !== undefined) entry.notes = notes;
     const statsRefreshed = await saveEveningAndRefreshStatsIfGenerated(evening);
 
     res.json({ message: "Spiel aktualisiert", game: entry, statsRefreshed });

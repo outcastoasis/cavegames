@@ -24,6 +24,7 @@ import "../styles/pages/AbendDetail.css";
 import GameAddModal from "../components/forms/GameAddModal";
 import defaultAvatar from "../assets/images/avatar.jpg";
 import { AbendDetailSkeleton } from "../components/ui/Skeleton";
+import ConfirmDialog from "../components/ui/ConfirmDialog";
 import {
   formatSwissDate,
   formatSwissTime,
@@ -83,6 +84,8 @@ export default function AbendDetail() {
   const [dateEditValue, setDateEditValue] = useState("");
   const [dateEditError, setDateEditError] = useState("");
   const [savingDateEdit, setSavingDateEdit] = useState(false);
+  const [participantToRemove, setParticipantToRemove] = useState(null);
+  const [removingParticipant, setRemovingParticipant] = useState(false);
   const scoreInputRefs = useRef({});
 
   const { setTitle } = useOutletContext();
@@ -353,13 +356,44 @@ export default function AbendDetail() {
     }
   };
 
-  const handleRemoveParticipant = async (userId) => {
-    if (!confirm("Teilnehmer wirklich entfernen?")) return;
+  const requestRemoveParticipant = (participant) => {
+    const scoreEntries = (abend.games || []).reduce(
+      (count, game) =>
+        count +
+        (game.scores || []).filter(
+          (score) => score.userId === participant._id,
+        ).length,
+      0,
+    );
+    const totalPoints = (abend.games || []).reduce(
+      (total, game) =>
+        total +
+        (game.scores || [])
+          .filter((score) => score.userId === participant._id)
+          .reduce((sum, score) => sum + (Number(score.points) || 0), 0),
+      0,
+    );
+
+    setParticipantToRemove({ ...participant, scoreEntries, totalPoints });
+  };
+
+  const handleRemoveParticipant = async () => {
+    if (!participantToRemove || removingParticipant) return;
+    setRemovingParticipant(true);
     try {
-      await API.delete(`/evenings/${id}/participants/${userId}`);
+      await API.delete(
+        `/evenings/${id}/participants/${participantToRemove._id}`,
+        { data: { confirmScoreDeletion: true } },
+      );
+      setParticipantToRemove(null);
       await fetchAbend();
     } catch (err) {
-      alert("Fehler beim Entfernen: " + err.message);
+      alert(
+        "Fehler beim Entfernen: " +
+          (err.response?.data?.error || err.message),
+      );
+    } finally {
+      setRemovingParticipant(false);
     }
   };
 
@@ -372,6 +406,7 @@ export default function AbendDetail() {
   const isFixiert = abend.status === "fixiert";
   const isAbgeschlossen = abend.status === "abgeschlossen";
   const isTeilnehmer = abend.participantRefs?.some((p) => p._id === user._id);
+  const hasRecordedGames = (abend.games?.length || 0) > 0;
   const backTarget = abend.status === "gesperrt" ? "/historie" : "/abende";
   const isGesperrt = abend.status === "gesperrt";
   const canEditDate = isPrivileged && isFixiert;
@@ -494,7 +529,7 @@ export default function AbendDetail() {
         </section>
 
         {/* Teilnahme-Toggle */}
-        {isFixiert && !isToday && (
+        {isFixiert && !isToday && !hasRecordedGames && (
           <section className="abenddetail-section abenddetail-section--participation">
             <div className="abenddetail-section-header">
               <UsersIcon size={18} />
@@ -652,11 +687,15 @@ export default function AbendDetail() {
                     {p.displayName}
                   </span>
 
-                  {isPrivileged && isFixiert && abend.games.length === 0 && (
+                  {isPrivileged &&
+                    isFixiert &&
+                    p._id !== abend.spielleiterRef?._id && (
                     <button
+                      type="button"
                       className="abenddetail-participant-remove"
-                      onClick={() => handleRemoveParticipant(p._id)}
+                      onClick={() => requestRemoveParticipant(p)}
                       title="Teilnehmer entfernen"
+                      disabled={removingParticipant || Boolean(editScores)}
                     >
                       <XCircle size={18} />
                     </button>
@@ -668,7 +707,7 @@ export default function AbendDetail() {
             <p className="abenddetail-muted">Noch keine Teilnehmer.</p>
           )}
 
-          {isPrivileged && isFixiert && abend.games.length === 0 && (
+          {isPrivileged && isFixiert && (
             <div className="abenddetail-addparticipant">
               <label className="abenddetail-addparticipant-label">
                 Weitere Person hinzufügen
@@ -690,6 +729,11 @@ export default function AbendDetail() {
                   ))}
                 </select>
               </label>
+              {hasRecordedGames && (
+                <p className="abenddetail-addparticipant-hint">
+                  Da bereits Spiele erfasst wurden, wird neuen Spielern 0 Punkte zugewiesen.
+                </p>
+              )}
             </div>
           )}
         </section>
@@ -958,6 +1002,31 @@ export default function AbendDetail() {
           </div>,
           document.body,
         )}
+
+      <ConfirmDialog
+        open={Boolean(participantToRemove)}
+        title={`${participantToRemove?.displayName || "Teilnehmer"} entfernen?`}
+        confirmLabel="Endgültig entfernen"
+        danger
+        busy={removingParticipant}
+        onCancel={() => setParticipantToRemove(null)}
+        onConfirm={handleRemoveParticipant}
+      >
+        {hasRecordedGames ? (
+          <>
+            <p>
+              Die Person wird aus diesem Abend entfernt. Dabei werden ihre
+              Punktestände aus {participantToRemove?.scoreEntries || 0} Spielen
+              gelöscht ({participantToRemove?.totalPoints || 0} Gesamtpunkte).
+            </p>
+            <p className="confirm-dialog-warning">
+              Diese Aktion kann nicht rückgängig gemacht werden.
+            </p>
+          </>
+        ) : (
+          <p>Die Person wird aus der Teilnehmerliste dieses Abends entfernt.</p>
+        )}
+      </ConfirmDialog>
 
       {previewGame &&
         createPortal(
