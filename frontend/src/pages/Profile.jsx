@@ -3,10 +3,9 @@ import { useParams, useNavigate, useOutletContext } from "react-router-dom";
 import {
   CalendarDays,
   Camera,
-  ChevronLeft,
+  ChevronDown,
   ChevronRight,
   LogOut,
-  RefreshCw,
   Shield,
   Trophy,
 } from "lucide-react";
@@ -34,9 +33,44 @@ function KpiCard({ title, value }) {
   );
 }
 
+function ChartTabs({ label, options, activeValue, onChange }) {
+  return (
+    <div className="profile-chart-tabs" role="group" aria-label={label}>
+      {options.map((option) => (
+        <button
+          key={option.value}
+          type="button"
+          className={`button small ${
+            activeValue === option.value ? "primary active" : "neutral"
+          }`}
+          aria-pressed={activeValue === option.value}
+          onClick={() => onChange(option.value)}
+        >
+          {option.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+const formatProfileNumber = (value, maximumFractionDigits = 0) => {
+  if (value == null || value === "") return "-";
+  const number = Number(value);
+  if (!Number.isFinite(number)) return "-";
+
+  return new Intl.NumberFormat("de-CH", {
+    maximumFractionDigits,
+  }).format(number);
+};
+
+const formatProfilePercent = (value) => {
+  const formattedValue = formatProfileNumber(value, 1);
+  return formattedValue === "-" ? "-" : `${formattedValue}%`;
+};
+
 export default function Profile() {
   const { setTitle } = useOutletContext();
-  const { user, setUser } = useAuth();
+  const { user, setUser, logout } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
   const userId = id || user?._id;
@@ -48,6 +82,9 @@ export default function Profile() {
   const [loadingYear, setLoadingYear] = useState(false);
   const [loadingMulti, setLoadingMulti] = useState(false);
   const [viewAllYears, setViewAllYears] = useState(false);
+  const [showMoreYearStats, setShowMoreYearStats] = useState(false);
+  const [activeYearChart, setActiveYearChart] = useState("placements");
+  const [activeMultiChart, setActiveMultiChart] = useState("points");
   const [toast, setToast] = useState(null);
   const toastTimer = useRef(null);
   const avatarInputRef = useRef(null);
@@ -122,11 +159,25 @@ export default function Profile() {
     }
 
     return [
-      { label: "Punkte", value: yearStats.totalPoints },
-      { label: "Teilnahmen", value: yearStats.eveningsAttended },
-      { label: "Gewinnrate", value: `${yearStats.winRate}%` },
+      { label: "Punkte", value: formatProfileNumber(yearStats.totalPoints) },
+      {
+        label: "Teilnahmen",
+        value: formatProfileNumber(yearStats.eveningsAttended),
+      },
+      { label: "Gewinnrate", value: formatProfilePercent(yearStats.winRate) },
     ];
   }, [yearStats]);
+
+  const placementsByEvening = useMemo(
+    () =>
+      new Map(
+        (yearStats?.placementTrend || []).map((entry) => [
+          String(entry.eveningId),
+          entry.place,
+        ]),
+      ),
+    [yearStats],
+  );
 
   const showToast = useCallback((message) => {
     if (toastTimer.current) {
@@ -188,15 +239,6 @@ export default function Profile() {
     if (next && !multiStats) loadMultiYearStats();
   };
 
-  const handleRefreshStats = () => {
-    if (viewAllYears) {
-      loadMultiYearStats();
-      return;
-    }
-
-    loadYearStats(selectedYear);
-  };
-
   return (
     <div className="profile-page">
       {toast && <Toast message={toast} onClose={() => setToast(null)} />}
@@ -230,45 +272,33 @@ export default function Profile() {
           </div>
 
           <div className="profile-main-info">
-            <div>
+            <div className="profile-identity-block">
               <h2 className="profile-name-center">{user?.displayName}</h2>
-              <div className="profile-role-pill">
-                <Shield size={15} />
-                {user?.role === "admin" ? "Admin" : "Spieler"}
+
+              <div className="profile-info-list">
+                <div className="info-row">
+                  <span className="info-label">Benutzername</span>
+                  <span className="info-value">@{user?.username}</span>
+                </div>
+              </div>
+
+              <div className="profile-identity-actions">
+                {user?.role === "admin" && (
+                  <div className="profile-role-pill">
+                    <Shield size={15} />
+                    Admin
+                  </div>
+                )}
+                <button
+                  type="button"
+                  className="profile-logout-button"
+                  onClick={logout}
+                >
+                  <LogOut size={15} />
+                  Abmelden
+                </button>
               </div>
             </div>
-
-            <div className="profile-info-list">
-              <div className="info-row">
-                <span className="info-label">Benutzername</span>
-                <span className="info-value">@{user?.username}</span>
-              </div>
-              <div className="info-row">
-                <span className="info-label">Aktuelles Jahr</span>
-                <span className="info-value">{selectedYear || "-"}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="profile-actions">
-            <button
-              type="button"
-              className="button neutral"
-              onClick={() => avatarInputRef.current?.click()}
-            >
-              <Camera size={17} />
-              Bild ändern
-            </button>
-            <button
-              className="button danger logout-btn"
-              onClick={() => {
-                localStorage.removeItem("token");
-                navigate("/login");
-              }}
-            >
-              <LogOut size={17} />
-              Logout
-            </button>
           </div>
         </div>
 
@@ -291,7 +321,9 @@ export default function Profile() {
       <section className="profile-toolbar">
         <div className="view-switch" role="group" aria-label="Profilansicht">
           <button
+            type="button"
             className={`button ${!viewAllYears ? "primary" : "neutral"}`}
+            aria-pressed={!viewAllYears}
             onClick={() => {
               setViewAllYears(false);
               loadYearStats(selectedYear);
@@ -301,37 +333,34 @@ export default function Profile() {
           </button>
 
           <button
+            type="button"
             className={`button ${viewAllYears ? "primary" : "neutral"}`}
+            aria-pressed={viewAllYears}
             onClick={toggleViewAll}
           >
             Alle Jahre
           </button>
         </div>
 
-        <button
-          className="button neutral profile-refresh-btn"
-          type="button"
-          onClick={handleRefreshStats}
-          disabled={loadingYear || loadingMulti || (!viewAllYears && !selectedYear)}
-        >
-          <RefreshCw size={17} />
-          Aktualisieren
-        </button>
       </section>
 
       {!viewAllYears && (
         <div className="profile-stats-view">
           <div className="year-controls">
             <button
-              className="button neutral year-nav-btn"
+              className="button neutral year-nav-btn year-nav-btn--previous"
+              type="button"
               disabled={!previousYear}
               onClick={() => {
                 setSelectedYear(previousYear);
                 loadYearStats(previousYear);
               }}
+              aria-label="Vorheriges Jahr anzeigen"
+              title="Vorheriges Jahr"
             >
-              <ChevronLeft size={17} />
-              Vorjahr
+              <span className="year-nav-arrow" aria-hidden="true">
+                ‹
+              </span>
             </button>
 
             <select
@@ -351,15 +380,19 @@ export default function Profile() {
             </select>
 
             <button
-              className="button neutral year-nav-btn"
+              className="button neutral year-nav-btn year-nav-btn--next"
+              type="button"
               disabled={!nextYear}
               onClick={() => {
                 setSelectedYear(nextYear);
                 loadYearStats(nextYear);
               }}
+              aria-label="Nächstes Jahr anzeigen"
+              title="Nächstes Jahr"
             >
-              Nächstes Jahr
-              <ChevronRight size={17} />
+              <span className="year-nav-arrow" aria-hidden="true">
+                ›
+              </span>
             </button>
           </div>
 
@@ -368,80 +401,182 @@ export default function Profile() {
           {yearStats && (
             <>
               <div className="kpi-grid">
-                <KpiCard title="Gesamtpunkte" value={yearStats.totalPoints} />
-                <KpiCard title="Durchschnitt" value={yearStats.avgPoints.toFixed(1)} />
-                <KpiCard title="Teilnahmen" value={yearStats.eveningsAttended} />
                 <KpiCard
-                  title="Teilnahmequote"
-                  value={`${yearStats.attendanceRate}%`}
+                  title="Gesamtpunkte"
+                  value={formatProfileNumber(yearStats.totalPoints)}
                 />
-                <KpiCard title="Gewinnrate" value={`${yearStats.winRate}%`} />
-                <KpiCard title="Top-3 Quote" value={`${topThreeRate}%`} />
-                <KpiCard title="Spielleiter" value={`${yearStats.spielleiterCount}x`} />
-                <KpiCard title="Ø Platzierung" value={yearStats.averagePlacement || "-"} />
-                <KpiCard title="Beste Punkte" value={yearStats.bestEveningPoints} />
-                <KpiCard title="Schlechteste Punkte" value={yearStats.worstEveningPoints} />
-                <KpiCard title="Peak-Performance" value={yearStats.peakPerformance} />
+                <KpiCard
+                  title="Teilnahmen"
+                  value={formatProfileNumber(yearStats.eveningsAttended)}
+                />
+                <KpiCard
+                  title="Gewinnrate"
+                  value={formatProfilePercent(yearStats.winRate)}
+                />
+                <KpiCard
+                  title="Ø Platzierung"
+                  value={formatProfileNumber(yearStats.averagePlacement, 1)}
+                />
               </div>
 
-              <ChartWrapper title="Platzierungsverteilung">
-                {yearStats.firstPlaces +
-                  yearStats.secondPlaces +
-                  yearStats.thirdPlaces >
-                0 ? (
-                  <PiePlacementChart data={yearStats} />
-                ) : (
-                  <ChartPlaceholder text="Keine Platzierungen vorhanden" />
-                )}
-              </ChartWrapper>
+              <button
+                type="button"
+                className="profile-more-stats-toggle"
+                aria-expanded={showMoreYearStats}
+                onClick={() => setShowMoreYearStats((current) => !current)}
+              >
+                <span>
+                  {showMoreYearStats
+                    ? "Weitere Statistiken ausblenden"
+                    : "Weitere Statistiken anzeigen"}
+                </span>
+                <ChevronDown
+                  size={18}
+                  className={showMoreYearStats ? "expanded" : ""}
+                />
+              </button>
 
-              <ChartWrapper title="Punktetrend">
-                {yearStats.scoreTrend?.length ? (
-                  <LinePointsChart data={yearStats.scoreTrend} />
-                ) : (
-                  <ChartPlaceholder text="Noch keine Daten" />
-                )}
-              </ChartWrapper>
+              {showMoreYearStats && (
+                <div className="kpi-grid profile-secondary-kpis">
+                  <KpiCard
+                    title="Durchschnitt"
+                    value={formatProfileNumber(yearStats.avgPoints, 1)}
+                  />
+                  <KpiCard
+                    title="Teilnahmequote"
+                    value={formatProfilePercent(yearStats.attendanceRate)}
+                  />
+                  <KpiCard title="Top-3 Quote" value={`${topThreeRate}%`} />
+                  <KpiCard
+                    title="Spielleiter"
+                    value={`${formatProfileNumber(yearStats.spielleiterCount)}x`}
+                  />
+                  <KpiCard
+                    title="Beste Punkte"
+                    value={formatProfileNumber(yearStats.bestEveningPoints)}
+                  />
+                  <KpiCard
+                    title="Schlechteste Punkte"
+                    value={formatProfileNumber(yearStats.worstEveningPoints)}
+                  />
+                  <KpiCard
+                    title="Peak-Performance"
+                    value={formatProfileNumber(yearStats.peakPerformance, 1)}
+                  />
+                </div>
+              )}
+
+              <ChartTabs
+                label="Diagramm auswählen"
+                activeValue={activeYearChart}
+                onChange={setActiveYearChart}
+                options={[
+                  { value: "placements", label: "Platzierungen" },
+                  { value: "points", label: "Punkte" },
+                ]}
+              />
+
+              <div
+                className={`profile-chart-panel ${
+                  activeYearChart === "placements" ? "active" : ""
+                }`}
+              >
+                <ChartWrapper title="Platzierungsverteilung">
+                  {yearStats.firstPlaces +
+                    yearStats.secondPlaces +
+                    yearStats.thirdPlaces >
+                  0 ? (
+                    <PiePlacementChart data={yearStats} />
+                  ) : (
+                    <ChartPlaceholder text="Keine Platzierungen vorhanden" />
+                  )}
+                </ChartWrapper>
+              </div>
+
+              <div
+                className={`profile-chart-panel ${
+                  activeYearChart === "points" ? "active" : ""
+                }`}
+              >
+                <ChartWrapper title="Punktetrend">
+                  {yearStats.scoreTrend?.length ? (
+                    <LinePointsChart data={yearStats.scoreTrend} />
+                  ) : (
+                    <ChartPlaceholder text="Noch keine Daten" />
+                  )}
+                </ChartWrapper>
+              </div>
 
               <section className="profile-evenings-section">
                 <div className="profile-section-title-row">
                   <h2 className="section-title">Alle Abende</h2>
                   <span>{yearStats.scoreTrend?.length || 0} Einträge</span>
                 </div>
-                <div className="profile-table-wrap">
-                  <table className="profile-table">
-                    <thead>
-                      <tr>
-                        <th>Datum</th>
-                        <th>Punkte</th>
-                        <th>Platz</th>
-                        <th></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {yearStats.scoreTrend.map((entry, index) => (
-                        <tr key={entry.eveningId || index}>
-                          <td data-label="Datum">
-                            <CalendarDays size={15} />
-                            {formatSwissDate(entry.date)}
-                          </td>
-                          <td data-label="Punkte">{entry.points}</td>
-                          <td data-label="Platz">
-                            {yearStats.placementTrend?.[index]?.place || "-"}
-                          </td>
-                          <td>
-                            <button
-                              className="table-btn"
-                              onClick={() => navigate(`/abende/${entry.eveningId}`)}
-                            >
-                              Details
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                {yearStats.scoreTrend?.length ? (
+                  <ul className="profile-evening-list">
+                    {yearStats.scoreTrend.map((entry, index) => {
+                      const eveningId = String(entry.eveningId || "");
+                      const placement =
+                        placementsByEvening.get(eveningId) ??
+                        yearStats.placementTrend?.[index]?.place;
+                      const formattedDate = formatSwissDate(entry.date, {
+                        weekday: "short",
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      });
+
+                      return (
+                        <li key={eveningId || index}>
+                          <button
+                            type="button"
+                            className="profile-evening-entry"
+                            onClick={() => navigate(`/abende/${entry.eveningId}`)}
+                            aria-label={`Details zum Spieleabend vom ${formattedDate}`}
+                          >
+                            <span className="profile-evening-date">
+                              <span className="profile-evening-icon">
+                                <CalendarDays size={18} />
+                              </span>
+                              <span>
+                                <span className="profile-evening-eyebrow">
+                                  Spieleabend
+                                </span>
+                                <strong>{formattedDate}</strong>
+                              </span>
+                            </span>
+
+                            <span className="profile-evening-metrics">
+                              <span className="profile-evening-metric">
+                                <span>Punkte</span>
+                                <strong>
+                                  {formatProfileNumber(entry.points, 1)}
+                                </strong>
+                              </span>
+                              <span className="profile-evening-metric">
+                                <span>Platz</span>
+                                <strong>
+                                  {placement == null
+                                    ? "-"
+                                    : formatProfileNumber(placement, 1)}
+                                </strong>
+                              </span>
+                            </span>
+
+                            <span className="profile-evening-link">
+                              <span>Details</span>
+                              <ChevronRight size={18} />
+                            </span>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                ) : (
+                  <p className="profile-evening-empty">
+                    Für dieses Jahr sind noch keine Abende vorhanden.
+                  </p>
+                )}
               </section>
             </>
           )}
@@ -457,50 +592,99 @@ export default function Profile() {
               <div className="kpi-grid">
                 <KpiCard
                   title="Gesamtpunkte"
-                  value={multiStats.global.totalPoints}
+                  value={formatProfileNumber(multiStats.global.totalPoints)}
                 />
-                <KpiCard title="Gesamt-Ø Punkte" value={multiStats.global.avgPoints} />
+                <KpiCard
+                  title="Gesamt-Ø Punkte"
+                  value={formatProfileNumber(multiStats.global.avgPoints, 1)}
+                />
                 <KpiCard
                   title="Teilnahmequote"
-                  value={`${multiStats.global.attendanceRate}%`}
+                  value={formatProfilePercent(multiStats.global.attendanceRate)}
                 />
-                <KpiCard title="Gewinnrate" value={`${multiStats.global.winRate}%`} />
+                <KpiCard
+                  title="Gewinnrate"
+                  value={formatProfilePercent(multiStats.global.winRate)}
+                />
                 <KpiCard
                   title="Ø Platzierung"
-                  value={multiStats.global.avgPlacement || "-"}
+                  value={formatProfileNumber(
+                    multiStats.global.avgPlacement,
+                    1,
+                  )}
                 />
               </div>
 
-              <div className="chart-card">
-                <h2 className="section-title">Punkteverlauf über alle Jahre</h2>
-                <MultiYearPointsChart
-                  years={multiStats.years}
-                  byYear={multiStats.byYear}
-                />
+              <ChartTabs
+                label="Gesamtdiagramm auswählen"
+                activeValue={activeMultiChart}
+                onChange={setActiveMultiChart}
+                options={[
+                  { value: "points", label: "Punkte" },
+                  { value: "winRate", label: "Gewinnrate" },
+                  { value: "placements", label: "Plätze" },
+                  { value: "activity", label: "Aktivität" },
+                ]}
+              />
+
+              <div
+                className={`profile-chart-panel ${
+                  activeMultiChart === "points" ? "active" : ""
+                }`}
+              >
+                <div className="chart-card">
+                  <h2 className="section-title">
+                    Punkteverlauf über alle Jahre
+                  </h2>
+                  <MultiYearPointsChart
+                    years={multiStats.years}
+                    byYear={multiStats.byYear}
+                  />
+                </div>
               </div>
 
-              <div className="chart-card">
-                <h2 className="section-title">Gewinnrate über alle Jahre</h2>
-                <MultiYearWinRateChart
-                  years={multiStats.years}
-                  byYear={multiStats.byYear}
-                />
+              <div
+                className={`profile-chart-panel ${
+                  activeMultiChart === "winRate" ? "active" : ""
+                }`}
+              >
+                <div className="chart-card">
+                  <h2 className="section-title">
+                    Gewinnrate über alle Jahre
+                  </h2>
+                  <MultiYearWinRateChart
+                    years={multiStats.years}
+                    byYear={multiStats.byYear}
+                  />
+                </div>
               </div>
 
-              <div className="chart-card">
-                <h2 className="section-title">Platzierungen pro Jahr</h2>
-                <BarYearComparison
-                  years={multiStats.years}
-                  byYear={multiStats.byYear}
-                />
+              <div
+                className={`profile-chart-panel ${
+                  activeMultiChart === "placements" ? "active" : ""
+                }`}
+              >
+                <div className="chart-card">
+                  <h2 className="section-title">Platzierungen pro Jahr</h2>
+                  <BarYearComparison
+                    years={multiStats.years}
+                    byYear={multiStats.byYear}
+                  />
+                </div>
               </div>
 
-              <div className="chart-card">
-                <h2 className="section-title">Aktivitäts-Heatmap</h2>
-                <ActivityHeatmap
-                  years={multiStats.years}
-                  byYear={multiStats.byYear}
-                />
+              <div
+                className={`profile-chart-panel ${
+                  activeMultiChart === "activity" ? "active" : ""
+                }`}
+              >
+                <div className="chart-card">
+                  <h2 className="section-title">Aktivitäts-Heatmap</h2>
+                  <ActivityHeatmap
+                    years={multiStats.years}
+                    byYear={multiStats.byYear}
+                  />
+                </div>
               </div>
 
               <h2 className="section-title">Jahr-für-Jahr Vergleich</h2>
@@ -512,7 +696,9 @@ export default function Profile() {
                       <h3>{year}</h3>
                       <div className="year-row">
                         <span>Punkte:</span>
-                        <span className="value">{stats.totalPoints}</span>
+                        <span className="value">
+                          {formatProfileNumber(stats.totalPoints)}
+                        </span>
                       </div>
                       <div className="year-row">
                         <span>Teilnahmen:</span>
@@ -523,7 +709,9 @@ export default function Profile() {
                       </div>
                       <div className="year-row">
                         <span>Gewinnrate:</span>
-                        <span className="value">{stats.winRate}%</span>
+                        <span className="value">
+                          {formatProfilePercent(stats.winRate)}
+                        </span>
                       </div>
                     </div>
                   );
@@ -533,6 +721,7 @@ export default function Profile() {
           )}
         </div>
       )}
+
     </div>
   );
 }
