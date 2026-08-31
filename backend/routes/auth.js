@@ -3,9 +3,10 @@ const express = require("express");
 const router = express.Router();
 const { login } = require("../controllers/authController");
 const checkAuth = require("../middleware/checkAuth");
+const { loginRateLimit } = require("../middleware/loginRateLimit");
 const User = require("../models/User");
 
-router.post("/login", login);
+router.post("/login", loginRateLimit, login);
 
 router.get("/me", checkAuth, async (req, res) => {
   try {
