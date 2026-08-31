@@ -5,6 +5,7 @@ import {
   CalendarCheck2,
   CalendarClock,
   CalendarSync,
+  ChevronDown,
   KeyRound,
   ListChecks,
   Trophy,
@@ -87,6 +88,7 @@ export default function Settings() {
   const [preferences, setPreferences] = useState(initialPreferences);
   const [loadingPreferences, setLoadingPreferences] = useState(true);
   const [savingPreference, setSavingPreference] = useState("");
+  const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [toast, setToast] = useState("");
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const logoutTimerRef = useRef(null);
@@ -225,11 +227,18 @@ export default function Settings() {
         : pushState.subscribed
           ? "Deaktivieren"
           : "Aktivieren";
+  const enabledCategoryCount = notificationCategories.filter(
+    ({ key }) => preferences[key],
+  ).length;
 
   return (
     <div className="settings-page">
       {toast && <Toast message={toast} onClose={() => setToast("")} />}
 
+      <div
+        className="settings-notifications-group"
+        aria-label="Benachrichtigungseinstellungen"
+      >
       <section className="settings-card" aria-labelledby="push-title">
         <div className="settings-card-icon" aria-hidden="true">
           {pushState.subscribed ? <Bell size={22} /> : <BellOff size={22} />}
@@ -273,17 +282,44 @@ export default function Settings() {
 
       <section
         className="settings-category-section"
-        aria-labelledby="notification-categories-title"
+        aria-label="Benachrichtigungsarten"
       >
-        <div className="settings-category-heading">
-          <div>
-            <h2 id="notification-categories-title">Benachrichtigungsarten</h2>
-            <p>Diese Auswahl gilt für dein Konto auf allen Geräten.</p>
-          </div>
-          {loadingPreferences && <span>Wird geladen…</span>}
-        </div>
+        <button
+          type="button"
+          className={`settings-category-heading ${
+            categoriesOpen ? "settings-category-heading--open" : ""
+          }`}
+          aria-expanded={categoriesOpen}
+          aria-controls="notification-category-list"
+          onClick={() => setCategoriesOpen((open) => !open)}
+        >
+          <span className="settings-category-heading-copy">
+            <span className="settings-category-title">
+              Benachrichtigungsarten
+            </span>
+            <span className="settings-category-description">
+              Diese Auswahl gilt für dein Konto auf allen Geräten.
+            </span>
+          </span>
+          <span className="settings-category-heading-action">
+            <span className="settings-category-status">
+              {loadingPreferences
+                ? "Wird geladen…"
+                : `${enabledCategoryCount} von ${notificationCategories.length} aktiv`}
+            </span>
+            <ChevronDown
+              className="settings-category-chevron"
+              size={21}
+              aria-hidden="true"
+            />
+          </span>
+        </button>
 
-        <div className="settings-category-list">
+        <div
+          id="notification-category-list"
+          className="settings-category-list"
+          hidden={!categoriesOpen}
+        >
           {notificationCategories.map((category) => {
             const Icon = category.icon;
             const inputId = `notification-${category.key}`;
@@ -324,6 +360,7 @@ export default function Settings() {
           })}
         </div>
       </section>
+      </div>
 
       <section className="settings-card" aria-labelledby="password-title">
         <div className="settings-card-icon" aria-hidden="true">
