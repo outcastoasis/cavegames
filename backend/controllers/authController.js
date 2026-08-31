@@ -16,7 +16,11 @@ exports.login = async (req, res) => {
     }
 
     // Benutzer finden
-    const user = await User.findOne({ username, active: true });
+    const user = await User.findOne({
+      username,
+      active: true,
+      isTestData: { $ne: true },
+    });
     if (!user) {
       return res.status(401).json({ error: "Ungültige Anmeldedaten" });
     }
