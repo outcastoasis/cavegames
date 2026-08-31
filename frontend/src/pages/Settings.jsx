@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Bell,
   BellOff,
@@ -10,7 +10,9 @@ import {
   Trophy,
 } from "lucide-react";
 import { useOutletContext } from "react-router-dom";
+import PasswordChangeDialog from "../components/forms/PasswordChangeDialog";
 import Toast from "../components/ui/Toast";
+import { useAuth } from "../context/authState";
 import API from "../services/api";
 import {
   disablePushNotifications,
@@ -79,16 +81,25 @@ const notificationCategories = [
 
 export default function Settings() {
   const { setTitle } = useOutletContext();
+  const { logout } = useAuth();
   const [pushState, setPushState] = useState(initialPushState);
   const [updatingPush, setUpdatingPush] = useState(false);
   const [preferences, setPreferences] = useState(initialPreferences);
   const [loadingPreferences, setLoadingPreferences] = useState(true);
   const [savingPreference, setSavingPreference] = useState("");
   const [toast, setToast] = useState("");
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const logoutTimerRef = useRef(null);
 
   useEffect(() => {
     setTitle("Einstellungen");
   }, [setTitle]);
+
+  useEffect(
+    () => () => {
+      window.clearTimeout(logoutTimerRef.current);
+    },
+  );
 
   useEffect(() => {
     let active = true;
@@ -199,6 +210,12 @@ export default function Settings() {
     }
   };
 
+  const handlePasswordChanged = (message) => {
+    setPasswordDialogOpen(false);
+    setToast(message || "Passwort geändert. Bitte melde dich erneut an.");
+    logoutTimerRef.current = window.setTimeout(() => logout(), 1600);
+  };
+
   const buttonText = updatingPush
     ? "Wird geändert…"
     : pushState.loading
@@ -212,14 +229,6 @@ export default function Settings() {
   return (
     <div className="settings-page">
       {toast && <Toast message={toast} onClose={() => setToast("")} />}
-
-      <section className="settings-intro">
-        <h1>Persönliche Einstellungen</h1>
-        <p>
-          Verwalte hier deine Benachrichtigungen und künftig weitere
-          Kontoeinstellungen.
-        </p>
-      </section>
 
       <section className="settings-card" aria-labelledby="push-title">
         <div className="settings-card-icon" aria-hidden="true">
@@ -316,16 +325,30 @@ export default function Settings() {
         </div>
       </section>
 
-      <section className="settings-card settings-card--muted">
+      <section className="settings-card" aria-labelledby="password-title">
         <div className="settings-card-icon" aria-hidden="true">
           <KeyRound size={22} />
         </div>
         <div className="settings-card-content">
-          <h2>Passwort</h2>
-          <p>Die selbstständige Passwortänderung wird hier später ergänzt.</p>
+          <h2 id="password-title">Passwort</h2>
+          <p>Ändere das Passwort für deinen persönlichen Zugang.</p>
         </div>
-        <span className="settings-coming-soon">Später</span>
+        <button
+          type="button"
+          className="button small neutral"
+          onClick={() => setPasswordDialogOpen(true)}
+        >
+          Passwort ändern
+        </button>
       </section>
+
+      {passwordDialogOpen && (
+        <PasswordChangeDialog
+          onClose={() => setPasswordDialogOpen(false)}
+          onSuccess={handlePasswordChanged}
+        />
+      )}
+
     </div>
   );
 }

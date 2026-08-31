@@ -116,7 +116,9 @@ export default function Header({ title = "Cavegames" }) {
                 </span>
                 <span className="header-popup-texts">
                   <span className="header-popup-label">Einstellungen</span>
-                  <span className="header-popup-desc">Konto & Meldungen</span>
+                  <span className="header-popup-desc">
+                    Benachrichtigungen & Passwort
+                  </span>
                 </span>
               </button>
 

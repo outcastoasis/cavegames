@@ -50,6 +50,7 @@ Beim Login setzt das Backend zusätzlich das Cookie `cavegames_refresh`. Das kur
 | ------- | ---------------- | --------------------------------- |
 | GET     | `/api/users`     | Alle Benutzer (Admin)             |
 | POST    | `/api/users`     | Benutzer anlegen (Admin)          |
+| PATCH   | `/api/users/me/password` | Eigenes Passwort ändern und Sitzungen widerrufen |
 | GET     | `/api/users/:id` | Benutzer-Details (Admin, Self)    |
 | PATCH   | `/api/users/:id` | Benutzer bearbeiten (Admin, Self) |
 | DELETE  | `/api/users/:id` | Benutzer deaktivieren (Admin)     |

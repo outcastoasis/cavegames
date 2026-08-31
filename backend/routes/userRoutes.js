@@ -5,6 +5,9 @@ const upload = require("../middleware/upload");
 const checkAuth = require("../middleware/checkAuth");
 const checkRole = require("../middleware/checkRole");
 const checkSelfOrAdmin = require("../middleware/checkSelfOrAdmin");
+const {
+  passwordChangeRateLimit,
+} = require("../middleware/loginRateLimit");
 
 const {
   getAllUsers,
@@ -14,10 +17,14 @@ const {
   deleteUser,
   uploadUserAvatar,
   removeUserAvatar,
+  changeOwnPassword,
 } = require("../controllers/userController");
 
 // Alle Routen benötigen Login
 router.use(checkAuth);
+
+// Eigenes Konto
+router.patch("/me/password", passwordChangeRateLimit, changeOwnPassword);
 
 // ==============================
 //      ADMIN-Routen

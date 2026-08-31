@@ -19,10 +19,17 @@ function createLoginRateLimit(overrides = {}) {
 }
 
 const loginRateLimit = createLoginRateLimit();
+const passwordChangeRateLimit = createLoginRateLimit({
+  message: {
+    error:
+      "Zu viele fehlgeschlagene Passwortversuche. Bitte versuche es in 15 Minuten erneut.",
+  },
+});
 
 module.exports = {
   LOGIN_ATTEMPT_LIMIT,
   LOGIN_WINDOW_MS,
   createLoginRateLimit,
   loginRateLimit,
+  passwordChangeRateLimit,
 };

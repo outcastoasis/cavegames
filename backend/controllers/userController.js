@@ -13,6 +13,58 @@ const NotificationPreference = require("../models/NotificationPreference");
 const NotificationDelivery = require("../models/NotificationDelivery");
 const AuthSession = require("../models/AuthSession");
 
+exports.changeOwnPassword = async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  if (
+    typeof currentPassword !== "string" ||
+    currentPassword.length === 0 ||
+    typeof newPassword !== "string" ||
+    newPassword.length === 0
+  ) {
+    return res.status(400).json({
+      error: "Aktuelles und neues Passwort sind erforderlich",
+    });
+  }
+  if (Buffer.byteLength(newPassword, "utf8") > 72) {
+    return res.status(400).json({
+      error: "Das neue Passwort ist technisch zu lang",
+    });
+  }
+
+  try {
+    const user = await User.findOne({
+      _id: req.user._id,
+      active: true,
+      isTestData: { $ne: true },
+    });
+    if (!user) {
+      return res.status(404).json({ error: "Benutzer nicht gefunden" });
+    }
+
+    const currentPasswordMatches = await bcrypt.compare(
+      currentPassword,
+      user.passwordHash,
+    );
+    if (!currentPasswordMatches) {
+      return res.status(400).json({
+        error: "Das aktuelle Passwort ist nicht korrekt",
+      });
+    }
+
+    user.passwordHash = await bcrypt.hash(newPassword, 10);
+    user.tokenVersion = (user.tokenVersion ?? 0) + 1;
+    await user.save();
+    await AuthSession.deleteMany({ userId: user._id });
+
+    return res.json({
+      message: "Passwort geändert. Bitte melde dich erneut an.",
+    });
+  } catch (err) {
+    console.error("Eigenes Passwort konnte nicht geändert werden:", err.message);
+    return res.status(500).json({ error: "Passwort konnte nicht geändert werden" });
+  }
+};
+
 exports.getAllUsers = async (req, res) => {
   try {
     if (req.isTestMode) {
