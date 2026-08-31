@@ -5,6 +5,7 @@ const Evening = require("../models/Evening");
 const { scopedFilter } = require("../utils/testMode");
 const {
   sendPollCreatedNotification,
+  sendPollFinalizedNotification,
 } = require("../services/pushNotificationService");
 
 // 🟢 Umfrage erstellen
@@ -133,6 +134,11 @@ exports.votePoll = async (req, res) => {
 // 🏁 Umfrage finalisieren
 exports.finalizePoll = async (req, res) => {
   const { finalizedDate } = req.body;
+  const finalizedDateValue = new Date(finalizedDate);
+
+  if (Number.isNaN(finalizedDateValue.getTime())) {
+    return res.status(400).json({ error: "Ungültiger Termin" });
+  }
 
   try {
     const poll = await Poll.findOne(scopedFilter(req, { _id: req.params.id }));
@@ -143,17 +149,40 @@ exports.finalizePoll = async (req, res) => {
       });
     }
 
-    poll.finalizedOption = finalizedDate;
+    poll.finalizedOption = finalizedDateValue;
     await poll.save();
 
-    await Evening.findOneAndUpdate(scopedFilter(req, { _id: poll.eveningId }), {
-      date: finalizedDate,
-      status: "fixiert",
-    });
+    const evening = await Evening.findOneAndUpdate(
+      scopedFilter(req, { _id: poll.eveningId }),
+      {
+        date: finalizedDateValue,
+        status: "fixiert",
+      },
+      { new: true },
+    );
+    if (!evening) {
+      poll.finalizedOption = undefined;
+      await poll.save();
+      return res.status(404).json({ error: "Abend nicht gefunden" });
+    }
 
     res.json({
       message: "Termin wurde erfolgreich fixiert",
-      finalizedDate,
+      finalizedDate: finalizedDateValue,
+    });
+
+    setImmediate(() => {
+      sendPollFinalizedNotification({
+        pollId: poll._id,
+        actorId: req.user._id,
+        date: finalizedDateValue,
+        isTestData: req.isTestMode,
+      }).catch((error) => {
+        console.error(
+          "Push-Versand für fixierten Termin fehlgeschlagen:",
+          error.message,
+        );
+      });
     });
   } catch (err) {
     res.status(500).json({

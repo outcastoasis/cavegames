@@ -1,11 +1,12 @@
 // frontend/src/components/ProtectedRoute.jsx
 
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/authState";
 import PageLoader from "./ui/PageLoader";
 
 export default function ProtectedRoute({ children }) {
   const { token, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -17,7 +18,13 @@ export default function ProtectedRoute({ children }) {
   }
 
   if (!token) {
-    return <Navigate to="/login" replace />;
+    return (
+      <Navigate
+        to="/login"
+        replace
+        state={{ from: `${location.pathname}${location.search}${location.hash}` }}
+      />
+    );
   }
 
   return children;

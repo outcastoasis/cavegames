@@ -1,7 +1,17 @@
 import { useEffect, useState } from "react";
-import { Bell, BellOff, KeyRound } from "lucide-react";
+import {
+  Bell,
+  BellOff,
+  CalendarCheck2,
+  CalendarClock,
+  CalendarSync,
+  KeyRound,
+  ListChecks,
+  Trophy,
+} from "lucide-react";
 import { useOutletContext } from "react-router-dom";
 import Toast from "../components/ui/Toast";
+import API from "../services/api";
 import {
   disablePushNotifications,
   enablePushNotifications,
@@ -17,10 +27,63 @@ const initialPushState = {
   needsIosInstallation: false,
 };
 
+const initialPreferences = {
+  pollCreated: true,
+  pollReminder: true,
+  pollFinalized: true,
+  eveningChanged: true,
+  resultsAvailable: true,
+  eveningUpcoming: true,
+};
+
+const notificationCategories = [
+  {
+    key: "pollCreated",
+    title: "Neue Umfragen",
+    description: "Sobald eine neue Termin-Umfrage erstellt wurde.",
+    icon: ListChecks,
+  },
+  {
+    key: "pollReminder",
+    title: "Offene Abstimmungen",
+    description:
+      "Einmal pro Woche, aber nur wenn deine eigene Abstimmung noch fehlt.",
+    icon: CalendarClock,
+  },
+  {
+    key: "pollFinalized",
+    title: "Termin wurde fixiert",
+    description: "Mit dem festgelegten Datum und der genauen Uhrzeit.",
+    icon: CalendarCheck2,
+  },
+  {
+    key: "eveningChanged",
+    title: "Spieleabend wurde geändert",
+    description: "Wenn Termin, Spieljahr oder Spielleitung geändert wurden.",
+    icon: CalendarSync,
+  },
+  {
+    key: "resultsAvailable",
+    title: "Resultate sind verfügbar",
+    description: "Sobald der Abend abgeschlossen und ausgewertet wurde.",
+    icon: Trophy,
+  },
+  {
+    key: "eveningUpcoming",
+    title: "Spieleabend in einer Woche",
+    description:
+      "Erinnert an den Termin und den Teilnahme-Schalter «Dabei / Nicht dabei».",
+    icon: CalendarClock,
+  },
+];
+
 export default function Settings() {
   const { setTitle } = useOutletContext();
   const [pushState, setPushState] = useState(initialPushState);
   const [updatingPush, setUpdatingPush] = useState(false);
+  const [preferences, setPreferences] = useState(initialPreferences);
+  const [loadingPreferences, setLoadingPreferences] = useState(true);
+  const [savingPreference, setSavingPreference] = useState("");
   const [toast, setToast] = useState("");
 
   useEffect(() => {
@@ -43,6 +106,34 @@ export default function Settings() {
             supported: false,
           }));
         }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    API.get("/notifications/preferences")
+      .then((response) => {
+        if (active) setPreferences(response.data);
+      })
+      .catch((error) => {
+        console.error(
+          "Benachrichtigungseinstellungen konnten nicht geladen werden:",
+          error,
+        );
+        if (active) {
+          setToast(
+            error.response?.data?.error ||
+              "Benachrichtigungseinstellungen konnten nicht geladen werden.",
+          );
+        }
+      })
+      .finally(() => {
+        if (active) setLoadingPreferences(false);
       });
 
     return () => {
@@ -82,6 +173,32 @@ export default function Settings() {
     }
   };
 
+  const handlePreferenceToggle = async (key, enabled) => {
+    if (savingPreference) return;
+
+    const previousValue = preferences[key];
+    setPreferences((current) => ({ ...current, [key]: enabled }));
+    setSavingPreference(key);
+    try {
+      const response = await API.patch("/notifications/preferences", {
+        [key]: enabled,
+      });
+      setPreferences(response.data);
+      setToast("Benachrichtigungseinstellung gespeichert");
+    } catch (error) {
+      setPreferences((current) => ({
+        ...current,
+        [key]: previousValue,
+      }));
+      setToast(
+        error.response?.data?.error ||
+          "Benachrichtigungseinstellung konnte nicht gespeichert werden.",
+      );
+    } finally {
+      setSavingPreference("");
+    }
+  };
+
   const buttonText = updatingPush
     ? "Wird geändert…"
     : pushState.loading
@@ -112,8 +229,8 @@ export default function Settings() {
           <h2 id="push-title">Benachrichtigungen</h2>
           <p>
             {pushState.subscribed
-              ? "Du erhältst auf diesem Gerät eine Meldung, wenn eine neue Umfrage erstellt wird."
-              : "Aktiviere Meldungen für neue Umfragen auf diesem Gerät."}
+              ? "Dieses Gerät kann die unten ausgewählten Meldungen empfangen."
+              : "Aktiviere Push-Meldungen auf diesem Gerät."}
           </p>
           {pushState.needsIosInstallation && (
             <p className="settings-hint">
@@ -143,6 +260,60 @@ export default function Settings() {
         >
           {buttonText}
         </button>
+      </section>
+
+      <section
+        className="settings-category-section"
+        aria-labelledby="notification-categories-title"
+      >
+        <div className="settings-category-heading">
+          <div>
+            <h2 id="notification-categories-title">Benachrichtigungsarten</h2>
+            <p>Diese Auswahl gilt für dein Konto auf allen Geräten.</p>
+          </div>
+          {loadingPreferences && <span>Wird geladen…</span>}
+        </div>
+
+        <div className="settings-category-list">
+          {notificationCategories.map((category) => {
+            const Icon = category.icon;
+            const inputId = `notification-${category.key}`;
+            return (
+              <div className="settings-category-row" key={category.key}>
+                <div className="settings-category-icon" aria-hidden="true">
+                  <Icon size={19} />
+                </div>
+                <label
+                  className="settings-category-content"
+                  htmlFor={inputId}
+                >
+                  <strong>{category.title}</strong>
+                  <span>{category.description}</span>
+                </label>
+                <label className="settings-switch" htmlFor={inputId}>
+                  <input
+                    id={inputId}
+                    type="checkbox"
+                    checked={Boolean(preferences[category.key])}
+                    onChange={(event) =>
+                      handlePreferenceToggle(
+                        category.key,
+                        event.target.checked,
+                      )
+                    }
+                    disabled={
+                      loadingPreferences || Boolean(savingPreference)
+                    }
+                  />
+                  <span className="settings-switch-track" aria-hidden="true" />
+                  <span className="settings-switch-label">
+                    {preferences[category.key] ? "Ein" : "Aus"}
+                  </span>
+                </label>
+              </div>
+            );
+          })}
+        </div>
       </section>
 
       <section className="settings-card settings-card--muted">

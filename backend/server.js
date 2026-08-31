@@ -10,6 +10,9 @@ const authRoutes = require("./routes/auth");
 const pollRoutes = require("./routes/pollRoutes");
 const multer = require("multer");
 const { testModeMiddleware } = require("./utils/testMode");
+const {
+  startNotificationScheduler,
+} = require("./services/notificationScheduler");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -35,7 +38,7 @@ app.use(express.json());
 app.use(testModeMiddleware);
 
 // MongoDB verbinden
-connectDB();
+connectDB().then(() => startNotificationScheduler());
 
 // Test-Route
 app.get("/api/test", (req, res) => {

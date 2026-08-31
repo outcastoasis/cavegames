@@ -204,14 +204,6 @@ export default function Profile() {
           profileImageUrl: res.data.url,
         }));
 
-        localStorage.setItem(
-          "user",
-          JSON.stringify({
-            ...user,
-            profileImageUrl: res.data.url,
-          }),
-        );
-
         showToast("Profilbild erfolgreich aktualisiert!");
       }
     } catch (err) {

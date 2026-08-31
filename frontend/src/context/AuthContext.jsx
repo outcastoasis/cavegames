@@ -1,53 +1,77 @@
 import { useEffect, useState } from "react";
-import { jwtDecode } from "jwt-decode";
 import { AuthContext } from "./authState";
+import {
+  AUTH_SESSION_EXPIRED_EVENT,
+  AUTH_SESSION_UPDATED_EVENT,
+  bootstrapLegacySession,
+  clearLegacyAuthStorage,
+  endSession,
+  refreshSession,
+  setAccessToken,
+} from "../services/authSession";
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState("");
   const [loading, setLoading] = useState(true);
 
-  // Beim ersten Laden aus localStorage lesen
   useEffect(() => {
-    const savedToken = localStorage.getItem("token");
-    const savedUser = localStorage.getItem("user");
+    let active = true;
+    const handleUpdated = (event) => {
+      if (!active) return;
+      setToken(event.detail.token);
+      setUser(event.detail.user);
+    };
+    const handleExpired = () => {
+      if (!active) return;
+      setToken("");
+      setUser(null);
+    };
+    window.addEventListener(AUTH_SESSION_UPDATED_EVENT, handleUpdated);
+    window.addEventListener(AUTH_SESSION_EXPIRED_EVENT, handleExpired);
 
-    if (savedToken && savedUser) {
+    const restore = async () => {
       try {
-        const decoded = jwtDecode(savedToken);
-        const now = Date.now() / 1000;
-
-        if (decoded.exp < now) {
-          console.warn("🔒 Token abgelaufen – Benutzer wird ausgeloggt");
-          logout();
-        } else {
-          setToken(savedToken);
-          setUser(JSON.parse(savedUser));
+        await refreshSession();
+      } catch {
+        const legacyToken = localStorage.getItem("token");
+        if (legacyToken) {
+          try {
+            await bootstrapLegacySession(legacyToken);
+          } catch {
+            clearLegacyAuthStorage();
+            setAccessToken("");
+          }
         }
-      } catch (err) {
-        console.error("❌ Fehler beim Token-Dekodieren:", err.message);
-        logout();
+      } finally {
+        if (active) setLoading(false);
       }
-    }
+    };
+    restore();
 
-    setLoading(false);
+    return () => {
+      active = false;
+      window.removeEventListener(AUTH_SESSION_UPDATED_EVENT, handleUpdated);
+      window.removeEventListener(AUTH_SESSION_EXPIRED_EVENT, handleExpired);
+    };
   }, []);
 
   // Login
   const login = (userData, tokenData) => {
-    localStorage.setItem("token", tokenData);
-    localStorage.setItem("user", JSON.stringify(userData));
+    clearLegacyAuthStorage();
+    setAccessToken(tokenData);
     setToken(tokenData);
     setUser(userData);
   };
 
   // Logout
   const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    void endSession();
+    clearLegacyAuthStorage();
+    setAccessToken("");
     setToken("");
     setUser(null);
-    window.location.href = "/login"; // <— sofort weiterleiten
+    window.location.href = "/login";
   };
 
   return (

@@ -13,7 +13,9 @@
 | Methode | Route               | Beschreibung                |
 | ------- | ------------------- | --------------------------- |
 | POST    | `/api/auth/login`   | Login mit Username/Passwort |
-| POST    | `/api/auth/refresh` | Token erneuern              |
+| POST    | `/api/auth/refresh` | Zugriffstoken per `HttpOnly`-Sitzung erneuern |
+| POST    | `/api/auth/logout`  | Aktuelle Langzeitsitzung widerrufen |
+| POST    | `/api/auth/session` | Gültiges altes JWT einmalig migrieren |
 | GET     | `/api/auth/me`      | Aktuellen User abrufen      |
 
 ### Beispiel
@@ -23,6 +25,8 @@
 ```json
 { "username": "max", "password": "secret" }
 ```
+
+Beim Login setzt das Backend zusätzlich das Cookie `cavegames_refresh`. Das kurzlebige JWT wird als Bearer-Token verwendet und vom Frontend bei Ablauf automatisch erneuert. Refresh-Geheimnisse liegen in der Datenbank ausschliesslich als Hash vor und werden bei erfolgreicher Erneuerung rotiert. Auth-Antworten dürfen nicht gecacht werden.
 
 **Response:**
 
@@ -160,6 +164,8 @@ erzeugte Abend- und Jahresstatistiken neu berechnet.
 | Methode | Route                                       | Beschreibung                         |
 | ------- | ------------------------------------------- | ------------------------------------ |
 | GET     | `/api/notifications/vapid-public-key`       | Öffentlichen VAPID-Schlüssel abrufen |
+| GET     | `/api/notifications/preferences`            | Eigene Kategorien abrufen             |
+| PATCH   | `/api/notifications/preferences`            | Eigene Kategorien aktualisieren       |
 | POST    | `/api/notifications/subscriptions`          | Browser-Abonnement speichern         |
 | DELETE  | `/api/notifications/subscriptions`          | Browser-Abonnement entfernen         |
 
@@ -167,6 +173,12 @@ Alle Routen benötigen eine Anmeldung. Ein Benutzer kann mehrere Geräte
 registrieren. Beim Erstellen einer produktiven Umfrage werden alle aktiven
 Benutzer mit aktiviertem Abonnement ausser dem Ersteller benachrichtigt.
 Testmodus-Umfragen versenden keine echten Push-Meldungen.
+
+Verfügbare Kategorien sind `pollCreated`, `pollReminder`, `pollFinalized`,
+`eveningChanged`, `resultsAvailable` und `eveningUpcoming`. Offene Umfragen
+werden höchstens einmal pro Kalenderwoche und nur bei fehlender eigener Stimme
+gemeldet. Die Termin-Erinnerung wird einmalig sieben Tage vor dem Abend
+versendet.
 
 ---
 

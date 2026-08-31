@@ -22,9 +22,6 @@ const pushSubscriptionSchema = new mongoose.Schema(
       p256dh: { type: String, required: true },
       auth: { type: String, required: true },
     },
-    preferences: {
-      polls: { type: Boolean, default: true },
-    },
     userAgent: {
       type: String,
       maxlength: 500,

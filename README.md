@@ -52,10 +52,26 @@ MONGODB_URI=mongodb+srv://...
 JWT_SECRET=dev-secret-irgendwas-langes
 CLIENT_ORIGIN=http://localhost:5173
 
+# Sitzungen: Zugriffstoken standardmässig 15 Minuten, erneuerbare Sitzung 90 Tage
+AUTH_ACCESS_TOKEN_TTL=15m
+AUTH_SESSION_DAYS=90
+# Bei getrennten HTTPS-Domains für Vercel und Railway erforderlich:
+# AUTH_COOKIE_SAME_SITE=none
+# AUTH_COOKIE_SECURE=true
+
 # Web Push (einmalig mit `npx web-push generate-vapid-keys` erzeugen)
 VAPID_PUBLIC_KEY=...
 VAPID_PRIVATE_KEY=...
 VAPID_SUBJECT=mailto:admin@example.com
+
+# Geplante Push-Erinnerungen (auf Railway aktivieren)
+NOTIFICATION_SCHEDULER_ENABLED=true
+NOTIFICATION_TIMEZONE=Europe/Zurich
+# 0 = Sonntag, 1 = Montag, ...; Standard: Montag ab 18 Uhr
+NOTIFICATION_REMINDER_WEEKDAY=1
+NOTIFICATION_REMINDER_HOUR=18
+# Optional, Standard: 60; erlaubt sind 15 bis 1440 Minuten
+NOTIFICATION_SCHEDULER_INTERVAL_MINUTES=60
 
 CLOUDINARY_CLOUD_NAME=...
 CLOUDINARY_API_KEY=...
@@ -65,7 +81,7 @@ CLOUDINARY_API_SECRET=...
 # TRUST_PROXY_HOPS=1
 ```
 
-`MONGODB_URI`, `JWT_SECRET` und `CLIENT_ORIGIN` werden für den lokalen Start benötigt. Die drei `VAPID_*`-Werte aktivieren Push-Benachrichtigungen und müssen auf Railway als Service-Variablen mit denselben, dauerhaft beibehaltenen Schlüsseln gesetzt werden. Die Cloudinary-Werte werden für Bild-Uploads verwendet. `TRUST_PROXY_HOPS` muss beim Deployment auf die tatsächliche Anzahl vertrauenswürdiger Reverse-Proxy-Hops gesetzt werden, damit das Login-Limit die echte Client-IP verwendet.
+`MONGODB_URI`, `JWT_SECRET` und `CLIENT_ORIGIN` werden für den lokalen Start benötigt. Zugriffstokens sind standardmässig 15 Minuten gültig und werden über eine rotierende, in MongoDB gespeicherte 90-Tage-Sitzung automatisch erneuert. Der dauerhafte Sitzungsschlüssel wird ausschliesslich als `HttpOnly`-Cookie gespeichert. Bei getrennten Vercel- und Railway-Domains müssen auf Railway `AUTH_COOKIE_SAME_SITE=none` und `AUTH_COOKIE_SECURE=true` gesetzt werden. Für iOS/Safari sind eigene Subdomains unter derselben Hauptdomain oder ein Same-Origin-API-Proxy zuverlässiger als Drittanbieter-Cookies. Die drei `VAPID_*`-Werte aktivieren Push-Benachrichtigungen und müssen auf Railway als Service-Variablen mit denselben, dauerhaft beibehaltenen Schlüsseln gesetzt werden. `NOTIFICATION_SCHEDULER_ENABLED=true` aktiviert die wöchentlichen Erinnerungen an noch nicht beantwortete Umfragen sowie die Meldung sieben Tage vor einem Spieleabend. Die Zustellungen werden in MongoDB dedupliziert und deshalb auch bei stündlicher Prüfung nur einmal pro Zeitraum versendet. Die Cloudinary-Werte werden für Bild-Uploads verwendet. `TRUST_PROXY_HOPS` muss beim Deployment auf die tatsächliche Anzahl vertrauenswürdiger Reverse-Proxy-Hops gesetzt werden, damit das Login-Limit die echte Client-IP verwendet.
 
 ### 3. Frontend konfigurieren
 
@@ -250,8 +266,9 @@ Die Admin-Funktionen sind über ein Dropdown-Menü im Header erreichbar, nicht �
 
 ## 🔐 Authentifizierung & Autorisierung
 
-- **Token-Art:** JWT (JSON Web Token)
-- **Gültigkeit:** 12 Stunden, danach automatisches Logout
+- **Token-Art:** kurzlebiges JWT-Zugriffstoken plus rotierende, serverseitig widerrufbare Refresh-Sitzung
+- **Gültigkeit:** Zugriffstoken standardmässig 15 Minuten; aktive Sitzung rollierend 90 Tage
+- **Speicherung:** Zugriffstoken nur im Arbeitsspeicher, Refresh-Schlüssel als `HttpOnly`-/`Secure`-Cookie
 - **Middleware:** `checkAuth` prüft Token, `checkRole()` prüft Berechtigung
 - **Erstinstallation:** Der erste Admin wird manuell provisioniert. Weitere Benutzer werden ausschliesslich über die Admin-Benutzerverwaltung angelegt.
 
@@ -473,7 +490,8 @@ app.patch(
 - Nur authentifizierte Benutzer dürfen Daten ändern
 - Bildvalidierung über Backend (Grösse, Typ)
 - Passwörter mit **bcrypt** gehasht
-- JWT wird nach 12h automatisch ungültig
+- Kurzlebige JWTs werden automatisch erneuert; Refresh-Geheimnisse werden nur gehasht gespeichert und bei jeder Erneuerung rotiert
+- Passwortwechsel, Deaktivierung und Benutzerlöschung widerrufen alle Langzeitsitzungen des Users
 - Rate-Limiting für Login-Endpunkte
 
 ---

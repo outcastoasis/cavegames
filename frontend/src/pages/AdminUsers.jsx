@@ -106,7 +106,6 @@ export default function AdminUsers() {
       if (targetUser._id === user._id) {
         const updatedUser = { ...user, profileImageUrl: null };
         setUser(updatedUser);
-        localStorage.setItem("user", JSON.stringify(updatedUser));
       }
 
       setToastMsg("Profilbild entfernt");

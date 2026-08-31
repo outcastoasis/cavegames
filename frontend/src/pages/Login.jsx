@@ -1,7 +1,7 @@
 // frontend/src/pages/Login.jsx
 
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/authState";
 import "../styles/pages/Login.css";
 import logo from "../assets/images/icon-512.png";
@@ -18,6 +18,7 @@ export default function Login() {
 
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     let active = true;
@@ -81,6 +82,7 @@ export default function Login() {
         `${import.meta.env.VITE_API_BASE_URL}/auth/login`,
         {
           method: "POST",
+          credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username, password }),
           signal: controller.signal,
@@ -93,7 +95,13 @@ export default function Login() {
 
       setBackendAvailable(true);
       login(data.user, data.token);
-      navigate("/");
+      const returnTarget = location.state?.from;
+      navigate(
+        typeof returnTarget === "string" && returnTarget.startsWith("/")
+          ? returnTarget
+          : "/",
+        { replace: true },
+      );
     } catch (err) {
       if (err.name === "AbortError") {
         setError(

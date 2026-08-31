@@ -9,6 +9,9 @@ const {
 const { scopedFilter } = require("../utils/testMode");
 const { ensureTestUsers } = require("../utils/testUsers");
 const PushSubscription = require("../models/PushSubscription");
+const NotificationPreference = require("../models/NotificationPreference");
+const NotificationDelivery = require("../models/NotificationDelivery");
+const AuthSession = require("../models/AuthSession");
 
 exports.getAllUsers = async (req, res) => {
   try {
@@ -103,6 +106,9 @@ exports.updateUser = async (req, res) => {
     }
 
     await user.save();
+    if (password || active === false) {
+      await AuthSession.deleteMany({ userId: user._id });
+    }
     if (active === false) {
       await PushSubscription.deleteMany({ userId: user._id });
     }
@@ -132,6 +138,9 @@ exports.deleteUser = async (req, res) => {
     }
 
     await PushSubscription.deleteMany({ userId: user._id });
+    await NotificationPreference.deleteMany({ userId: user._id });
+    await NotificationDelivery.deleteMany({ userId: user._id });
+    await AuthSession.deleteMany({ userId: user._id });
 
     res.json({ message: "Benutzer gelöscht" });
   } catch (err) {

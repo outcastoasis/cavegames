@@ -21,6 +21,10 @@ const {
   removeParticipantAndScores,
   validateScoresForParticipants,
 } = require("../utils/eveningParticipants");
+const {
+  sendEveningChangedNotification,
+  sendResultsAvailableNotification,
+} = require("../services/pushNotificationService");
 
 const STAT_FINAL_STATUSES = new Set(["abgeschlossen", "gesperrt"]);
 
@@ -218,6 +222,8 @@ exports.updateEvening = async (req, res) => {
       return res.status(404).json({ error: "Abend nicht gefunden" });
 
     const oldYear = evening.spieljahr;
+    const oldDate = evening.date?.getTime?.() || null;
+    const oldSpielleiterId = normalizeId(evening.spielleiterId);
     const { spieljahr, spielleiterId, date } = req.body;
 
     if (spieljahr != null) {
@@ -300,6 +306,28 @@ exports.updateEvening = async (req, res) => {
     };
 
     res.json(response);
+
+    const dateChanged = oldDate !== (evening.date?.getTime?.() || null);
+    const detailsChanged =
+      dateChanged ||
+      oldYear !== evening.spieljahr ||
+      oldSpielleiterId !== normalizeId(evening.spielleiterId);
+    if (detailsChanged && evening.status === "fixiert") {
+      setImmediate(() => {
+        sendEveningChangedNotification({
+          eveningId: evening._id,
+          actorId: req.user._id,
+          date: evening.date,
+          dateChanged,
+          isTestData: req.isTestMode,
+        }).catch((error) => {
+          console.error(
+            "Push-Versand für geänderten Spieleabend fehlgeschlagen:",
+            error.message,
+          );
+        });
+      });
+    }
   } catch (err) {
     console.error("Fehler beim Aktualisieren:", err.message);
     res.status(500).json({ error: "Fehler beim Aktualisieren" });
@@ -375,6 +403,7 @@ exports.changeEveningStatus = async (req, res) => {
     }
 
     const oldStatus = evening.status;
+    const oldDate = evening.date?.getTime?.() || null;
 
     // Ungültiger Status
     const validStatuses = ["offen", "fixiert", "abgeschlossen", "gesperrt"];
@@ -457,6 +486,42 @@ exports.changeEveningStatus = async (req, res) => {
     };
 
     res.json({ message: "Status geändert", evening: response });
+
+    if (oldStatus === "fixiert" && status === "abgeschlossen") {
+      setImmediate(() => {
+        sendResultsAvailableNotification({
+          eveningId: evening._id,
+          actorId: req.user._id,
+          date: evening.date,
+          participantIds: evening.participantIds,
+          isTestData: req.isTestMode,
+        }).catch((error) => {
+          console.error(
+            "Push-Versand für verfügbare Resultate fehlgeschlagen:",
+            error.message,
+          );
+        });
+      });
+    } else if (
+      oldStatus === "fixiert" &&
+      status === "fixiert" &&
+      oldDate !== (evening.date?.getTime?.() || null)
+    ) {
+      setImmediate(() => {
+        sendEveningChangedNotification({
+          eveningId: evening._id,
+          actorId: req.user._id,
+          date: evening.date,
+          dateChanged: true,
+          isTestData: req.isTestMode,
+        }).catch((error) => {
+          console.error(
+            "Push-Versand für geänderten Termin fehlgeschlagen:",
+            error.message,
+          );
+        });
+      });
+    }
   } catch (err) {
     console.error("Fehler beim Statuswechsel:", err.message);
     res.status(500).json({ error: "Fehler beim Statuswechsel" });

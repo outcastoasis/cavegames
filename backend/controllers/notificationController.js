@@ -1,7 +1,12 @@
 const PushSubscription = require("../models/PushSubscription");
+const NotificationPreference = require("../models/NotificationPreference");
 const {
   getPushConfiguration,
 } = require("../services/pushNotificationService");
+const {
+  normalizeNotificationPreferences,
+  validateNotificationPreferenceUpdate,
+} = require("../utils/notificationPreferences");
 
 const MAX_ENDPOINT_LENGTH = 2048;
 const MAX_KEY_LENGTH = 512;
@@ -64,7 +69,6 @@ exports.saveSubscription = async (req, res) => {
             p256dh: subscription.keys.p256dh,
             auth: subscription.keys.auth,
           },
-          "preferences.polls": true,
           userAgent: String(req.get("user-agent") || "").slice(0, 500),
           lastSeenAt: new Date(),
         },
@@ -110,6 +114,47 @@ exports.removeSubscription = async (req, res) => {
     );
     return res.status(500).json({
       error: "Push-Abonnement konnte nicht entfernt werden.",
+    });
+  }
+};
+
+exports.getPreferences = async (req, res) => {
+  try {
+    const preferences = await NotificationPreference.findOne({
+      userId: req.user._id,
+    }).lean();
+    return res.json(normalizeNotificationPreferences(preferences));
+  } catch (error) {
+    console.error(
+      "Benachrichtigungseinstellungen konnten nicht geladen werden:",
+      error.message,
+    );
+    return res.status(500).json({
+      error: "Benachrichtigungseinstellungen konnten nicht geladen werden.",
+    });
+  }
+};
+
+exports.updatePreferences = async (req, res) => {
+  const validationError = validateNotificationPreferenceUpdate(req.body);
+  if (validationError) {
+    return res.status(400).json({ error: validationError });
+  }
+
+  try {
+    const preferences = await NotificationPreference.findOneAndUpdate(
+      { userId: req.user._id },
+      { $set: req.body },
+      { upsert: true, new: true, setDefaultsOnInsert: true },
+    ).lean();
+    return res.json(normalizeNotificationPreferences(preferences));
+  } catch (error) {
+    console.error(
+      "Benachrichtigungseinstellungen konnten nicht gespeichert werden:",
+      error.message,
+    );
+    return res.status(500).json({
+      error: "Benachrichtigungseinstellungen konnten nicht gespeichert werden.",
     });
   }
 };
