@@ -17,7 +17,7 @@ import Toast from "../components/ui/Toast";
 import defaultAvatar from "../assets/images/avatar.jpg";
 
 export default function AdminUsers() {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const { setTitle } = useOutletContext();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -102,6 +102,13 @@ export default function AdminUsers() {
 
     try {
       await API.delete(`/users/${targetUser._id}/avatar`);
+
+      if (targetUser._id === user._id) {
+        const updatedUser = { ...user, profileImageUrl: null };
+        setUser(updatedUser);
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+      }
+
       setToastMsg("Profilbild entfernt");
       await fetchUsers();
     } catch (err) {

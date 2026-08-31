@@ -8,10 +8,9 @@ const {
   getGameStats,
   getUserStatsAllYears,
 } = require("../controllers/statsController");
+const checkAuth = require("../middleware/checkAuth");
 
-// Optional: Middleware (z. B. checkAuth) einfügen
-// const checkAuth = require("../middleware/checkAuth");
-// router.use(checkAuth);
+router.use(checkAuth);
 
 router.get("/leaderboard", getLeaderboard);
 router.get("/user/:userId", getUserStats);
