@@ -27,12 +27,20 @@ module.exports = async (req, res, next) => {
         active: true,
         isTestData: { $ne: true },
       },
-      "_id username role",
+      "_id username role tokenVersion",
     );
 
     if (!currentUser) {
       return res.status(401).json({
         error: "Benutzer nicht mehr aktiv oder vorhanden",
+      });
+    }
+
+    const tokenVersion = decoded.tokenVersion ?? 0;
+    const currentTokenVersion = currentUser.tokenVersion ?? 0;
+    if (tokenVersion !== currentTokenVersion) {
+      return res.status(401).json({
+        error: "Sitzung nicht mehr gültig. Bitte erneut anmelden",
       });
     }
 

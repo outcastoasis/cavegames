@@ -96,7 +96,10 @@ exports.updateUser = async (req, res) => {
     if (displayName) user.displayName = displayName;
     if (role) user.role = role;
     if (typeof active === "boolean") user.active = active;
-    if (password) user.passwordHash = await bcrypt.hash(password, 10);
+    if (password) {
+      user.passwordHash = await bcrypt.hash(password, 10);
+      user.tokenVersion = (user.tokenVersion ?? 0) + 1;
+    }
 
     await user.save();
     res.json({ message: "Benutzer aktualisiert" });

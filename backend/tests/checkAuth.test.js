@@ -33,6 +33,7 @@ test("authentication uses the current database role instead of the JWT role", as
       _id: "64b000000000000000000001",
       username: "alice",
       role: "spieler",
+      tokenVersion: 0,
     };
   };
   t.after(() => {
@@ -63,11 +64,50 @@ test("authentication uses the current database role instead of the JWT role", as
     active: true,
     isTestData: { $ne: true },
   });
-  assert.equal(receivedProjection, "_id username role");
+  assert.equal(receivedProjection, "_id username role tokenVersion");
   assert.deepEqual(req.user, {
     _id: "64b000000000000000000001",
     username: "alice",
     role: "spieler",
+  });
+});
+
+test("authentication rejects a token issued before a password change", async (t) => {
+  const originalFindOne = User.findOne;
+  const originalSecret = process.env.JWT_SECRET;
+  process.env.JWT_SECRET = "check-auth-test-secret";
+  User.findOne = async () => ({
+    _id: "64b000000000000000000001",
+    username: "alice",
+    role: "spieler",
+    tokenVersion: 1,
+  });
+  t.after(() => {
+    User.findOne = originalFindOne;
+    if (originalSecret === undefined) delete process.env.JWT_SECRET;
+    else process.env.JWT_SECRET = originalSecret;
+  });
+
+  const oldToken = jwt.sign(
+    {
+      userId: "64b000000000000000000001",
+      role: "spieler",
+      tokenVersion: 0,
+    },
+    process.env.JWT_SECRET,
+  );
+  const req = { headers: { authorization: `Bearer ${oldToken}` } };
+  const res = createResponse();
+  let nextCalled = false;
+
+  await checkAuth(req, res, () => {
+    nextCalled = true;
+  });
+
+  assert.equal(nextCalled, false);
+  assert.equal(res.statusCode, 401);
+  assert.deepEqual(res.body, {
+    error: "Sitzung nicht mehr gültig. Bitte erneut anmelden",
   });
 });
 
