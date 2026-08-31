@@ -8,7 +8,6 @@ const connectDB = require("./config/db");
 const userRoutes = require("./routes/userRoutes");
 const authRoutes = require("./routes/auth");
 const pollRoutes = require("./routes/pollRoutes");
-const uploadRoutes = require("./routes/uploads");
 const multer = require("multer");
 const { testModeMiddleware } = require("./utils/testMode");
 
@@ -54,7 +53,6 @@ app.use("/api/games", require("./routes/gameRoutes"));
 
 app.use("/api/stats", require("./routes/statsRoutes"));
 
-app.use("/api/uploads", uploadRoutes);
 app.use("/api/test-mode", require("./routes/testModeRoutes"));
 
 app.use((err, req, res, next) => {
