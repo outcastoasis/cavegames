@@ -2,7 +2,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
-import Register from "./pages/Register";
 import ProtectedRoute from "./components/ProtectedRoute";
 import DashboardLayout from "./layouts/DashboardLayout";
 import AdminUsers from "./pages/AdminUsers";
@@ -23,7 +22,6 @@ export default function AppRouter() {
       <Routes>
         {/* Öffentliche Seiten */}
         <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
 
         {/* Geschützte Seiten mit Layout */}
         <Route

@@ -6,7 +6,6 @@ import { useAuth } from "../context/authState";
 import "../styles/pages/Login.css";
 import logo from "../assets/images/icon-512.png";
 import { LogIn, User, Lock } from "lucide-react";
-import { Link } from "react-router-dom";
 import Spinner from "../components/ui/Spinner";
 
 export default function Login() {
@@ -169,12 +168,6 @@ export default function Login() {
             </div>
           )}
           {error && <p className="login-error">{error}</p>}
-          <p className="text-small">
-            Noch keinen Account? <br />
-            <Link to="/register" className="register-link">
-              Jetzt registrieren
-            </Link>
-          </p>
         </form>
       </div>
     </div>

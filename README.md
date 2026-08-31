@@ -131,7 +131,6 @@ spielabend-app/
 │   │   │   ├── Leaderboard.jsx
 │   │   │   ├── Admin.jsx
 │   │   │   ├── Login.jsx
-│   │   │   └── Register.jsx
 │   │   │
 │   │   ├── layouts/
 │   │   │   ├── DashboardLayout.jsx
@@ -246,7 +245,7 @@ Die Admin-Funktionen sind über ein Dropdown-Menü im Header erreichbar, nicht �
 - **Token-Art:** JWT (JSON Web Token)
 - **Gültigkeit:** 12 Stunden, danach automatisches Logout
 - **Middleware:** `checkAuth` prüft Token, `checkRole()` prüft Berechtigung
-- **Erstinstallation:** Der erste registrierte Benutzer wird manuell in MongoDB zu `role: "admin"` geändert.
+- **Erstinstallation:** Der erste Admin wird manuell provisioniert. Weitere Benutzer werden ausschliesslich über die Admin-Benutzerverwaltung angelegt.
 
 **Middleware-Beispiel (Express):**
 
