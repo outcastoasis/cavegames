@@ -20,7 +20,7 @@ header {
 .header-bar {
   width: 100%;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   position: relative;
 }
@@ -32,28 +32,9 @@ header {
   font-weight: 600;
 }
 
-.header-testmode {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  min-height: 34px;
-  padding: 0 0.7rem;
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  border-radius: var(--border-radius-full);
-  background: rgba(255, 255, 255, 0.15);
-  color: white;
-  font: inherit;
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
+.header-menu-wrapper {
   position: relative;
-  z-index: 1;
-}
-
-.header-testmode.active {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #1f2937;
+  z-index: 102;
 }
 
 .header-icon-wrapper {
@@ -67,38 +48,51 @@ header {
   justify-content: center;
   cursor: pointer;
   transition: background var(--transition-fast);
+  padding: 0;
+  color: white;
+  font: inherit;
 }
 
 .header-icon-wrapper:hover {
   background: rgba(255, 255, 255, 0.3);
 }
 
-.admin-popup-menu {
+.header-popup-menu {
   position: absolute;
-  top: 3.5rem;
-  right: 1rem;
+  top: calc(100% + 0.75rem);
+  right: 0;
   background: white;
   border-radius: var(--card-radius);
-  box-shadow: var(--shadow-m);
+  box-shadow: 0 12px 30px rgba(31, 41, 55, 0.24);
   padding: var(--spacing-s);
-  z-index: 100;
-  min-width: 220px;
+  z-index: 103;
+  width: min(300px, calc(100vw - 1rem));
+  max-height: calc(100vh - 5rem);
+  overflow-y: auto;
 }
 
-.admin-popup-item {
+.header-popup-item {
+  width: 100%;
   display: flex;
   align-items: center;
   padding: var(--spacing-s);
+  border: 0;
   border-radius: var(--border-radius-sm);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
   cursor: pointer;
   transition: background var(--transition-fast);
 }
 
-.admin-popup-item:hover {
+.header-popup-item:hover,
+.header-popup-item:focus-visible {
   background: var(--bg);
+  outline: none;
 }
 
-.admin-popup-icon {
+.header-popup-icon {
   background: var(--secondary);
   color: white;
   border-radius: var(--border-radius-full);
@@ -109,27 +103,53 @@ header {
   justify-content: center;
 }
 
-.admin-popup-texts {
+.header-popup-texts {
   display: flex;
   flex-direction: column;
   font-size: var(--font-size-small);
 }
 
-.admin-popup-label {
+.header-popup-label {
   font-weight: 600;
   color: var(--text);
 }
 
-.admin-popup-desc {
+.header-popup-desc {
   color: #666;
   font-size: 0.75rem;
 }
 
+.header-popup-section-label {
+  margin: var(--spacing-s) var(--spacing-s) 0.2rem;
+  padding-top: var(--spacing-s);
+  border-top: 1px solid var(--neutral);
+  color: var(--neutral-dark);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.header-popup-divider {
+  height: 1px;
+  margin: var(--spacing-s) 0;
+  background: var(--neutral);
+}
+
+.header-popup-item--logout .header-popup-icon {
+  background: rgba(220, 38, 38, 0.12);
+  color: var(--danger);
+}
+
+.header-popup-item--logout .header-popup-label {
+  color: var(--danger);
+}
+
 /* Optionaler Blur-Hintergrund */
-.admin-popup-blur {
+.header-popup-blur {
   position: fixed;
   inset: 0;
   backdrop-filter: blur(3px);
   background-color: #00000010;
-  z-index: 99;
+  z-index: 101;
 }

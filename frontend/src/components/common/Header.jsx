@@ -1,23 +1,23 @@
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   CalendarCheck,
   FlaskConical,
   Gamepad2,
   ListChecks,
+  LogOut,
   Settings,
+  SlidersHorizontal,
   Users,
 } from "lucide-react";
-import { useAuth } from "../../context/authState";
-import { useTestMode } from "../../context/testMode";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/authState";
 import "../../styles/Header.css";
 
 export default function Header({ title = "Cavegames" }) {
-  const { user } = useAuth();
-  const { testMode, setTestMode } = useTestMode();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [adminOpen, setAdminOpen] = useState(false);
-  const menuRef = useRef();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuWrapperRef = useRef(null);
 
   const adminActions = [
     {
@@ -52,70 +52,118 @@ export default function Header({ title = "Cavegames" }) {
     },
   ];
 
-  const handleAdminClick = (path) => {
-    setAdminOpen(false);
+  const handleNavigate = (path) => {
+    setMenuOpen(false);
     navigate(path);
   };
 
-  // Schliessen beim Klick ausserhalb
+  const handleLogout = () => {
+    setMenuOpen(false);
+    logout();
+  };
+
   useEffect(() => {
-    function handleClickOutside(event) {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setAdminOpen(false);
+    const handlePointerDown = (event) => {
+      if (
+        menuWrapperRef.current &&
+        !menuWrapperRef.current.contains(event.target)
+      ) {
+        setMenuOpen(false);
       }
+    };
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") setMenuOpen(false);
+    };
+
+    if (menuOpen) {
+      document.addEventListener("mousedown", handlePointerDown);
+      document.addEventListener("keydown", handleKeyDown);
     }
-    if (adminOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [adminOpen]);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [menuOpen]);
 
   return (
     <header className="header">
       <div className="header-bar">
-        {user?.role === "admin" && (
+        <span className="header-title">{title}</span>
+
+        <div className="header-menu-wrapper" ref={menuWrapperRef}>
           <button
             type="button"
-            className={`header-testmode ${testMode ? "active" : ""}`}
-            onClick={() => setTestMode(!testMode)}
-            title={testMode ? "Testmodus ausschalten" : "Testmodus einschalten"}
-            aria-pressed={testMode}
-          >
-            <FlaskConical size={16} strokeWidth={2} />
-            <span>{testMode ? "Test" : "Live"}</span>
-          </button>
-        )}
-        <span className="header-title">{title}</span>
-        {user?.role === "admin" && (
-          <div
             className="header-icon-wrapper"
-            onClick={() => setAdminOpen(!adminOpen)}
+            onClick={() => setMenuOpen((open) => !open)}
+            aria-label={menuOpen ? "Menü schliessen" : "Menü öffnen"}
+            aria-haspopup="menu"
+            aria-expanded={menuOpen}
           >
             <Settings size={20} strokeWidth={2} />
-          </div>
-        )}
+          </button>
+
+          {menuOpen && (
+            <div className="header-popup-menu" role="menu">
+              <button
+                type="button"
+                className="header-popup-item"
+                onClick={() => handleNavigate("/einstellungen")}
+                role="menuitem"
+              >
+                <span className="header-popup-icon">
+                  <SlidersHorizontal size={18} />
+                </span>
+                <span className="header-popup-texts">
+                  <span className="header-popup-label">Einstellungen</span>
+                  <span className="header-popup-desc">Konto & Meldungen</span>
+                </span>
+              </button>
+
+              {user?.role === "admin" && (
+                <>
+                  <div className="header-popup-section-label">Verwaltung</div>
+                  {adminActions.map((action) => (
+                    <button
+                      type="button"
+                      key={action.path}
+                      className="header-popup-item"
+                      onClick={() => handleNavigate(action.path)}
+                      role="menuitem"
+                    >
+                      <span className="header-popup-icon">{action.icon}</span>
+                      <span className="header-popup-texts">
+                        <span className="header-popup-label">
+                          {action.label}
+                        </span>
+                        <span className="header-popup-desc">{action.desc}</span>
+                      </span>
+                    </button>
+                  ))}
+                </>
+              )}
+
+              <div className="header-popup-divider" />
+              <button
+                type="button"
+                className="header-popup-item header-popup-item--logout"
+                onClick={handleLogout}
+                role="menuitem"
+              >
+                <span className="header-popup-icon">
+                  <LogOut size={18} />
+                </span>
+                <span className="header-popup-texts">
+                  <span className="header-popup-label">Abmelden</span>
+                  <span className="header-popup-desc">Sitzung beenden</span>
+                </span>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
-      {adminOpen && (
-        <>
-          <div className="admin-popup-blur" />
-          <div className="admin-popup-menu" ref={menuRef}>
-            {adminActions.map((action, i) => (
-              <div
-                key={i}
-                className="admin-popup-item"
-                onClick={() => handleAdminClick(action.path)}
-              >
-                <div className="admin-popup-icon">{action.icon}</div>
-                <div className="admin-popup-texts">
-                  <span className="admin-popup-label">{action.label}</span>
-                  <span className="admin-popup-desc">{action.desc}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
+      {menuOpen && <div className="header-popup-blur" aria-hidden="true" />}
     </header>
   );
 }

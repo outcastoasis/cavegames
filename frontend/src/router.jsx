@@ -14,6 +14,7 @@ import Abende from "./pages/Abende";
 import AbendDetail from "./pages/AbendDetail";
 import Polls from "./pages/Polls";
 import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
 import Historie from "./pages/Historie";
 
 export default function AppRouter() {
@@ -45,6 +46,7 @@ export default function AppRouter() {
           <Route path="abende/:id" element={<AbendDetail />} />
           <Route path="umfragen" element={<Polls />} />
           <Route path="/profil" element={<Profile />} />
+          <Route path="/einstellungen" element={<Settings />} />
           <Route path="/historie" element={<Historie />} />
         </Route>
       </Routes>

@@ -1,13 +1,30 @@
 // frontend/src/components/ui/Toast.jsx
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import "../../styles/components/Toast.css";
 
 export default function Toast({ message, onClose }) {
+  const onCloseRef = useRef(onClose);
+
   useEffect(() => {
-    const timer = setTimeout(onClose, 2500);
-    return () => clearTimeout(timer);
+    onCloseRef.current = onClose;
   }, [onClose]);
 
-  return <div className="toast">{message}</div>;
+  useEffect(() => {
+    const timer = setTimeout(() => onCloseRef.current?.(), 2500);
+    return () => clearTimeout(timer);
+  }, [message]);
+
+  return createPortal(
+    <div
+      className="toast"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    >
+      {message}
+    </div>,
+    document.body,
+  );
 }

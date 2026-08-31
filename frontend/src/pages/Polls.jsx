@@ -84,7 +84,6 @@ export default function Polls() {
 
   const showToast = (msg) => {
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(""), 2500);
   };
 
   // Hilfsfunktion: voter Namen aus opt.votes (populated) extrahieren

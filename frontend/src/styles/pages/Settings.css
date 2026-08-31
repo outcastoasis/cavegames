@@ -1,0 +1,116 @@
+.settings-page {
+  width: min(760px, 100%);
+  margin: 0 auto 5rem;
+  padding: var(--spacing-m);
+}
+
+.settings-intro {
+  margin-bottom: var(--spacing-m);
+}
+
+.settings-intro h1,
+.settings-intro p {
+  margin: 0;
+}
+
+.settings-intro h1 {
+  color: var(--text);
+  font-size: 1.25rem;
+}
+
+.settings-intro p {
+  margin-top: 0.25rem;
+  color: var(--neutral-dark);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.settings-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--spacing-m);
+  margin-bottom: var(--spacing-m);
+  padding: var(--spacing-m);
+  border: 1px solid rgba(109, 40, 217, 0.12);
+  border-radius: var(--card-radius);
+  background: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
+}
+
+.settings-card-icon {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(109, 40, 217, 0.1);
+  color: var(--primary);
+}
+
+.settings-card-content {
+  min-width: 0;
+}
+
+.settings-card-content h2,
+.settings-card-content p {
+  margin: 0;
+}
+
+.settings-card-content h2 {
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.settings-card-content p {
+  margin-top: 0.2rem;
+  color: var(--neutral-dark);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.settings-card-content .settings-hint {
+  margin-top: var(--spacing-s);
+  color: var(--primary);
+}
+
+.settings-card-content .settings-hint--warning {
+  color: var(--danger);
+}
+
+.settings-card--muted {
+  box-shadow: none;
+  background: #f8f8fb;
+}
+
+.settings-coming-soon {
+  padding: 0.3rem 0.65rem;
+  border-radius: var(--border-radius-full);
+  background: var(--neutral);
+  color: #6b7280;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .settings-page {
+    padding: var(--spacing-s);
+  }
+
+  .settings-card {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .settings-card .button,
+  .settings-coming-soon {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .settings-coming-soon {
+    box-sizing: border-box;
+    text-align: center;
+  }
+}
