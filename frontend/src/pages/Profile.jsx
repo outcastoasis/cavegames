@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate, useOutletContext } from "react-router-dom";
 import {
   CalendarDays,
+  Bell,
+  BellOff,
   Camera,
   ChevronDown,
   ChevronRight,
@@ -22,6 +24,11 @@ import ActivityHeatmap from "../components/charts/ActivityHeatmap";
 import defaultAvatar from "../assets/images/avatar.jpg";
 import Toast from "../components/ui/Toast";
 import { formatSwissDate } from "../utils/swissDateTime";
+import {
+  disablePushNotifications,
+  enablePushNotifications,
+  getPushNotificationState,
+} from "../utils/pushNotifications";
 import "../styles/pages/Profile.css";
 
 function KpiCard({ title, value }) {
@@ -86,6 +93,14 @@ export default function Profile() {
   const [activeYearChart, setActiveYearChart] = useState("placements");
   const [activeMultiChart, setActiveMultiChart] = useState("points");
   const [toast, setToast] = useState(null);
+  const [pushState, setPushState] = useState({
+    loading: true,
+    supported: true,
+    permission: "default",
+    subscribed: false,
+    needsIosInstallation: false,
+  });
+  const [updatingPush, setUpdatingPush] = useState(false);
   const toastTimer = useRef(null);
   const avatarInputRef = useRef(null);
 
@@ -134,6 +149,29 @@ export default function Profile() {
     setTitle("Profil");
     loadAvailableYears();
   }, [loadAvailableYears, setTitle]);
+
+  useEffect(() => {
+    let active = true;
+
+    getPushNotificationState()
+      .then((state) => {
+        if (active) setPushState({ ...state, loading: false });
+      })
+      .catch((error) => {
+        console.error("Push-Status konnte nicht geladen werden:", error);
+        if (active) {
+          setPushState((current) => ({
+            ...current,
+            loading: false,
+            supported: false,
+          }));
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const selectedYearIndex = yearList.indexOf(selectedYear);
   const previousYear =
@@ -239,6 +277,38 @@ export default function Profile() {
     if (next && !multiStats) loadMultiYearStats();
   };
 
+  const handlePushToggle = async () => {
+    if (updatingPush) return;
+
+    setUpdatingPush(true);
+    try {
+      const nextState = pushState.subscribed
+        ? await disablePushNotifications()
+        : await enablePushNotifications();
+      setPushState({ ...nextState, loading: false });
+      showToast(
+        nextState.subscribed
+          ? "Benachrichtigungen aktiviert"
+          : "Benachrichtigungen deaktiviert",
+      );
+    } catch (error) {
+      const message =
+        error.response?.data?.error ||
+        error.message ||
+        "Benachrichtigungseinstellung konnte nicht geändert werden.";
+      showToast(message);
+
+      try {
+        const currentState = await getPushNotificationState();
+        setPushState({ ...currentState, loading: false });
+      } catch {
+        // Der bisher sichtbare Status bleibt erhalten.
+      }
+    } finally {
+      setUpdatingPush(false);
+    }
+  };
+
   return (
     <div className="profile-page">
       {toast && <Toast message={toast} onClose={() => setToast(null)} />}
@@ -316,6 +386,58 @@ export default function Profile() {
             ))}
           </div>
         </div>
+      </section>
+
+      <section
+        className="profile-notification-card"
+        aria-labelledby="push-title"
+      >
+        <div className="profile-notification-icon" aria-hidden="true">
+          {pushState.subscribed ? <Bell size={22} /> : <BellOff size={22} />}
+        </div>
+        <div className="profile-notification-content">
+          <h2 id="push-title">Benachrichtigungen</h2>
+          <p>
+            {pushState.subscribed
+              ? "Du erhältst auf diesem Gerät eine Meldung, wenn eine neue Umfrage erstellt wird."
+              : "Aktiviere Meldungen für neue Umfragen auf diesem Gerät."}
+          </p>
+          {pushState.needsIosInstallation && (
+            <p className="profile-notification-hint">
+              Auf dem iPhone muss Cavegames zuerst über «Zum Home-Bildschirm»
+              installiert und von dort geöffnet werden.
+            </p>
+          )}
+          {pushState.permission === "denied" && (
+            <p className="profile-notification-hint profile-notification-hint--warning">
+              Benachrichtigungen sind in den Browser-Einstellungen blockiert.
+            </p>
+          )}
+        </div>
+        <button
+          type="button"
+          className={`button small ${
+            pushState.subscribed ? "neutral" : "primary"
+          }`}
+          onClick={handlePushToggle}
+          disabled={
+            pushState.loading ||
+            updatingPush ||
+            !pushState.supported ||
+            pushState.needsIosInstallation ||
+            (!pushState.subscribed && pushState.permission === "denied")
+          }
+        >
+          {updatingPush
+            ? "Wird geändert…"
+            : pushState.loading
+              ? "Status wird geladen…"
+              : !pushState.supported
+                ? "Nicht unterstützt"
+                : pushState.subscribed
+                  ? "Deaktivieren"
+                  : "Aktivieren"}
+        </button>
       </section>
 
       <section className="profile-toolbar">

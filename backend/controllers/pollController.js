@@ -3,6 +3,9 @@
 const Poll = require("../models/Poll");
 const Evening = require("../models/Evening");
 const { scopedFilter } = require("../utils/testMode");
+const {
+  sendPollCreatedNotification,
+} = require("../services/pushNotificationService");
 
 // 🟢 Umfrage erstellen
 exports.createPoll = async (req, res) => {
@@ -33,11 +36,32 @@ exports.createPoll = async (req, res) => {
       isTestData: req.isTestMode,
     });
 
-    await Evening.findOneAndUpdate(scopedFilter(req, { _id: eveningId }), {
-      pollId: poll._id,
-    });
+    const evening = await Evening.findOneAndUpdate(
+      scopedFilter(req, { _id: eveningId }),
+      { pollId: poll._id },
+      { new: true },
+    );
+
+    if (!evening) {
+      await Poll.deleteOne({ _id: poll._id });
+      return res.status(404).json({ error: "Abend nicht gefunden" });
+    }
 
     res.status(201).json(poll);
+
+    setImmediate(() => {
+      sendPollCreatedNotification({
+        pollId: poll._id,
+        creatorId: userId,
+        spieljahr: evening.spieljahr,
+        isTestData: req.isTestMode,
+      }).catch((error) => {
+        console.error(
+          "Push-Versand für neue Umfrage fehlgeschlagen:",
+          error.message,
+        );
+      });
+    });
   } catch (err) {
     console.error("❌ Poll Create Error:", err);
     res.status(500).json({

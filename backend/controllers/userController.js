@@ -8,6 +8,7 @@ const {
 } = require("../utils/uploadService");
 const { scopedFilter } = require("../utils/testMode");
 const { ensureTestUsers } = require("../utils/testUsers");
+const PushSubscription = require("../models/PushSubscription");
 
 exports.getAllUsers = async (req, res) => {
   try {
@@ -102,6 +103,9 @@ exports.updateUser = async (req, res) => {
     }
 
     await user.save();
+    if (active === false) {
+      await PushSubscription.deleteMany({ userId: user._id });
+    }
     res.json({ message: "Benutzer aktualisiert" });
   } catch (err) {
     res.status(500).json({ error: "Fehler beim Aktualisieren" });
@@ -126,6 +130,8 @@ exports.deleteUser = async (req, res) => {
     if (user.profileImagePublicId) {
       await deleteFromCloudinary(user.profileImagePublicId);
     }
+
+    await PushSubscription.deleteMany({ userId: user._id });
 
     res.json({ message: "Benutzer gelöscht" });
   } catch (err) {

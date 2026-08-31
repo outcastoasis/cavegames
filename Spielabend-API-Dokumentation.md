@@ -155,13 +155,18 @@ erzeugte Abend- und Jahresstatistiken neu berechnet.
 
 ---
 
-## 🔔 Benachrichtigungen (optional)
+## 🔔 Push-Benachrichtigungen
 
-| Methode | Route                         | Beschreibung                        |
-| ------- | ----------------------------- | ----------------------------------- |
-| GET     | `/api/notifications`          | Eigene Benachrichtigungen abrufen   |
-| PATCH   | `/api/notifications/:id/read` | Benachrichtigung lesen              |
-| POST    | `/api/notifications/test`     | Testbenachrichtigung senden (Admin) |
+| Methode | Route                                       | Beschreibung                         |
+| ------- | ------------------------------------------- | ------------------------------------ |
+| GET     | `/api/notifications/vapid-public-key`       | Öffentlichen VAPID-Schlüssel abrufen |
+| POST    | `/api/notifications/subscriptions`          | Browser-Abonnement speichern         |
+| DELETE  | `/api/notifications/subscriptions`          | Browser-Abonnement entfernen         |
+
+Alle Routen benötigen eine Anmeldung. Ein Benutzer kann mehrere Geräte
+registrieren. Beim Erstellen einer produktiven Umfrage werden alle aktiven
+Benutzer mit aktiviertem Abonnement ausser dem Ersteller benachrichtigt.
+Testmodus-Umfragen versenden keine echten Push-Meldungen.
 
 ---
 

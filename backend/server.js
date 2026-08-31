@@ -56,6 +56,7 @@ app.use("/api/years", require("./routes/yearRoutes"));
 //User Routen
 app.use("/api/evenings", require("./routes/eveningRoutes"));
 app.use("/api/polls", pollRoutes);
+app.use("/api/notifications", require("./routes/notificationRoutes"));
 
 app.use("/api/games", require("./routes/gameRoutes"));
 
