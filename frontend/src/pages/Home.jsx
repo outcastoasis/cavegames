@@ -4,14 +4,13 @@ import { useAuth } from "../context/authState";
 import { useOutletContext, useNavigate } from "react-router-dom";
 import API from "../services/api";
 import {
-  Calendar,
   CalendarDays,
   CheckCircle2,
   ChevronRight,
-  Gamepad2,
   Lightbulb,
   Megaphone,
   UserRound,
+  UserRoundCheck,
   Vote,
   XCircle,
   Trophy,
@@ -104,7 +103,6 @@ export default function Home() {
   const [notificationList, setNotificationList] = useState([]);
   const [dashboardStats, setDashboardStats] = useState({
     hostedEvenings: 0,
-    lastPoints: null,
     myEvenings: 0,
   });
   const [sayingSeed] = useState(() => Math.random());
@@ -116,18 +114,8 @@ export default function Home() {
     const hostedEvenings = evenings.filter(
       (e) => e.spielleiterRef?._id === user._id,
     ).length;
-    const lastPlayedEvening = myEvenings
-      .filter(
-        (e) => ["abgeschlossen", "gesperrt"].includes(e.status) && e.date,
-      )
-      .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
-    const lastPoints =
-      lastPlayedEvening?.playerPoints?.find((p) => p.userId === user._id)
-        ?.points ?? null;
-
     return {
       hostedEvenings,
-      lastPoints,
       myEvenings: myEvenings.length,
     };
   }, [user._id]);
@@ -136,7 +124,8 @@ export default function Home() {
     const notes = [];
 
     activeEvenings.forEach((e) => {
-      const isLeader = e.spielleiterRef?._id === user._id;
+      const isLeader =
+        String(e.spielleiterRef?._id) === String(user._id);
 
       if (isLeader && e.status === "offen" && !e.date && !e.pollId) {
         notes.push({
@@ -167,7 +156,11 @@ export default function Home() {
                 ? option.votes
                 : [];
 
-              if (optionVotes.some((v) => v._id?.toString() === user._id)) {
+              if (
+                optionVotes.some(
+                  (v) => String(v?._id ?? v) === String(user._id),
+                )
+              ) {
                 hasVoted = true;
                 break;
               }
@@ -335,6 +328,9 @@ export default function Home() {
     const userPoints = abend.playerPoints?.find(
       (entry) => String(entry.userId) === String(user._id),
     )?.points;
+    const isCurrentUserWinner = winnerPlayers.some(
+      (winner) => String(winner._id) === String(user._id),
+    );
     const host = abend.spielleiterRef;
     const openEvening = () =>
       navigate(hasOpenPoll ? "/umfragen" : `/abende/${abend._id}`);
@@ -391,7 +387,7 @@ export default function Home() {
             )}
           </div>
 
-          {variant === "last" && winnerPlayers.length > 0 ? (
+          {variant === "last" && isCurrentUserWinner ? (
             <span className="home-result-title">
               <Trophy size={17} aria-hidden="true" />
               Tagessieg
@@ -436,15 +432,23 @@ export default function Home() {
             <div className="home-result-summary">
               <div className="home-result-column">
                 <span className="home-result-label">Sieger</span>
-                <strong>
-                  {winnerPlayers
-                    .map((winner) =>
-                      String(winner._id) === String(user._id)
-                        ? `${winner.displayName} (Du)`
-                        : winner.displayName,
-                    )
-                    .join(", ")}
-                </strong>
+                <div className="home-winner-list">
+                  {winnerPlayers.map((winner) => (
+                    <div className="home-winner" key={winner._id}>
+                      <span className="home-winner-avatar" aria-hidden="true">
+                        {winner.profileImageUrl ? (
+                          <img src={winner.profileImageUrl} alt="" />
+                        ) : (
+                          <UserRound size={18} />
+                        )}
+                      </span>
+                      <strong>
+                        {winner.displayName}
+                        {String(winner._id) === String(user._id) ? " (Du)" : ""}
+                      </strong>
+                    </div>
+                  ))}
+                </div>
               </div>
               {userPoints != null && (
                 <div className="home-result-column home-result-column--score">
@@ -453,6 +457,13 @@ export default function Home() {
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {variant === "last" && (
+          <div className="home-card-link-hint" aria-hidden="true">
+            <span>Abend ansehen</span>
+            <ChevronRight size={19} />
           </div>
         )}
 
@@ -492,10 +503,17 @@ export default function Home() {
   return (
     <div className="home-page">
       <section className="home-welcome" aria-labelledby="home-greeting">
-        <h1 id="home-greeting">
-          Hallo, {user.displayName?.split(" ")[0]}! <span aria-hidden="true">👋</span>
-        </h1>
-        <p>Schön, dass du da bist. Hier ist dein aktueller Überblick.</p>
+        <span className="home-welcome-avatar" aria-hidden="true">
+          {user.profileImageUrl ? (
+            <img src={user.profileImageUrl} alt="" />
+          ) : (
+            <UserRound size={25} />
+          )}
+        </span>
+        <div className="home-welcome-copy">
+          <h1 id="home-greeting">Hallo, {user.displayName?.split(" ")[0]}!</h1>
+          <p>Spielabende, Hinweise und Highlights auf einen Blick.</p>
+        </div>
       </section>
 
       {loading && <EveningListSkeleton count={2} />}
@@ -558,24 +576,17 @@ export default function Home() {
           <div className="home-stats-grid">
             <div className="home-stat-card">
               <span className="home-stat-icon home-stat-icon--games" aria-hidden="true">
-                <Gamepad2 size={20} />
+                <UserRoundCheck size={20} />
               </span>
               <strong>{dashboardStats.myEvenings}</strong>
               <span>Deine Teilnahmen</span>
             </div>
             <div className="home-stat-card">
               <span className="home-stat-icon home-stat-icon--host" aria-hidden="true">
-                <Trophy size={20} />
+                <Megaphone size={20} />
               </span>
               <strong>{dashboardStats.hostedEvenings}</strong>
               <span>Mal Spielleiter</span>
-            </div>
-            <div className="home-stat-card">
-              <span className="home-stat-icon home-stat-icon--score" aria-hidden="true">
-                <Calendar size={20} />
-              </span>
-              <strong>{dashboardStats.lastPoints ?? "-"}</strong>
-              <span>Letzte Punkte</span>
             </div>
           </div>
         </section>
