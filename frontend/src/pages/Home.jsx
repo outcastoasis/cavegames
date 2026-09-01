@@ -4,18 +4,19 @@ import { useAuth } from "../context/authState";
 import { useOutletContext, useNavigate } from "react-router-dom";
 import API from "../services/api";
 import {
-  AlertTriangle,
   Calendar,
   CalendarDays,
-  Clock,
+  CheckCircle2,
+  ChevronRight,
   Gamepad2,
-  Info,
-  MapPinHouse,
+  Lightbulb,
+  Megaphone,
+  UserRound,
+  Vote,
+  XCircle,
   Trophy,
-  Users,
 } from "lucide-react";
 import "../styles/pages/Home.css";
-import "../styles/pages/Abende.css"; // Re-use Abende badge/toggle styles
 import { EveningListSkeleton } from "../components/ui/Skeleton";
 import {
   formatSwissDate,
@@ -139,8 +140,9 @@ export default function Home() {
 
       if (isLeader && e.status === "offen" && !e.date && !e.pollId) {
         notes.push({
-          type: "info",
-          text: "Du wurdest als Spielleiter eingeteilt. \nBitte erstelle eine Umfrage.",
+          type: "leader",
+          title: "Du bist Spielleiter!",
+          description: "Bitte erstelle eine Termin-Umfrage.",
           target: "/abende",
         });
       }
@@ -174,8 +176,9 @@ export default function Home() {
 
           if (!hasVoted) {
             notes.push({
-              type: "warning",
-              text: "Neue Termin-Umfrage. \nBitte abstimmen!",
+              type: "poll",
+              title: "Offene Umfrage",
+              description: "Stimme f\u00fcr den n\u00e4chsten Termin ab.",
               target: "/umfragen",
             });
           }
@@ -276,8 +279,7 @@ export default function Home() {
       ? formatSwissDate(date, {
           weekday: "short",
           day: "2-digit",
-          month: "short",
-          year: "numeric",
+          month: "long",
         })
       : "Datum offen";
 
@@ -305,17 +307,40 @@ export default function Home() {
     return pool[Math.floor(sayingSeed * pool.length)];
   };
 
+  const getStatusLabel = (status) =>
+    ({
+      offen: "Offen",
+      fixiert: "Bestätigt",
+      abgeschlossen: "Abgeschlossen",
+      gesperrt: "Gesperrt",
+    })[status] || status;
+
+  const getCountdownLabel = (date) => {
+    const days = calculateDaysLeft(date);
+
+    if (days === 1) return "morgen";
+    return `in ${days} Tagen`;
+  };
+
   const renderEveningCard = (abend, variant = "default") => {
     const isFixiert = abend.status === "fixiert";
     const isTeilnehmer = abend.participantRefs?.some((p) => p._id === user._id);
     const hasOpenPoll = abend.status === "offen" && !abend.date && abend.pollId;
     const hasRecordedGames = (abend.games?.length || 0) > 0;
-    const winnerNames = (abend.winnerIds || [])
-      .map((id) => abend.participantRefs?.find((p) => p._id === id)?.displayName)
+    const winnerPlayers = (abend.winnerIds || [])
+      .map((id) =>
+        abend.participantRefs?.find((p) => String(p._id) === String(id)),
+      )
       .filter(Boolean);
+    const userPoints = abend.playerPoints?.find(
+      (entry) => String(entry.userId) === String(user._id),
+    )?.points;
+    const host = abend.spielleiterRef;
+    const openEvening = () =>
+      navigate(hasOpenPoll ? "/umfragen" : `/abende/${abend._id}`);
 
     return (
-      <div
+      <article
         key={abend._id}
         className={`home-evening-card home-evening-card--${variant} home-evening-card-status-${abend.status} ${
           variant === "last" && abend.groupPhotoUrl
@@ -324,19 +349,19 @@ export default function Home() {
         }`}
         onClick={(event) => {
           if (event.target.closest(".home-evening-actions")) return;
-
-          if (hasOpenPoll) {
-            navigate("/umfragen");
-            return;
-          }
-
-          navigate(`/abende/${abend._id}`);
+          openEvening();
         }}
-        role="button"
+        role="link"
         tabIndex={0}
         onKeyDown={(event) => {
-          if (event.key === "Enter") navigate(`/abende/${abend._id}`);
+          if (event.target.closest(".home-evening-actions")) return;
+
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            openEvening();
+          }
         }}
+        aria-label={`${formatEveningDate(abend.date)} öffnen`}
       >
         {variant === "last" && abend.groupPhotoUrl && (
           <img
@@ -353,49 +378,81 @@ export default function Home() {
         )}
 
         <div className="home-evening-header">
-          <div className="home-evening-schedule">
-            <div className="home-evening-date">
-              <CalendarDays size={18} />
-              <span>{formatEveningDate(abend.date)}</span>
+          <div className="home-evening-date">
+            <CalendarDays size={19} aria-hidden="true" />
+            <span>{formatEveningDate(abend.date)}</span>
+            {formatEveningTime(abend.date) && (
+              <>
+                <span className="home-date-separator" aria-hidden="true">
+                  •
+                </span>
+                <span>{formatEveningTime(abend.date)}</span>
+              </>
+            )}
+          </div>
+
+          {variant === "last" && winnerPlayers.length > 0 ? (
+            <span className="home-result-title">
+              <Trophy size={17} aria-hidden="true" />
+              Tagessieg
+            </span>
+          ) : (
+            <span className={`home-status-badge status-${abend.status}`}>
+              <span className="home-status-dot" aria-hidden="true" />
+              {getStatusLabel(abend.status)}
+            </span>
+          )}
+        </div>
+
+        {variant !== "last" && (
+          <div className="home-evening-people">
+            <div className="home-person-summary">
+              <span className="home-avatar" aria-hidden="true">
+                {host?.profileImageUrl ? (
+                  <img src={host.profileImageUrl} alt="" />
+                ) : (
+                  <UserRound size={20} />
+                )}
+              </span>
+              <span>
+                <small>Spielleiter</small>
+                <strong>{host?.displayName || "Noch offen"}</strong>
+              </span>
+            </div>
+            <div className="home-person-summary">
+              <span className="home-avatar home-avatar--neutral" aria-hidden="true">
+                <UserRound size={20} />
+              </span>
+              <span>
+                <small>Teilnehmer</small>
+                <strong>{abend.participantRefs?.length ?? 0} zugesagt</strong>
+              </span>
             </div>
           </div>
+        )}
 
-          <span className={`badge-abende status-${abend.status}`}>
-            {abend.status.toUpperCase()}
-          </span>
-        </div>
-
-        <div className="home-evening-meta">
-          <div className="home-evening-host">
-            {formatEveningTime(abend.date) && (
-              <span className="home-evening-time">
-                <Clock size={14} />
-                <span>{formatEveningTime(abend.date)} Uhr</span>
-              </span>
-            )}
-            <MapPinHouse size={16} />
-            <span>{abend.spielleiterRef?.displayName || "-"}</span>
-          </div>
-          <div className="home-evening-facts">
-            <span>
-              <Users size={14} />
-              {abend.participantRefs?.length ?? 0}
-            </span>
-            <span>
-              <Gamepad2 size={14} />
-              {abend.games?.length ?? 0}
-            </span>
-            <span>
-              <Calendar size={14} />
-              {abend.spieljahr}
-            </span>
-          </div>
-        </div>
-
-        {variant === "last" && winnerNames.length > 0 && (
-          <div className="home-evening-result">
-            <Trophy size={16} />
-            <span>Tagessieger: {winnerNames.join(", ")}</span>
+        {variant === "last" && winnerPlayers.length > 0 && (
+          <div className="home-result-block">
+            <div className="home-result-summary">
+              <div className="home-result-column">
+                <span className="home-result-label">Sieger</span>
+                <strong>
+                  {winnerPlayers
+                    .map((winner) =>
+                      String(winner._id) === String(user._id)
+                        ? `${winner.displayName} (Du)`
+                        : winner.displayName,
+                    )
+                    .join(", ")}
+                </strong>
+              </div>
+              {userPoints != null && (
+                <div className="home-result-column home-result-column--score">
+                  <span className="home-result-label">Deine Punkte</span>
+                  <strong>{userPoints}</strong>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -405,72 +462,70 @@ export default function Home() {
             onClick={(event) => event.stopPropagation()}
           >
             <div className="home-participation">
-              <span className="home-participation-label">Teilnahme</span>
-              <label className="toggle-label small">
-                <input
-                  type="checkbox"
-                  checked={isTeilnehmer}
-                  onChange={(event) =>
-                    event.target.checked
-                      ? handleJoin(abend._id)
-                      : handleLeave(abend._id)
-                  }
-                  disabled={busy}
-                />
-                <span className="toggle-text">
-                  {isTeilnehmer ? "Dabei" : "Nicht dabei"}
-                </span>
-                <span className="toggle-slider" />
-              </label>
+              <button
+                type="button"
+                className={`home-participation-option ${isTeilnehmer ? "is-selected is-yes" : ""}`}
+                onClick={() => !isTeilnehmer && handleJoin(abend._id)}
+                aria-pressed={isTeilnehmer}
+                disabled={busy}
+              >
+                <CheckCircle2 size={18} aria-hidden="true" />
+                Dabei
+              </button>
+              <button
+                type="button"
+                className={`home-participation-option ${!isTeilnehmer ? "is-selected" : ""}`}
+                onClick={() => isTeilnehmer && handleLeave(abend._id)}
+                aria-pressed={!isTeilnehmer}
+                disabled={busy}
+              >
+                <XCircle size={18} aria-hidden="true" />
+                Nicht dabei
+              </button>
             </div>
           </div>
         )}
-      </div>
+      </article>
     );
   };
 
   return (
-    <div className="abende-page home-page">
-      <div className="welcome-box home-welcome">
-        <div className="welcome-title">
-          Willkommen zurück, {user.displayName}!
-        </div>
-      </div>
+    <div className="home-page">
+      <section className="home-welcome" aria-labelledby="home-greeting">
+        <h1 id="home-greeting">
+          Hallo, {user.displayName?.split(" ")[0]}! <span aria-hidden="true">👋</span>
+        </h1>
+        <p>Schön, dass du da bist. Hier ist dein aktueller Überblick.</p>
+      </section>
 
       {loading && <EveningListSkeleton count={2} />}
 
       {!loading && notificationList.length > 0 && (
-        <div className="home-alerts">
+        <section className="home-alerts" aria-label="Offene Aufgaben">
           {notificationList.map((n, i) => (
-            <div
+            <button
+              type="button"
               key={i}
-              className={`dashboard-alert ${n.type}`}
+              className={`home-alert home-alert--${n.type}`}
               onClick={() => navigate(n.target)}
             >
-              {n.type === "info" && <Info size={20} />}
-              {n.type === "warning" && <AlertTriangle size={20} />}
-
-              <span style={{ flex: 1 }}>{n.text}</span>
-
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                fill="none"
-                strokeWidth="2"
-              >
-                <path d="M9 6l6 6-6 6" />
-              </svg>
-            </div>
+              <span className="home-alert-icon" aria-hidden="true">
+                {n.type === "leader" ? <Megaphone size={21} /> : <Vote size={21} />}
+              </span>
+              <span className="home-alert-copy">
+                <strong>{n.title}</strong>
+                <span>{n.description}</span>
+              </span>
+              <ChevronRight className="home-alert-chevron" size={21} aria-hidden="true" />
+            </button>
           ))}
-        </div>
+        </section>
       )}
 
       {!loading && todayEvening && (
         <section className="home-section home-section--primary">
           <div className="home-section-heading">
-            <h3>Heute Abend</h3>
+            <h2>Heute Abend</h2>
           </div>
           {renderEveningCard(todayEvening, "primary")}
         </section>
@@ -479,8 +534,8 @@ export default function Home() {
       {!loading && !todayEvening && nextEvening && (
         <section className="home-section home-section--primary">
           <div className="home-section-heading">
-            <h3>Nächster Spieleabend</h3>
-            <span>in {calculateDaysLeft(nextEvening.date)} Tagen</span>
+            <h2>Nächster Abend</h2>
+            <span>{getCountdownLabel(nextEvening.date)}</span>
           </div>
           {renderEveningCard(nextEvening, "primary")}
         </section>
@@ -489,7 +544,7 @@ export default function Home() {
       {!loading && lastEvening && (
         <section className="home-section">
           <div className="home-section-heading">
-            <h3>Letzter Spieleabend</h3>
+            <h2>Zuletzt gespielt</h2>
           </div>
           {renderEveningCard(lastEvening, "last")}
         </section>
@@ -498,20 +553,29 @@ export default function Home() {
       {!loading && (
         <section className="home-section">
           <div className="home-section-heading">
-            <h3>Deine Übersicht</h3>
+            <h2>Deine Highlights</h2>
           </div>
           <div className="home-stats-grid">
             <div className="home-stat-card">
-              <span>Deine Teilnahmen</span>
+              <span className="home-stat-icon home-stat-icon--games" aria-hidden="true">
+                <Gamepad2 size={20} />
+              </span>
               <strong>{dashboardStats.myEvenings}</strong>
+              <span>Deine Teilnahmen</span>
             </div>
             <div className="home-stat-card">
-              <span>Als Spielleiter</span>
+              <span className="home-stat-icon home-stat-icon--host" aria-hidden="true">
+                <Trophy size={20} />
+              </span>
               <strong>{dashboardStats.hostedEvenings}</strong>
+              <span>Mal Spielleiter</span>
             </div>
             <div className="home-stat-card">
-              <span>Letzte Punkte</span>
+              <span className="home-stat-icon home-stat-icon--score" aria-hidden="true">
+                <Calendar size={20} />
+              </span>
               <strong>{dashboardStats.lastPoints ?? "-"}</strong>
+              <span>Letzte Punkte</span>
             </div>
           </div>
         </section>
@@ -519,14 +583,20 @@ export default function Home() {
 
       {!loading && (
         <section className="home-funfact" aria-label="Cavegames Spruch">
-          <span className="home-funfact-label">Cavegames meint</span>
-          <p>{getHomeSaying()}</p>
+          <span className="home-funfact-icon" aria-hidden="true">
+            <Lightbulb size={22} />
+          </span>
+          <div>
+            <h2>Wusstest du schon?</h2>
+            <p>{getHomeSaying()}</p>
+          </div>
         </section>
       )}
 
       {!loading && !todayEvening && !nextEvening && !lastEvening && (
-        <p>Derzeit ist kein kommender Abend geplant.</p>
+        <p className="home-empty-state">Derzeit ist kein kommender Abend geplant.</p>
       )}
+
     </div>
   );
 }
