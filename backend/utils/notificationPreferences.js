@@ -1,4 +1,5 @@
 const NOTIFICATION_CATEGORIES = Object.freeze({
+  pollAssignment: true,
   pollCreated: true,
   pollReminder: true,
   pollFinalized: true,

@@ -18,6 +18,10 @@ Die Anwendung ist **mobiloptimiert**, **modern gestaltet**, **datenschutzfreundl
 - 🔐 Login über Benutzername & Passwort (ohne E-Mail)
 - 📱 Mobiloptimierte Oberfläche im „Friendly Play“-Stil (inspiriert von Kahoot)
 
+## Anleitungen
+
+- [Push-Benachrichtigungen aktivieren](docs/Push-Benachrichtigungen-aktivieren.md)
+
 ---
 
 ## 🧱 Technischer Stack

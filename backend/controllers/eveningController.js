@@ -26,6 +26,7 @@ const {
 } = require("../utils/eveningParticipants");
 const {
   sendEveningChangedNotification,
+  sendPollAssignmentNotification,
   sendResultsAvailableNotification,
 } = require("../services/pushNotificationService");
 const {
@@ -183,6 +184,21 @@ exports.createEvening = async (req, res) => {
     };
 
     res.status(201).json(response);
+
+    setImmediate(() => {
+      sendPollAssignmentNotification({
+        eveningId: newEvening._id,
+        assigneeId: newEvening.spielleiterId,
+        actorId: req.user._id,
+        spieljahr: newEvening.spieljahr,
+        isTestData: req.isTestMode,
+      }).catch((error) => {
+        console.error(
+          "Push-Versand für zugewiesenen Spielleiter fehlgeschlagen:",
+          error.message,
+        );
+      });
+    });
   } catch (err) {
     console.error("Fehler beim Erstellen:", err);
     res.status(500).json({ error: "Fehler beim Erstellen des Abends" });
@@ -357,10 +373,30 @@ exports.updateEvening = async (req, res) => {
     res.json(response);
 
     const dateChanged = oldDate !== (evening.date?.getTime?.() || null);
+    const spielleiterChanged =
+      oldSpielleiterId !== normalizeId(evening.spielleiterId);
     const detailsChanged =
       dateChanged ||
       oldYear !== evening.spieljahr ||
-      oldSpielleiterId !== normalizeId(evening.spielleiterId);
+      spielleiterChanged;
+
+    if (spielleiterChanged && evening.status === "offen" && !evening.pollId) {
+      setImmediate(() => {
+        sendPollAssignmentNotification({
+          eveningId: evening._id,
+          assigneeId: evening.spielleiterId,
+          actorId: req.user._id,
+          spieljahr: evening.spieljahr,
+          isTestData: req.isTestMode,
+        }).catch((error) => {
+          console.error(
+            "Push-Versand für neu zugewiesenen Spielleiter fehlgeschlagen:",
+            error.message,
+          );
+        });
+      });
+    }
+
     if (detailsChanged && evening.status === "fixiert") {
       setImmediate(() => {
         sendEveningChangedNotification({

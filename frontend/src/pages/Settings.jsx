@@ -6,6 +6,7 @@ import {
   CalendarClock,
   CalendarSync,
   ChevronDown,
+  ClipboardList,
   KeyRound,
   ListChecks,
   Trophy,
@@ -31,6 +32,7 @@ const initialPushState = {
 };
 
 const initialPreferences = {
+  pollAssignment: true,
   pollCreated: true,
   pollReminder: true,
   pollFinalized: true,
@@ -40,6 +42,13 @@ const initialPreferences = {
 };
 
 const notificationCategories = [
+  {
+    key: "pollAssignment",
+    title: "Als Spielleiter eingeteilt",
+    description:
+      "Wenn du für einen neuen Spieleabend die Termin-Umfrage erstellen sollst.",
+    icon: ClipboardList,
+  },
   {
     key: "pollCreated",
     title: "Neue Umfragen",

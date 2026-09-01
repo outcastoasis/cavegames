@@ -192,10 +192,12 @@ registrieren. Beim Erstellen einer produktiven Umfrage werden alle aktiven
 Benutzer mit aktiviertem Abonnement ausser dem Ersteller benachrichtigt.
 Testmodus-Umfragen versenden keine echten Push-Meldungen.
 
-Verfügbare Kategorien sind `pollCreated`, `pollReminder`, `pollFinalized`,
-`eveningChanged`, `resultsAvailable` und `eveningUpcoming`. Offene Umfragen
-werden höchstens einmal pro Kalenderwoche und nur bei fehlender eigener Stimme
-gemeldet. Die Termin-Erinnerung wird einmalig sieben Tage vor dem Abend
+Verfügbare Kategorien sind `pollAssignment`, `pollCreated`, `pollReminder`,
+`pollFinalized`, `eveningChanged`, `resultsAvailable` und `eveningUpcoming`.
+Beim Erstellen eines offenen Abends oder beim Wechsel der Spielleitung wird nur
+der neu zugewiesene Spielleiter zur Erstellung der Umfrage aufgefordert. Offene
+Umfragen werden höchstens einmal pro Kalenderwoche und nur bei fehlender eigener
+Stimme gemeldet. Die Termin-Erinnerung wird einmalig sieben Tage vor dem Abend
 versendet.
 
 ---

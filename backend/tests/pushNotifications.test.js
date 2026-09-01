@@ -3,6 +3,7 @@ const assert = require("node:assert/strict");
 const {
   buildEveningChangedPayload,
   buildEveningUpcomingPayload,
+  buildPollAssignmentPayload,
   buildPollCreatedPayload,
   buildPollFinalizedPayload,
   buildPollReminderPayload,
@@ -61,8 +62,26 @@ test("creates a poll notification that opens the poll overview", () => {
   );
 });
 
+test("creates an assignment notification for the poll creator", () => {
+  assert.deepEqual(
+    buildPollAssignmentPayload({
+      eveningId: "64b000000000000000000011",
+      spieljahr: 2026,
+    }),
+    {
+      title: "Du wurdest als Spielleiter eingeteilt",
+      body: "Bitte erstelle die Termin-Umfrage für den Spieleabend 2026.",
+      icon: "/icons/icon-192.png",
+      badge: "/icons/icon-192.png",
+      tag: "poll-assignment-64b000000000000000000011",
+      url: "/abende",
+    },
+  );
+});
+
 test("normalizes and validates all notification categories", () => {
   assert.deepEqual(normalizeNotificationPreferences({ pollReminder: false }), {
+    pollAssignment: true,
     pollCreated: true,
     pollReminder: false,
     pollFinalized: true,

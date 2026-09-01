@@ -90,6 +90,17 @@ function buildPollCreatedPayload({ pollId, spieljahr }) {
   });
 }
 
+function buildPollAssignmentPayload({ eveningId, spieljahr }) {
+  return basePayload({
+    title: "Du wurdest als Spielleiter eingeteilt",
+    body: spieljahr
+      ? `Bitte erstelle die Termin-Umfrage für den Spieleabend ${spieljahr}.`
+      : "Bitte erstelle eine Termin-Umfrage.",
+    tag: `poll-assignment-${eveningId}`,
+    url: "/abende",
+  });
+}
+
 function buildPollReminderPayload({ pollId }) {
   return basePayload({
     title: "Deine Abstimmung fehlt noch",
@@ -288,6 +299,22 @@ function sendPollCreatedNotification({
   });
 }
 
+function sendPollAssignmentNotification({
+  eveningId,
+  assigneeId,
+  actorId,
+  spieljahr,
+  isTestData = false,
+}) {
+  return sendNotificationToUsers({
+    category: "pollAssignment",
+    payload: buildPollAssignmentPayload({ eveningId, spieljahr }),
+    userIds: [assigneeId],
+    excludeUserIds: [actorId],
+    isTestData,
+  });
+}
+
 function sendPollFinalizedNotification({
   pollId,
   actorId,
@@ -336,6 +363,7 @@ function sendResultsAvailableNotification({
 module.exports = {
   buildEveningChangedPayload,
   buildEveningUpcomingPayload,
+  buildPollAssignmentPayload,
   buildPollCreatedPayload,
   buildPollFinalizedPayload,
   buildPollReminderPayload,
@@ -348,6 +376,7 @@ module.exports = {
   isExpiredSubscriptionError,
   sendEveningChangedNotification,
   sendNotificationToUsers,
+  sendPollAssignmentNotification,
   sendPollCreatedNotification,
   sendPollFinalizedNotification,
   sendResultsAvailableNotification,
