@@ -6,10 +6,13 @@ const {
 } = require("../utils/stats");
 const Year = require("../models/Year");
 const mongoose = require("mongoose");
+const { unlink } = require("fs/promises");
 const {
-  uploadToCloudinary,
-  deleteFromCloudinary,
-} = require("../utils/uploadService");
+  buildEveningPhotoPresentation,
+  buildOriginalPhotoUrl,
+  deleteEveningPhoto,
+  uploadEveningPhotoOriginal,
+} = require("../services/eveningPhotoService");
 const Poll = require("../models/Poll");
 const User = require("../models/User");
 const { scopedFilter } = require("../utils/testMode");
@@ -25,8 +28,50 @@ const {
   sendEveningChangedNotification,
   sendResultsAvailableNotification,
 } = require("../services/pushNotificationService");
+const {
+  canModifyEveningPhoto,
+  getEveningPhotoData,
+  isEveningPhotoParticipant,
+} = require("../utils/eveningPhoto");
 
 const STAT_FINAL_STATUSES = new Set(["abgeschlossen", "gesperrt"]);
+
+function getEveningPhotoResponseFields(evening) {
+  const photo = buildEveningPhotoPresentation(getEveningPhotoData(evening));
+  if (!photo) {
+    return {
+      groupPhotoUrl: evening?.groupPhotoUrl || null,
+      groupPhotoSrcSet: null,
+    };
+  }
+
+  return {
+    groupPhotoUrl: photo.url,
+    groupPhotoSrcSet: photo.srcSet,
+    groupPhotoWidth: photo.width,
+    groupPhotoHeight: photo.height,
+  };
+}
+
+async function removeTemporaryUpload(file) {
+  if (!file?.path) return;
+  try {
+    await unlink(file.path);
+  } catch (error) {
+    if (error.code !== "ENOENT") {
+      console.error("Temporäre Abendfoto-Datei konnte nicht entfernt werden:", error);
+    }
+  }
+}
+
+async function removeEveningPhotoAsset(publicId) {
+  if (!publicId) return;
+  try {
+    await deleteEveningPhoto(publicId);
+  } catch (error) {
+    console.error("Abendfoto konnte nicht aus Cloudinary entfernt werden:", error);
+  }
+}
 
 function hasGeneratedEveningStats(evening) {
   return (
@@ -68,6 +113,7 @@ exports.getEvenings = async (req, res) => {
     // Einheitliches Frontend-Mapping
     const response = evenings.map((e) => ({
       ...e.toObject(),
+      ...getEveningPhotoResponseFields(e),
       spielleiterRef: e.spielleiterId,
       participantRefs: e.participantIds,
     }));
@@ -131,6 +177,7 @@ exports.createEvening = async (req, res) => {
 
     const response = {
       ...populated.toObject(),
+      ...getEveningPhotoResponseFields(populated),
       spielleiterRef: populated.spielleiterId,
       participantRefs: populated.participantIds,
     };
@@ -170,6 +217,7 @@ exports.getEveningById = async (req, res) => {
 
     const response = {
       ...evening.toObject(),
+      ...getEveningPhotoResponseFields(evening),
       spielleiterRef: evening.spielleiterId,
       participantRefs: evening.participantIds,
 
@@ -301,6 +349,7 @@ exports.updateEvening = async (req, res) => {
 
     const response = {
       ...updated.toObject(),
+      ...getEveningPhotoResponseFields(updated),
       spielleiterRef: updated.spielleiterId,
       participantRefs: updated.participantIds,
     };
@@ -363,7 +412,7 @@ exports.deleteEvening = async (req, res) => {
 
     // 2) Gruppenfoto löschen
     if (evening.groupPhotoPublicId) {
-      await deleteFromCloudinary(evening.groupPhotoPublicId);
+      await removeEveningPhotoAsset(evening.groupPhotoPublicId);
     }
 
     // 3) Abend löschen
@@ -481,6 +530,7 @@ exports.changeEveningStatus = async (req, res) => {
 
     const response = {
       ...updated.toObject(),
+      ...getEveningPhotoResponseFields(updated),
       spielleiterRef: updated.spielleiterId,
       participantRefs: updated.participantIds,
     };
@@ -875,6 +925,7 @@ exports.getArchivedEvenings = async (req, res) => {
 
     const mapped = evenings.map((e) => ({
       ...e.toObject(),
+      ...getEveningPhotoResponseFields(e),
       spielleiterRef: e.spielleiterId,
       participantRefs: e.participantIds,
     }));
@@ -943,29 +994,169 @@ exports.getEligibleUsers = async (req, res) => {
 exports.uploadGroupPhoto = async (req, res) => {
   const { id } = req.params;
   const file = req.file;
+  let uploadedPublicId = null;
+  let photoSaved = false;
 
-  if (!file) return res.status(400).json({ error: "No file uploaded" });
+  try {
+    if (!file) {
+      return res.status(400).json({ error: "Bitte wähle ein Bild aus." });
+    }
 
-  const evening = await Evening.findOne(scopedFilter(req, { _id: id }));
-  if (!evening) return res.status(404).json({ error: "Evening not found" });
+    const evening = await Evening.findOne(scopedFilter(req, { _id: id }));
+    if (!evening) {
+      return res.status(404).json({ error: "Abend nicht gefunden" });
+    }
+    if (!canModifyEveningPhoto(evening, req.user)) {
+      return res.status(409).json({
+        error:
+          "Abendfotos können nur bei fixierten oder abgeschlossenen Abenden geändert werden. Bei gesperrten Abenden ist dies nur als Admin möglich.",
+      });
+    }
 
-  const folder = `spielabend/evenings/${id}`;
-  const publicId = `group-photo`;
+    const confirmsReplacement =
+      req.body?.confirmReplacement === true ||
+      req.body?.confirmReplacement === "true";
+    if (
+      (evening.groupPhotoPublicId || evening.groupPhotoUrl) &&
+      !confirmsReplacement
+    ) {
+      return res.status(409).json({
+        code: "PHOTO_REPLACEMENT_CONFIRMATION_REQUIRED",
+        error: "Das bestehende Abendfoto wird ersetzt.",
+      });
+    }
 
-  // altes Bild löschen
-  if (evening.groupPhotoPublicId) {
-    await deleteFromCloudinary(evening.groupPhotoPublicId);
+    const previousPublicId = evening.groupPhotoPublicId;
+    const result = await uploadEveningPhotoOriginal(file.path, id);
+    uploadedPublicId = result.public_id;
+
+    const presentation = buildEveningPhotoPresentation({
+      publicId: result.public_id,
+      version: result.version,
+      format: result.format,
+      width: result.width,
+      height: result.height,
+    });
+
+    evening.groupPhotoUrl = presentation.url;
+    evening.groupPhotoPublicId = result.public_id;
+    evening.groupPhotoVersion = result.version;
+    evening.groupPhotoFormat = result.format;
+    evening.groupPhotoWidth = result.width;
+    evening.groupPhotoHeight = result.height;
+    evening.groupPhotoBytes = result.bytes;
+    evening.groupPhotoOriginalFilename = String(file.originalname || "Abendfoto")
+      .slice(0, 255);
+    evening.groupPhotoUploadedAt = new Date();
+    await evening.save();
+    photoSaved = true;
+
+    if (previousPublicId && previousPublicId !== result.public_id) {
+      await removeEveningPhotoAsset(previousPublicId);
+    }
+
+    return res.json({
+      message: previousPublicId
+        ? "Abendfoto ersetzt"
+        : "Abendfoto hochgeladen",
+      groupPhotoUrl: presentation.url,
+      groupPhotoSrcSet: presentation.srcSet,
+      groupPhotoWidth: presentation.width,
+      groupPhotoHeight: presentation.height,
+    });
+  } catch (error) {
+    console.error("Fehler beim Hochladen des Abendfotos:", error);
+    if (uploadedPublicId && !photoSaved) {
+      await removeEveningPhotoAsset(uploadedPublicId);
+    }
+    return res.status(500).json({
+      error: "Das Abendfoto konnte nicht hochgeladen werden.",
+    });
+  } finally {
+    await removeTemporaryUpload(file);
   }
+};
 
-  // neues Bild hochladen
-  const result = await uploadToCloudinary(file.path, folder, publicId);
+exports.deleteGroupPhoto = async (req, res) => {
+  try {
+    if (req.body?.confirmDeletion !== true) {
+      return res.status(400).json({
+        code: "PHOTO_DELETION_CONFIRMATION_REQUIRED",
+        error: "Das Löschen des Abendfotos muss bestätigt werden.",
+      });
+    }
 
-  evening.groupPhotoUrl = result.secure_url;
-  evening.groupPhotoPublicId = result.public_id;
-  await evening.save();
+    const evening = await Evening.findOne(
+      scopedFilter(req, { _id: req.params.id }),
+    );
+    if (!evening) {
+      return res.status(404).json({ error: "Abend nicht gefunden" });
+    }
+    if (!canModifyEveningPhoto(evening, req.user)) {
+      return res.status(409).json({
+        error:
+          "Abendfotos können nur bei fixierten oder abgeschlossenen Abenden gelöscht werden. Bei gesperrten Abenden ist dies nur als Admin möglich.",
+      });
+    }
+    if (!evening.groupPhotoPublicId && !evening.groupPhotoUrl) {
+      return res.status(404).json({ error: "Kein Abendfoto vorhanden." });
+    }
 
-  res.json({
-    message: "Group photo updated",
-    url: result.secure_url,
-  });
+    const publicId = evening.groupPhotoPublicId;
+    if (publicId) await deleteEveningPhoto(publicId);
+
+    evening.groupPhotoUrl = undefined;
+    evening.groupPhotoPublicId = undefined;
+    evening.groupPhotoVersion = undefined;
+    evening.groupPhotoFormat = undefined;
+    evening.groupPhotoWidth = undefined;
+    evening.groupPhotoHeight = undefined;
+    evening.groupPhotoBytes = undefined;
+    evening.groupPhotoOriginalFilename = undefined;
+    evening.groupPhotoUploadedAt = undefined;
+    await evening.save();
+
+    return res.json({ message: "Abendfoto gelöscht" });
+  } catch (error) {
+    console.error("Fehler beim Löschen des Abendfotos:", error);
+    return res.status(500).json({
+      error: "Das Abendfoto konnte nicht gelöscht werden.",
+    });
+  }
+};
+
+exports.getGroupPhotoOriginal = async (req, res) => {
+  try {
+    const evening = await Evening.findOne(
+      scopedFilter(req, { _id: req.params.id }),
+    );
+    if (!evening) {
+      return res.status(404).json({ error: "Abend nicht gefunden" });
+    }
+    if (!isEveningPhotoParticipant(evening, req.user)) {
+      return res.status(403).json({
+        error: "Das Original ist nur für Teilnehmer dieses Abends verfügbar.",
+      });
+    }
+
+    const photoData = getEveningPhotoData(evening);
+    const url = photoData
+      ? buildOriginalPhotoUrl(photoData)
+      : evening.groupPhotoUrl;
+    if (!url) {
+      return res.status(404).json({ error: "Kein Abendfoto vorhanden." });
+    }
+
+    return res.json({
+      url,
+      filename: evening.groupPhotoOriginalFilename || "Abendfoto",
+      notice:
+        "Der Link ist provisorisch nicht zugriffsgeschützt und darf nicht weitergegeben werden.",
+    });
+  } catch (error) {
+    console.error("Fehler beim Laden des Abendfoto-Originals:", error);
+    return res.status(500).json({
+      error: "Das Original konnte nicht geladen werden.",
+    });
+  }
 };

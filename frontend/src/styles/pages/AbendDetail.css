@@ -590,11 +590,11 @@
 /* ====== Gruppenfoto ====== */
 
 .abenddetail-photo {
+  display: block;
   width: 100%;
-  max-height: 320px;
+  max-height: 560px;
   object-fit: cover;
-  border-radius: var(--border-radius-sm);
-  box-shadow: var(--shadow-m);
+  aspect-ratio: auto;
 }
 
 /* ====== Footer-Aktionen ====== */
@@ -604,6 +604,14 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--spacing-s);
+}
+
+.abenddetail-footer-actions--games {
+  margin-top: var(--spacing-m);
+}
+
+.abenddetail-footer-actions--completion {
+  padding-bottom: 0.2rem;
 }
 
 .abenddetail-action-button {
@@ -642,6 +650,11 @@
 
   .abenddetail-footer-actions {
     flex-direction: column;
+  }
+
+  .abenddetail-footer-actions .button {
+    width: 100%;
+    justify-content: center;
   }
 
   .abenddetail-backbutton {

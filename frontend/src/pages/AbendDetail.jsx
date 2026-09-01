@@ -11,7 +11,6 @@ import {
   CalendarDays,
   Clock,
   Users as UsersIcon,
-  Image as ImageIcon,
   XCircle,
   Trash2,
   Pencil,
@@ -25,6 +24,7 @@ import GameAddModal from "../components/forms/GameAddModal";
 import defaultAvatar from "../assets/images/avatar.jpg";
 import { AbendDetailSkeleton } from "../components/ui/Skeleton";
 import ConfirmDialog from "../components/ui/ConfirmDialog";
+import EveningPhotoSection from "../components/EveningPhotoSection";
 import {
   formatSwissDate,
   formatSwissTime,
@@ -427,6 +427,12 @@ export default function AbendDetail() {
     ((isAdmin && (isFixiert || isAbgeschlossen)) ||
       (isSpielleiter && isFixiert));
   const canRecalculateStats = isPrivileged && (isAbgeschlossen || isGesperrt);
+  const canEditPhoto =
+    isPrivileged &&
+    (isFixiert || isAbgeschlossen || (isAdmin && isGesperrt));
+  const canDownloadPhoto = isAdmin || isTeilnehmer;
+  const canFinishEvening = (isSpielleiter || isAdmin) && isFixiert;
+  const hasCompletionActions = canFinishEvening || canRecalculateStats;
 
   const formattedDate = abend.date
     ? formatSwissDate(abend.date, {
@@ -897,25 +903,8 @@ export default function AbendDetail() {
           )}
         </section>
 
-        {/* Gruppenfoto */}
-        {abend.groupPhotoUrl && (
-          <section className="abenddetail-section">
-            <div className="abenddetail-section-header">
-              <ImageIcon size={18} />
-              <h2 className="abenddetail-section-title">Gruppenfoto</h2>
-            </div>
-            <img
-              src={abend.groupPhotoUrl}
-              alt="Gruppenfoto"
-              className="abenddetail-photo"
-            />
-          </section>
-        )}
-
-        {/* Aktionen unten */}
-        <footer className="abenddetail-footer-actions">
-          {/* Spiel hinzufügen */}
-          {canAddGame && (
+        {canAddGame && (
+          <div className="abenddetail-footer-actions abenddetail-footer-actions--games">
             <button
               className="button accent"
               onClick={() => setShowGameModal(true)}
@@ -923,29 +912,42 @@ export default function AbendDetail() {
               <PlusCircle size={18} />
               <span>Spiel hinzufügen</span>
             </button>
-          )}
+          </div>
+        )}
 
-          {/* Abend abschliessen – nur Spielleiter ODER Admin, aber nur solange fixiert */}
-          {(isSpielleiter || isAdmin) && isFixiert && (
-            <button className="button primary" onClick={handleFinishEvening}>
-              <Trophy size={18} />
-              <span>Abend abschliessen</span>
-            </button>
-          )}
+        <EveningPhotoSection
+          evening={abend}
+          canEdit={canEditPhoto}
+          canDownload={canDownloadPhoto}
+          onChanged={fetchAbend}
+        />
 
-          {canRecalculateStats && (
-            <button
-              className="button neutral"
-              onClick={handleRecalculateStats}
-              disabled={recalculatingStats}
-            >
-              <RefreshCw size={18} />
-              <span>
-                {recalculatingStats ? "Berechne..." : "Statistik neu berechnen"}
-              </span>
-            </button>
-          )}
-        </footer>
+        {hasCompletionActions && (
+          <footer className="abenddetail-footer-actions abenddetail-footer-actions--completion">
+            {/* Abend abschliessen – nur Spielleiter ODER Admin, aber nur solange fixiert */}
+            {canFinishEvening && (
+              <button className="button primary" onClick={handleFinishEvening}>
+                <Trophy size={18} />
+                <span>Abend abschliessen</span>
+              </button>
+            )}
+
+            {canRecalculateStats && (
+              <button
+                className="button neutral"
+                onClick={handleRecalculateStats}
+                disabled={recalculatingStats}
+              >
+                <RefreshCw size={18} />
+                <span>
+                  {recalculatingStats
+                    ? "Berechne..."
+                    : "Statistik neu berechnen"}
+                </span>
+              </button>
+            )}
+          </footer>
+        )}
       </div>
 
       {showGameModal && (

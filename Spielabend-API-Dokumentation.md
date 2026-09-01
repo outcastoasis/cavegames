@@ -131,11 +131,28 @@ erzeugte Abend- und Jahresstatistiken neu berechnet.
 
 ## 🖼️ Uploads (Bilder)
 
-| Methode | Route                           | Beschreibung                |
-| ------- | ------------------------------- | --------------------------- |
-| POST    | `/api/uploads/signature`        | Cloudinary-Signatur abrufen |
-| PATCH   | `/api/evenings/:id/group-photo` | Gruppenfoto-URL speichern   |
-| PATCH   | `/api/games/:id/image`          | Spielbild-URL speichern     |
+| Methode | Route                                    | Beschreibung                         |
+| ------- | ---------------------------------------- | ------------------------------------ |
+| PATCH   | `/api/evenings/:id/group-photo`          | Abendfoto als Multipart-Datei laden  |
+| DELETE  | `/api/evenings/:id/group-photo`          | Abendfoto und Varianten löschen     |
+| GET     | `/api/evenings/:id/group-photo/original` | Original-Link für Teilnehmer abrufen |
+| PATCH   | `/api/games/:id/image`                   | Spielbild-URL speichern              |
+
+Der Upload verwendet das Multipart-Feld `file` und akzeptiert bis zu 10 MB
+(Limit des Cloudinary-Free-Plans).
+Unterstützt werden JPEG, PNG, WebP, HEIC/HEIF und AVIF. Das Original wird
+unverändert gespeichert; API-Antworten enthalten eine optimierte URL und ein
+`groupPhotoSrcSet` für 480, 960 und 1600 Pixel.
+
+Spielleiter und Admins dürfen das Bild bei `fixiert` oder `abgeschlossen`
+bearbeiten. Bei `gesperrt` darf dies nur ein Admin. Zum Ersetzen muss das
+Multipart-Feld `confirmReplacement=true`, zum Löschen der JSON-Wert
+`{ "confirmDeletion": true }` gesendet werden. Das Original kann von
+Teilnehmern des Abends und von Admins abgerufen werden.
+
+Die CDN-URLs verwenden vorläufig zufällige Asset-IDs, sind aber bei Kenntnis des
+Links direkt erreichbar. Vollständig authentifizierte Cloudinary-Auslieferung ist
+als spätere Erweiterung vorgesehen.
 
 ---
 

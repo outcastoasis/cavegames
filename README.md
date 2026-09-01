@@ -13,7 +13,7 @@ Die Anwendung ist **mobiloptimiert**, **modern gestaltet**, **datenschutzfreundl
 - 📅 Planung von Spieleabenden mit Termin-Umfragen (ähnlich Doodle)
 - 🎮 Erfassen gespielter Spiele & individueller Punkte
 - 🏆 Automatische Berechnung von Tages- und Jahresgewinnern
-- 🗃️ Archivierung von Abenden mit Detailansicht & Gruppenfoto
+- 🗃️ Archivierung von Abenden mit Detailansicht & Bild des Abends
 - 🏅 Jahresrückblick & Hall of Fame
 - 🔐 Login über Benutzername & Passwort (ohne E-Mail)
 - 📱 Mobiloptimierte Oberfläche im „Friendly Play“-Stil (inspiriert von Kahoot)
@@ -199,7 +199,7 @@ spielabend-app/
 - **Startseite / Dashboard**
   - Begrüssung & aktuelles Spieljahr
   - Nächster Abend (Countdown, Details, Abstimmung)
-  - Letzter Abend (Datum, Sieger, Gruppenfoto)
+  - Letzter Abend (Datum, Sieger, Bild des Abends)
 - **Abende (Liste)** → sortiert nach Datum, mit Ort & Siegern
 - **Abend-Details** → Spiele, Punkte, Fotos, Spielleiter, Teilnehmer
 - **Punkte erfassen** → nur Spielleiter/Admin
@@ -464,13 +464,19 @@ app.patch(
 
 ## 🖼️ Upload-Handling (Bilder)
 
-- Bilder werden **nicht** in MongoDB gespeichert.
-- Speicherung erfolgt in **Cloudinary**, nur URL in der DB.
-- Maximale Dateigrösse: 2 MB (nur JPG/PNG).
+- Bilder werden **nicht** in MongoDB gespeichert. Dort liegen nur Cloudinary-ID,
+  URL und technische Metadaten.
+- Abendfotos werden als unverändertes Original in **Cloudinary** gespeichert.
+  Die App liefert daraus responsive Varianten mit 480, 960 oder 1600 Pixeln
+  sowie automatischer Format- und Qualitätsoptimierung aus.
+- Abendfotos: maximal 10 MB; JPEG, PNG, WebP, HEIC/HEIF oder AVIF. Das
+  entspricht dem aktuellen Bildlimit des Cloudinary-Free-Plans.
+- Die Abendfoto-Uploads sind bewusst vom bestehenden Profilbild-Upload-Service
+  getrennt.
 
 | Typ         | Hochgeladen von            | Zugriff               |
 | ----------- | -------------------------- | --------------------- |
-| Gruppenfoto | Spielleiter                | Alle Spieler          |
+| Abendfoto   | Spielleiter/Admin          | Teilnehmer des Abends |
 | Spielbild   | Spielleiter/Admin          | Alle Spieler          |
 | Profilbild  | Benutzer selbst (optional) | Nur eingeloggter User |
 
@@ -482,6 +488,12 @@ app.patch(
 - 🖼️ Automatische Optimierung & Thumbnails
 - 🧰 Transformationen via URL
 - 🆓 Kostenloser Plan für kleine Projekte
+
+Abendfotos verwenden vorläufig den öffentlichen Cloudinary-Delivery-Typ mit
+zufälligen, nicht vorhersagbaren Asset-IDs. Sie erscheinen nur in der
+angemeldeten App, sind bei Kenntnis der CDN-URL technisch jedoch direkt
+erreichbar. Eine vollständig authentifizierte Medienauslieferung kann später im
+separaten Abendfoto-Service aktiviert werden.
 
 ---
 

@@ -116,7 +116,9 @@ export default function Home() {
       (e) => e.spielleiterRef?._id === user._id,
     ).length;
     const lastPlayedEvening = myEvenings
-      .filter((e) => e.status === "abgeschlossen" && e.date)
+      .filter(
+        (e) => ["abgeschlossen", "gesperrt"].includes(e.status) && e.date,
+      )
       .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
     const lastPoints =
       lastPlayedEvening?.playerPoints?.find((p) => p.userId === user._id)
@@ -191,7 +193,8 @@ export default function Home() {
 
     try {
       const res = await API.get("/evenings");
-      active = res.data.filter((e) => e.status !== "gesperrt");
+      const allEvenings = res.data;
+      active = allEvenings.filter((e) => e.status !== "gesperrt");
 
       const now = new Date();
       const todayStr = getSwissDateKey(now);
@@ -209,7 +212,15 @@ export default function Home() {
           today = e;
         } else if (eDate > now) {
           future.push(e);
-        } else {
+        }
+      });
+
+      allEvenings.forEach((e) => {
+        if (
+          e.date &&
+          new Date(e.date) < now &&
+          ["abgeschlossen", "gesperrt"].includes(e.status)
+        ) {
           past.push(e);
         }
       });
@@ -220,7 +231,7 @@ export default function Home() {
       setTodayEvening(today);
       setNextEvening(future[0] || null);
       setLastEvening(past[0] || null);
-      setDashboardStats(buildDashboardStats(active));
+      setDashboardStats(buildDashboardStats(allEvenings));
     } catch (err) {
       console.error("Fehler beim Laden:", err);
     } finally {
@@ -306,7 +317,11 @@ export default function Home() {
     return (
       <div
         key={abend._id}
-        className={`home-evening-card home-evening-card--${variant} home-evening-card-status-${abend.status}`}
+        className={`home-evening-card home-evening-card--${variant} home-evening-card-status-${abend.status} ${
+          variant === "last" && abend.groupPhotoUrl
+            ? "home-evening-card--with-photo"
+            : ""
+        }`}
         onClick={(event) => {
           if (event.target.closest(".home-evening-actions")) return;
 
@@ -323,6 +338,20 @@ export default function Home() {
           if (event.key === "Enter") navigate(`/abende/${abend._id}`);
         }}
       >
+        {variant === "last" && abend.groupPhotoUrl && (
+          <img
+            className="home-evening-photo"
+            src={abend.groupPhotoUrl}
+            srcSet={abend.groupPhotoSrcSet || undefined}
+            sizes="(max-width: 600px) calc(100vw - 3rem), 850px"
+            width={abend.groupPhotoWidth || undefined}
+            height={abend.groupPhotoHeight || undefined}
+            alt="Bild des letzten Spieleabends"
+            loading="lazy"
+            decoding="async"
+          />
+        )}
+
         <div className="home-evening-header">
           <div className="home-evening-schedule">
             <div className="home-evening-date">

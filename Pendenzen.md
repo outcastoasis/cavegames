@@ -24,6 +24,6 @@
 - [ ] Benutzerverwaltung: Rollen feiner machen (admin, spieler, spielleiter)
 - [x] Abendverwaltung Fixieren muss per Datumauswahl funktionieren und nicht texteingabe
 - [x] Abendverwaltung Bearbeiten PopUp erscheint mittig und nicht oben
-- [ ] Abende Gruppenbild hinzufügen implementieren
+- [x] Abende Gruppenbild hinzufügen implementieren
 - [x] Abende Bilder und Beschreibung von Spielen hinzufügen.
 - [x] Abende Darstellung optimieren. Abstände zur Seite auf Mobile ist noch ein wenig zu gross, nimmt zu viel platz ein.

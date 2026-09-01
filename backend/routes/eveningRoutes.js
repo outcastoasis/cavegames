@@ -4,8 +4,7 @@ const checkAuth = require("../middleware/checkAuth");
 const checkRole = require("../middleware/checkRole");
 const { checkEveningRole } = require("../middleware/checkEveningRole");
 const eveningController = require("../controllers/eveningController");
-const upload = require("../middleware/upload");
-const { uploadGroupPhoto } = require("../controllers/eveningController");
+const { eveningPhotoUpload } = require("../middleware/eveningPhotoUpload");
 
 const {
   getEvenings,
@@ -22,6 +21,9 @@ const {
   deleteEveningGame,
   getArchivedEvenings,
   getEligibleUsers,
+  deleteGroupPhoto,
+  getGroupPhotoOriginal,
+  uploadGroupPhoto,
 } = require("../controllers/eveningController");
 
 router.use(checkAuth);
@@ -68,12 +70,20 @@ router.delete(
   deleteEveningGame
 );
 
-// 📸 Gruppenfoto uploaden
+// Abendfoto: Original-Download für Teilnehmer, Bearbeitung für Spielleiter/Admin.
+router.get("/:id/group-photo/original", getGroupPhotoOriginal);
+
 router.patch(
   "/:id/group-photo",
   checkEveningRole(["spielleiter", "admin"]),
-  upload.single("file"),
+  eveningPhotoUpload.single("file"),
   uploadGroupPhoto
+);
+
+router.delete(
+  "/:id/group-photo",
+  checkEveningRole(["spielleiter", "admin"]),
+  deleteGroupPhoto,
 );
 
 // *** GENERISCHE UPDATE-ROUTE GANZ ZULETZT ***

@@ -121,6 +121,19 @@
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
+.home-evening-card--with-photo {
+  overflow: hidden;
+  padding-top: 0;
+}
+
+.home-evening-photo {
+  display: block;
+  width: calc(100% + (2 * var(--spacing-m)));
+  height: clamp(180px, 32vw, 330px);
+  margin: 0 calc(-1 * var(--spacing-m)) var(--spacing-m);
+  object-fit: cover;
+}
+
 .home-evening-card .badge-abende {
   flex: 0 0 auto;
 }
@@ -366,6 +379,12 @@
   .home-evening-card {
     padding: 0.85rem;
     border-radius: var(--border-radius-sm);
+  }
+
+  .home-evening-photo {
+    width: calc(100% + 1.7rem);
+    height: clamp(180px, 58vw, 280px);
+    margin: 0 -0.85rem 0.85rem;
   }
 
   .home-evening-date {

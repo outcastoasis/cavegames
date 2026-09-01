@@ -69,10 +69,21 @@ app.use("/api/test-mode", require("./routes/testModeRoutes"));
 
 app.use((err, req, res, next) => {
   if (err instanceof multer.MulterError) {
-    return res.status(400).json({ error: err.message });
+    const isEveningPhotoUpload = req.originalUrl?.includes("/group-photo");
+    const message =
+      err.code === "LIMIT_FILE_SIZE"
+        ? `Das Bild darf maximal ${isEveningPhotoUpload ? 10 : 8} MB gross sein.`
+        : err.message;
+    return res.status(400).json({ error: message });
   }
-  if (err.message === "Only JPG/PNG are allowed") {
-    return res.status(400).json({ error: err.message });
+  if (
+    err.message === "Only JPG/PNG are allowed" ||
+    err.message === "Unsupported image type" ||
+    err.message === "UNSUPPORTED_IMAGE_TYPE"
+  ) {
+    return res.status(400).json({
+      error: "Unterstützt werden JPEG, PNG, WebP, HEIC/HEIF und AVIF.",
+    });
   }
   next(err);
 });
