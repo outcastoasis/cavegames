@@ -74,7 +74,7 @@ function formatNotificationDateTime(value) {
 function basePayload(values) {
   return {
     icon: "/icons/icon-192.png",
-    badge: "/icons/icon-192.png",
+    badge: "/icons/notification-badge.png",
     ...values,
   };
 }

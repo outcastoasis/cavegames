@@ -1,3 +1,11 @@
+self.addEventListener("install", (event) => {
+  event.waitUntil(self.skipWaiting());
+});
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(self.clients.claim());
+});
+
 self.addEventListener("push", (event) => {
   let payload = {};
 
@@ -11,7 +19,7 @@ self.addEventListener("push", (event) => {
   const options = {
     body: payload.body || "Es gibt Neuigkeiten bei Cavegames.",
     icon: payload.icon || "/icons/icon-192.png",
-    badge: payload.badge || "/icons/icon-192.png",
+    badge: payload.badge || "/icons/notification-badge.png",
     tag: payload.tag,
     renotify: false,
     data: { url: payload.url || "/" },
@@ -23,7 +31,10 @@ self.addEventListener("push", (event) => {
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
-  let targetUrl = new URL(event.notification.data?.url || "/", self.location.origin);
+  let targetUrl = new URL(
+    event.notification.data?.url || "/",
+    self.location.origin,
+  );
   if (targetUrl.origin !== self.location.origin) {
     targetUrl = new URL("/", self.location.origin);
   }
@@ -31,16 +42,33 @@ self.addEventListener("notificationclick", (event) => {
   event.waitUntil(
     self.clients
       .matchAll({ type: "window", includeUncontrolled: true })
-      .then(async (clients) => {
-        const existingClient = clients.find(
-          (client) => new URL(client.url).origin === self.location.origin,
-        );
+      .then(async (windowClients) => {
+        const existingClient =
+          windowClients.find((client) => client.url === targetUrl.href) ||
+          windowClients.find(
+            (client) => new URL(client.url).origin === self.location.origin,
+          );
 
         if (existingClient) {
-          if ("navigate" in existingClient) {
-            await existingClient.navigate(targetUrl.href);
+          try {
+            const focusedClient = await existingClient.focus();
+            if (
+              focusedClient &&
+              "navigate" in focusedClient &&
+              focusedClient.url !== targetUrl.href
+            ) {
+              const navigatedClient = await focusedClient.navigate(
+                targetUrl.href,
+              );
+              return navigatedClient || focusedClient;
+            }
+            return focusedClient;
+          } catch (error) {
+            console.warn(
+              "Bestehende Cavegames-App konnte nicht fokussiert werden:",
+              error,
+            );
           }
-          return existingClient.focus();
         }
 
         return self.clients.openWindow(targetUrl.href);
