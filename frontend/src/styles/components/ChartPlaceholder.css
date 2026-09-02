@@ -1,12 +1,18 @@
-/* ChartPlaceholder.css */
 .chart-placeholder {
   width: 100%;
-  height: 220px;
-  border-radius: var(--card-radius);
-  background: var(--neutral);
+  height: 100%;
+  min-height: 13rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-light);
-  font-size: 0.9rem;
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  text-align: center;
+}
+
+.chart-placeholder p {
+  margin: 0;
 }

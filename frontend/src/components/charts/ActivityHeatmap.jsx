@@ -2,7 +2,7 @@
 
 import "../../styles/components/ActivityHeatmap.css";
 
-export default function ActivityHeatmap({ years, byYear }) {
+export default function ActivityHeatmap({ years, byYear, showYearLabel = true }) {
   if (!years?.length) return null;
 
   // Sortiere aufsteigend, damit Heatmap nach Jahr steigt
@@ -27,8 +27,13 @@ export default function ActivityHeatmap({ years, byYear }) {
         });
 
         return (
-          <div key={year} className="heatmap-year-block">
-            <div className="heatmap-year-label">{year}</div>
+          <div
+            key={year}
+            className="heatmap-year-block"
+            role="img"
+            aria-label={`${year}: ${attended} von ${total} Abenden teilgenommen`}
+          >
+            {showYearLabel && <div className="heatmap-year-label">{year}</div>}
             <div className="heatmap-row">{tiles}</div>
             <div className="heatmap-info">
               {attended}/{total} Abende

@@ -21,7 +21,7 @@ export default function BarYearComparison({ years, byYear }) {
   }));
 
   return (
-    <ResponsiveContainer width="100%" height={280}>
+    <ResponsiveContainer width="100%" height="100%">
       <BarChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="year" />
@@ -29,23 +29,23 @@ export default function BarYearComparison({ years, byYear }) {
         <Tooltip />
         <Legend />
 
-        <Bar dataKey="first" stackId="a" fill="var(--accent)" name="1. Platz" />
+        <Bar dataKey="first" stackId="a" fill="var(--color-warning)" name="1. Platz" />
         <Bar
           dataKey="second"
           stackId="a"
-          fill="var(--secondary)"
+          fill="var(--color-text-muted)"
           name="2. Platz"
         />
         <Bar
           dataKey="third"
           stackId="a"
-          fill="var(--primary-light)"
+          fill="var(--color-primary)"
           name="3. Platz"
         />
         <Bar
           dataKey="other"
           stackId="a"
-          fill="var(--neutral-dark)"
+          fill="var(--color-border-strong)"
           name="Andere"
         />
       </BarChart>

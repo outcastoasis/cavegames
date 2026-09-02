@@ -430,6 +430,33 @@ Charts should:
 - favor the primary purple
 - avoid unnecessary visual complexity
 
+## Profile
+
+Treat the profile identity, statistics and settings as separate content groups.
+Keep the identity card compact and reserve the avatar action for changing the
+profile image; do not repeat the primary yearly metrics in this header.
+
+Use the shared `SegmentedControl` for switching between one year and the
+cross-year view. Show the most useful metrics first and keep secondary metrics
+behind one explicit expansion action. On small screens, metric cards use a
+two-column grid and charts show one selected visualization at a time.
+
+Render administrative modes as settings with the shared `Switch`, not as
+custom action buttons. Game-night history entries must remain fully tappable
+and show their date, points and placement without recreating a full
+`EveningCard` from incomplete statistics data.
+
+## Settings
+
+Group settings by purpose and keep device-specific controls separate from
+account-wide preferences. Use the shared `Switch` for independently saved
+notification categories and disclose long preference lists only when the user
+opens them. Security actions use shared secondary buttons and focused dialogs.
+
+Settings and other data-entry dialogs must preserve partially entered values:
+do not close them from a backdrop tap. Use explicit cancel and submit actions,
+touch-friendly form controls and concise inline feedback.
+
 ## Avatars
 
 Profile images are useful because Cavegames represents a small private group.

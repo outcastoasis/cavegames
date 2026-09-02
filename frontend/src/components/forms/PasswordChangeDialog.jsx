@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { KeyRound } from "lucide-react";
 import API from "../../services/api";
+import Button from "../ui/Button";
 import "../../styles/components/Modal.css";
 import "../../styles/components/PasswordChangeDialog.css";
 
@@ -52,12 +53,7 @@ export default function PasswordChangeDialog({ onClose, onSuccess }) {
   };
 
   return createPortal(
-    <div
-      className="modal-overlay password-dialog-overlay"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget && !busy) onClose();
-      }}
-    >
+    <div className="modal-overlay password-dialog-overlay">
       <div
         className="modal password-dialog"
         role="dialog"
@@ -116,17 +112,16 @@ export default function PasswordChangeDialog({ onClose, onSuccess }) {
           )}
 
           <div className="modal-actions">
-            <button
-              type="button"
-              className="button neutral"
+            <Button
               onClick={onClose}
               disabled={busy}
+              variant="secondary"
             >
               Abbrechen
-            </button>
-            <button type="submit" className="button primary" disabled={busy}>
+            </Button>
+            <Button type="submit" disabled={busy}>
               {busy ? "Wird geändert..." : "Passwort ändern"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

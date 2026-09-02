@@ -33,7 +33,7 @@ export default function LinePointsChart({ data }) {
         <Line
           type="monotone"
           dataKey="points"
-          stroke="var(--primary)"
+          stroke="var(--color-primary)"
           strokeWidth={3}
           dot={{ r: 4 }}
           activeDot={{ r: 6 }}

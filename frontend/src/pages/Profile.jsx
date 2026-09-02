@@ -1,63 +1,105 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useParams, useNavigate, useOutletContext } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import {
+  Award,
+  BarChart3,
+  CalendarCheck2,
   CalendarDays,
   Camera,
   ChevronDown,
+  ChevronLeft,
   ChevronRight,
   FlaskConical,
+  Gauge,
+  Medal,
+  Percent,
+  RefreshCw,
   Shield,
   Trophy,
+  UserRoundCheck,
 } from "lucide-react";
 import { useAuth } from "../context/authState";
 import { useTestMode } from "../context/testMode";
 import API from "../services/api";
-import ChartWrapper from "../components/charts/ChartWrapper";
+import ActivityHeatmap from "../components/charts/ActivityHeatmap";
+import BarYearComparison from "../components/charts/BarYearComparison";
 import ChartPlaceholder from "../components/charts/ChartPlaceholder";
+import ChartWrapper from "../components/charts/ChartWrapper";
 import LinePointsChart from "../components/charts/LinePointsChart";
-import PiePlacementChart from "../components/charts/PiePlacementChart";
 import MultiYearPointsChart from "../components/charts/MultiYearPointsChart";
 import MultiYearWinRateChart from "../components/charts/MultiYearWinRateChart";
-import BarYearComparison from "../components/charts/BarYearComparison";
-import ActivityHeatmap from "../components/charts/ActivityHeatmap";
+import PiePlacementChart from "../components/charts/PiePlacementChart";
 import defaultAvatar from "../assets/images/avatar.jpg";
+import Button from "../components/ui/Button";
+import Card from "../components/ui/Card";
+import SegmentedControl from "../components/ui/SegmentedControl";
+import { SkeletonBlock } from "../components/ui/Skeleton";
+import Switch from "../components/ui/Switch";
 import Toast from "../components/ui/Toast";
 import { formatSwissDate } from "../utils/swissDateTime";
 import "../styles/pages/Profile.css";
 
-function KpiCard({ title, value }) {
+const YEAR_CHART_OPTIONS = [
+  { value: "placements", label: "Plätze" },
+  { value: "points", label: "Punkte" },
+  { value: "activity", label: "Aktivität" },
+];
+
+const MULTI_CHART_OPTIONS = [
+  { value: "points", label: "Punkte" },
+  { value: "winRate", label: "Siege" },
+  { value: "placements", label: "Plätze" },
+  { value: "activity", label: "Aktivität" },
+];
+
+function MetricCard({ icon, label, value, wide = false }) {
   return (
-    <div className="kpi-card">
-      <div className="kpi-title">{title}</div>
-      <div className="kpi-value">{value}</div>
+    <Card
+      className={`profile-metric${wide ? " profile-metric--wide" : ""}`}
+      padding="sm"
+    >
+      <span className="profile-metric__icon" aria-hidden="true">
+        {icon}
+      </span>
+      <span className="profile-metric__label">{label}</span>
+      <strong className="profile-metric__value">{value}</strong>
+    </Card>
+  );
+}
+
+function SectionHeading({ count, eyebrow, title }) {
+  return (
+    <div className="profile-section-heading">
+      <div>
+        {eyebrow && <span>{eyebrow}</span>}
+        <h2>{title}</h2>
+      </div>
+      {count != null && <strong>{count}</strong>}
     </div>
   );
 }
 
-function ChartTabs({ label, options, activeValue, onChange }) {
+function LoadError({ message, onRetry }) {
   return (
-    <div className="profile-chart-tabs" role="group" aria-label={label}>
-      {options.map((option) => (
-        <button
-          key={option.value}
-          type="button"
-          className={`button small ${
-            activeValue === option.value ? "primary active" : "neutral"
-          }`}
-          aria-pressed={activeValue === option.value}
-          onClick={() => onChange(option.value)}
-        >
-          {option.label}
-        </button>
-      ))}
-    </div>
+    <Card as="section" className="profile-state" variant="muted">
+      <RefreshCw size={22} aria-hidden="true" />
+      <p>{message}</p>
+      <Button
+        leadingIcon={<RefreshCw size={17} />}
+        onClick={onRetry}
+        size="sm"
+        variant="secondary"
+      >
+        Erneut laden
+      </Button>
+    </Card>
   );
 }
 
 const formatProfileNumber = (value, maximumFractionDigits = 0) => {
-  if (value == null || value === "") return "-";
+  if (value == null || value === "") return "–";
   const number = Number(value);
-  if (!Number.isFinite(number)) return "-";
+  if (!Number.isFinite(number)) return "–";
 
   return new Intl.NumberFormat("de-CH", {
     maximumFractionDigits,
@@ -66,27 +108,31 @@ const formatProfileNumber = (value, maximumFractionDigits = 0) => {
 
 const formatProfilePercent = (value) => {
   const formattedValue = formatProfileNumber(value, 1);
-  return formattedValue === "-" ? "-" : `${formattedValue}%`;
+  return formattedValue === "–" ? "–" : `${formattedValue}%`;
 };
 
 export default function Profile() {
   const { setTitle } = useOutletContext();
   const { user, setUser } = useAuth();
   const { testMode, setTestMode } = useTestMode();
-  const { id } = useParams();
   const navigate = useNavigate();
-  const userId = id || user?._id;
+  const userId = user?._id;
 
   const [yearList, setYearList] = useState([]);
   const [selectedYear, setSelectedYear] = useState(null);
   const [yearStats, setYearStats] = useState(null);
   const [multiStats, setMultiStats] = useState(null);
+  const [loadingYears, setLoadingYears] = useState(true);
   const [loadingYear, setLoadingYear] = useState(false);
   const [loadingMulti, setLoadingMulti] = useState(false);
+  const [yearListError, setYearListError] = useState("");
+  const [yearError, setYearError] = useState("");
+  const [multiError, setMultiError] = useState("");
   const [viewAllYears, setViewAllYears] = useState(false);
   const [showMoreYearStats, setShowMoreYearStats] = useState(false);
   const [activeYearChart, setActiveYearChart] = useState("placements");
   const [activeMultiChart, setActiveMultiChart] = useState("points");
+  const [avatarUploading, setAvatarUploading] = useState(false);
   const [toast, setToast] = useState(null);
   const avatarInputRef = useRef(null);
 
@@ -94,11 +140,19 @@ export default function Profile() {
     async (year) => {
       if (!year || !userId) return;
       setLoadingYear(true);
+      setYearError("");
+      setYearStats(null);
+
       try {
-        const res = await API.get(`/stats/user/${userId}?year=${year}`);
-        setYearStats(res.data);
-      } catch (err) {
-        console.error("Fehler beim Laden der Jahresstatistik:", err);
+        const response = await API.get(`/stats/user/${userId}?year=${year}`);
+        setYearStats(response.data);
+      } catch (error) {
+        console.error("Fehler beim Laden der Jahresstatistik:", error);
+        setYearError(
+          error?.response?.status === 404
+            ? "Für dieses Jahr ist noch keine Statistik vorhanden."
+            : "Die Jahresstatistik konnte nicht geladen werden.",
+        );
       } finally {
         setLoadingYear(false);
       }
@@ -107,25 +161,43 @@ export default function Profile() {
   );
 
   const loadAvailableYears = useCallback(async () => {
+    if (!userId) return;
+    setLoadingYears(true);
+    setYearListError("");
+
     try {
-      const res = await API.get("/years");
-      const yrs = res.data.map((y) => y.year).sort((a, b) => b - a);
-      setYearList(yrs);
-      setSelectedYear(yrs[0] || null);
-      await loadYearStats(yrs[0]);
-    } catch (err) {
-      console.error("Fehler beim Laden der Jahre:", err);
+      const response = await API.get("/years");
+      const years = response.data
+        .map((item) => item.year)
+        .sort((a, b) => b - a);
+      const initialYear = years[0] || null;
+
+      setYearList(years);
+      setSelectedYear(initialYear);
+      if (initialYear) await loadYearStats(initialYear);
+    } catch (error) {
+      console.error("Fehler beim Laden der Jahre:", error);
+      setYearListError("Die Spieljahre konnten nicht geladen werden.");
+    } finally {
+      setLoadingYears(false);
     }
-  }, [loadYearStats]);
+  }, [loadYearStats, userId]);
 
   const loadMultiYearStats = useCallback(async () => {
     if (!userId) return;
     setLoadingMulti(true);
+    setMultiError("");
+
     try {
-      const res = await API.get(`/stats/user/${userId}/all`);
-      setMultiStats(res.data);
-    } catch (err) {
-      console.error("Fehler Multi-Year:", err);
+      const response = await API.get(`/stats/user/${userId}/all`);
+      setMultiStats(response.data);
+    } catch (error) {
+      console.error("Fehler beim Laden der Gesamtstatistik:", error);
+      setMultiError(
+        error?.response?.status === 404
+          ? "Es ist noch keine Gesamtstatistik vorhanden."
+          : "Die Gesamtstatistik konnte nicht geladen werden.",
+      );
     } finally {
       setLoadingMulti(false);
     }
@@ -150,25 +222,6 @@ export default function Profile() {
     );
   }, [yearStats]);
 
-  const currentSummary = useMemo(() => {
-    if (!yearStats) {
-      return [
-        { label: "Punkte", value: "-" },
-        { label: "Teilnahmen", value: "-" },
-        { label: "Gewinnrate", value: "-" },
-      ];
-    }
-
-    return [
-      { label: "Punkte", value: formatProfileNumber(yearStats.totalPoints) },
-      {
-        label: "Teilnahmen",
-        value: formatProfileNumber(yearStats.eveningsAttended),
-      },
-      { label: "Gewinnrate", value: formatProfilePercent(yearStats.winRate) },
-    ];
-  }, [yearStats]);
-
   const placementsByEvening = useMemo(
     () =>
       new Map(
@@ -180,56 +233,62 @@ export default function Profile() {
     [yearStats],
   );
 
-  const showToast = useCallback((message) => {
-    setToast(message);
-  }, []);
+  const showToast = useCallback((message) => setToast(message), []);
 
   const handleAvatarChange = async (event) => {
     const file = event.target.files[0];
-    if (!file) return;
+    if (!file || avatarUploading) return;
 
-    showToast("Profilbild wird hochgeladen...");
+    setAvatarUploading(true);
+    showToast("Profilbild wird hochgeladen …");
 
     try {
       const formData = new FormData();
       formData.append("file", file);
-
-      const res = await API.patch(`/users/${userId}/avatar`, formData, {
+      const response = await API.patch(`/users/${userId}/avatar`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      if (res.data.url) {
-        setUser((prev) => ({
-          ...prev,
-          profileImageUrl: res.data.url,
+      if (response.data.url) {
+        setUser((currentUser) => ({
+          ...currentUser,
+          profileImageUrl: response.data.url,
         }));
-
-        showToast("Profilbild erfolgreich aktualisiert!");
+        showToast("Profilbild aktualisiert");
       }
-    } catch (err) {
-      const status = err?.response?.status;
-      const apiMsg = err?.response?.data?.error;
+    } catch (error) {
+      const status = error?.response?.status;
+      const apiMessage = error?.response?.data?.error;
 
-      if (status === 413) showToast(apiMsg || "Bild ist zu gross");
-      else if (status === 415) showToast(apiMsg || "Bildformat nicht unterstuetzt");
-      else showToast(apiMsg || "Fehler beim Hochladen des Profilbildes");
+      if (status === 413) showToast(apiMessage || "Bild ist zu gross");
+      else if (status === 415)
+        showToast(apiMessage || "Bildformat wird nicht unterstützt");
+      else showToast(apiMessage || "Profilbild konnte nicht hochgeladen werden");
     } finally {
+      setAvatarUploading(false);
       event.target.value = "";
     }
   };
 
-  const toggleViewAll = () => {
-    const next = !viewAllYears;
-    setViewAllYears(next);
-    if (next && !multiStats) loadMultiYearStats();
+  const handleViewChange = (view) => {
+    const showAllYears = view === "all";
+    setViewAllYears(showAllYears);
+    if (showAllYears && !multiStats && !loadingMulti) loadMultiYearStats();
+  };
+
+  const handleYearChange = (year) => {
+    if (!year || year === selectedYear) return;
+    setSelectedYear(year);
+    setShowMoreYearStats(false);
+    loadYearStats(year);
   };
 
   return (
-    <div className="profile-page">
+    <div className="page-shell profile-page">
       {toast && <Toast message={toast} onClose={() => setToast(null)} />}
 
-      <section className="profile-hero">
-        <div className="profile-card-modern">
+      <div className="profile-header-grid">
+        <Card as="section" className="profile-identity" padding="md">
           <div className="profile-avatar-section">
             <input
               type="file"
@@ -238,483 +297,336 @@ export default function Profile() {
               hidden
               onChange={handleAvatarChange}
             />
-
             <button
               type="button"
-              className="avatar-click-area"
+              className="profile-avatar-button"
               onClick={() => avatarInputRef.current?.click()}
               aria-label="Profilbild ändern"
+              disabled={avatarUploading}
             >
               <img
                 src={user?.profileImageUrl || defaultAvatar}
-                alt="Profilbild"
-                className="avatar-img"
+                alt=""
+                className="profile-avatar-image"
               />
-              <span className="avatar-edit-badge">
+              <span className="profile-avatar-edit" aria-hidden="true">
                 <Camera size={16} />
               </span>
             </button>
           </div>
 
-          <div className="profile-main-info">
-            <div className="profile-identity-block">
-              <h2 className="profile-name-center">{user?.displayName}</h2>
-
-              <div className="profile-info-list">
-                <div className="info-row">
-                  <span className="info-label">Benutzername</span>
-                  <span className="info-value">@{user?.username}</span>
-                </div>
-              </div>
-
-              {user?.role === "admin" && (
-                <div className="profile-identity-actions">
-                  <div className="profile-role-pill">
-                    <Shield size={15} />
-                    Admin
-                  </div>
-                  <button
-                    type="button"
-                    className={`profile-testmode-button ${
-                      testMode ? "active" : ""
-                    }`}
-                    onClick={() => setTestMode(!testMode)}
-                    aria-pressed={testMode}
-                    title={
-                      testMode
-                        ? "Testmodus ausschalten"
-                        : "Testmodus einschalten"
-                    }
-                  >
-                    <FlaskConical size={15} />
-                    {testMode ? "Testmodus aktiv" : "Live-Modus"}
-                  </button>
-                </div>
-              )}
-            </div>
+          <div className="profile-identity__copy">
+            <span className="profile-identity__eyebrow">Dein Profil</span>
+            <h1>{user?.displayName || "Spieler"}</h1>
+            <p>@{user?.username || "–"}</p>
+            {user?.role === "admin" && (
+              <span className="profile-role-badge">
+                <Shield size={14} aria-hidden="true" />
+                Admin
+              </span>
+            )}
           </div>
-        </div>
+        </Card>
 
-        <div className="profile-summary-panel">
-          <div className="profile-summary-heading">
-            <Trophy size={18} />
-            <span>{selectedYear || "Jahr"} im Blick</span>
-          </div>
-          <div className="profile-summary-grid">
-            {currentSummary.map((item) => (
-              <div key={item.label} className="profile-summary-item">
-                <span>{item.label}</span>
-                <strong>{item.value}</strong>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="profile-toolbar">
-        <div className="view-switch" role="group" aria-label="Profilansicht">
-          <button
-            type="button"
-            className={`button ${!viewAllYears ? "primary" : "neutral"}`}
-            aria-pressed={!viewAllYears}
-            onClick={() => {
-              setViewAllYears(false);
-              loadYearStats(selectedYear);
-            }}
+        {user?.role === "admin" && (
+          <Card
+            as="section"
+            className="profile-mode-card"
+            padding="md"
+            variant={testMode ? "accent" : "muted"}
           >
-            Jahresstatistik
-          </button>
+            <span className="profile-mode-card__icon" aria-hidden="true">
+              <FlaskConical size={20} />
+            </span>
+            <Switch
+              checked={testMode}
+              description="Testdaten getrennt von Live-Daten verwenden."
+              label={testMode ? "Testmodus aktiv" : "Live-Modus aktiv"}
+              onChange={setTestMode}
+            />
+          </Card>
+        )}
+      </div>
 
-          <button
-            type="button"
-            className={`button ${viewAllYears ? "primary" : "neutral"}`}
-            aria-pressed={viewAllYears}
-            onClick={toggleViewAll}
-          >
-            Alle Jahre
-          </button>
-        </div>
-
-      </section>
+      <SegmentedControl
+        ariaLabel="Statistikzeitraum auswählen"
+        className="profile-view-control"
+        onChange={handleViewChange}
+        options={[
+          { label: "Jahresstatistik", value: "year" },
+          { label: "Alle Jahre", value: "all" },
+        ]}
+        value={viewAllYears ? "all" : "year"}
+      />
 
       {!viewAllYears && (
-        <div className="profile-stats-view">
-          <div className="year-controls">
-            <button
-              className="button neutral year-nav-btn year-nav-btn--previous"
-              type="button"
-              disabled={!previousYear}
-              onClick={() => {
-                setSelectedYear(previousYear);
-                loadYearStats(previousYear);
-              }}
-              aria-label="Vorheriges Jahr anzeigen"
-              title="Vorheriges Jahr"
-            >
-              <span className="year-nav-arrow" aria-hidden="true">
-                ‹
-              </span>
-            </button>
+        <section className="profile-view" aria-labelledby="profile-year-title">
+          <div className="profile-year-heading">
+            <SectionHeading eyebrow="Spieljahr" title={selectedYear || "Statistik"} />
 
-            <select
-              className="year-select"
-              value={selectedYear || ""}
-              onChange={(event) => {
-                const year = Number(event.target.value);
-                setSelectedYear(year);
-                loadYearStats(year);
-              }}
-            >
-              {yearList.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
+            {yearList.length > 0 && (
+              <div className="profile-year-controls">
+                <Button
+                  aria-label="Vorheriges Jahr anzeigen"
+                  disabled={!previousYear || loadingYear}
+                  iconOnly
+                  onClick={() => handleYearChange(previousYear)}
+                  size="sm"
+                  variant="secondary"
+                >
+                  <ChevronLeft size={19} />
+                </Button>
 
-            <button
-              className="button neutral year-nav-btn year-nav-btn--next"
-              type="button"
-              disabled={!nextYear}
-              onClick={() => {
-                setSelectedYear(nextYear);
-                loadYearStats(nextYear);
-              }}
-              aria-label="Nächstes Jahr anzeigen"
-              title="Nächstes Jahr"
-            >
-              <span className="year-nav-arrow" aria-hidden="true">
-                ›
-              </span>
-            </button>
+                <select
+                  aria-label="Spieljahr"
+                  className="profile-year-select"
+                  value={selectedYear || ""}
+                  onChange={(event) => handleYearChange(Number(event.target.value))}
+                  disabled={loadingYear}
+                >
+                  {yearList.map((year) => (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  ))}
+                </select>
+
+                <Button
+                  aria-label="Nächstes Jahr anzeigen"
+                  disabled={!nextYear || loadingYear}
+                  iconOnly
+                  onClick={() => handleYearChange(nextYear)}
+                  size="sm"
+                  variant="secondary"
+                >
+                  <ChevronRight size={19} />
+                </Button>
+              </div>
+            )}
           </div>
 
-          {loadingYear && <p className="profile-loading">Lade Jahresstatistik...</p>}
-
-          {yearStats && (
-            <>
-              <div className="kpi-grid">
-                <KpiCard
-                  title="Gesamtpunkte"
-                  value={formatProfileNumber(yearStats.totalPoints)}
-                />
-                <KpiCard
-                  title="Teilnahmen"
-                  value={formatProfileNumber(yearStats.eveningsAttended)}
-                />
-                <KpiCard
-                  title="Gewinnrate"
-                  value={formatProfilePercent(yearStats.winRate)}
-                />
-                <KpiCard
-                  title="Ø Platzierung"
-                  value={formatProfileNumber(yearStats.averagePlacement, 1)}
-                />
-              </div>
-
-              <button
-                type="button"
-                className="profile-more-stats-toggle"
-                aria-expanded={showMoreYearStats}
-                onClick={() => setShowMoreYearStats((current) => !current)}
-              >
-                <span>
-                  {showMoreYearStats
-                    ? "Weitere Statistiken ausblenden"
-                    : "Weitere Statistiken anzeigen"}
-                </span>
-                <ChevronDown
-                  size={18}
-                  className={showMoreYearStats ? "expanded" : ""}
-                />
-              </button>
-
-              {showMoreYearStats && (
-                <div className="kpi-grid profile-secondary-kpis">
-                  <KpiCard
-                    title="Durchschnitt"
-                    value={formatProfileNumber(yearStats.avgPoints, 1)}
-                  />
-                  <KpiCard
-                    title="Teilnahmequote"
-                    value={formatProfilePercent(yearStats.attendanceRate)}
-                  />
-                  <KpiCard title="Top-3 Quote" value={`${topThreeRate}%`} />
-                  <KpiCard
-                    title="Spielleiter"
-                    value={`${formatProfileNumber(yearStats.spielleiterCount)}x`}
-                  />
-                  <KpiCard
-                    title="Beste Punkte"
-                    value={formatProfileNumber(yearStats.bestEveningPoints)}
-                  />
-                  <KpiCard
-                    title="Schlechteste Punkte"
-                    value={formatProfileNumber(yearStats.worstEveningPoints)}
-                  />
-                  <KpiCard
-                    title="Peak-Performance"
-                    value={formatProfileNumber(yearStats.peakPerformance, 1)}
-                  />
+          {loadingYears || loadingYear ? (
+            <ProfileStatsSkeleton />
+          ) : yearListError ? (
+            <LoadError message={yearListError} onRetry={loadAvailableYears} />
+          ) : yearError ? (
+            <LoadError
+              message={yearError}
+              onRetry={() => loadYearStats(selectedYear)}
+            />
+          ) : !selectedYear ? (
+            <Card className="profile-state" variant="muted">
+              <CalendarDays size={22} aria-hidden="true" />
+              <p>Noch keine Spieljahre vorhanden.</p>
+            </Card>
+          ) : (
+            yearStats && (
+              <>
+                <div className="profile-metric-grid profile-metric-grid--primary">
+                  <MetricCard icon={<Trophy size={19} />} label="Punkte" value={formatProfileNumber(yearStats.totalPoints)} />
+                  <MetricCard icon={<CalendarCheck2 size={19} />} label="Teilnahmen" value={formatProfileNumber(yearStats.eveningsAttended)} />
+                  <MetricCard icon={<Percent size={19} />} label="Gewinnrate" value={formatProfilePercent(yearStats.winRate)} />
+                  <MetricCard icon={<Medal size={19} />} label="Ø Platz" value={formatProfileNumber(yearStats.averagePlacement, 1)} />
                 </div>
-              )}
 
-              <ChartTabs
-                label="Diagramm auswählen"
-                activeValue={activeYearChart}
-                onChange={setActiveYearChart}
-                options={[
-                  { value: "placements", label: "Platzierungen" },
-                  { value: "points", label: "Punkte" },
-                ]}
-              />
+                <Button
+                  className="profile-more-button"
+                  fullWidth
+                  onClick={() => setShowMoreYearStats((expanded) => !expanded)}
+                  trailingIcon={<ChevronDown className={showMoreYearStats ? "is-expanded" : ""} size={18} />}
+                  variant="ghost"
+                  aria-expanded={showMoreYearStats}
+                >
+                  {showMoreYearStats ? "Weniger Kennzahlen" : "Mehr Kennzahlen"}
+                </Button>
 
-              <div
-                className={`profile-chart-panel ${
-                  activeYearChart === "placements" ? "active" : ""
-                }`}
-              >
-                <ChartWrapper title="Platzierungsverteilung">
-                  {yearStats.firstPlaces +
-                    yearStats.secondPlaces +
-                    yearStats.thirdPlaces >
-                  0 ? (
-                    <PiePlacementChart data={yearStats} />
-                  ) : (
-                    <ChartPlaceholder text="Keine Platzierungen vorhanden" />
+                {showMoreYearStats && (
+                  <div className="profile-metric-grid profile-metric-grid--secondary">
+                    <MetricCard icon={<Gauge size={19} />} label="Ø Punkte" value={formatProfileNumber(yearStats.avgPoints, 1)} />
+                    <MetricCard icon={<UserRoundCheck size={19} />} label="Teilnahmequote" value={formatProfilePercent(yearStats.attendanceRate)} />
+                    <MetricCard icon={<Award size={19} />} label="Top 3" value={`${topThreeRate}%`} />
+                    <MetricCard icon={<Shield size={19} />} label="Spielleiter" value={`${formatProfileNumber(yearStats.spielleiterCount)}×`} />
+                    <MetricCard icon={<BarChart3 size={19} />} label="Bester Abend" value={formatProfileNumber(yearStats.bestEveningPoints)} />
+                    <MetricCard icon={<BarChart3 size={19} />} label="Tiefster Abend" value={formatProfileNumber(yearStats.worstEveningPoints)} />
+                    <MetricCard icon={<Trophy size={19} />} label="Top-3-Schnitt" value={formatProfileNumber(yearStats.peakPerformance, 1)} />
+                  </div>
+                )}
+
+                <section className="profile-section">
+                  <SectionHeading eyebrow="Auswertung" title="Dein Jahr" />
+                  <SegmentedControl
+                    ariaLabel="Jahresdiagramm auswählen"
+                    className="profile-chart-control profile-chart-control--scroll"
+                    onChange={setActiveYearChart}
+                    options={YEAR_CHART_OPTIONS}
+                    value={activeYearChart}
+                  />
+
+                  {activeYearChart === "placements" && (
+                    <ChartWrapper title="Platzierungen">
+                      {yearStats.firstPlaces + yearStats.secondPlaces + yearStats.thirdPlaces + yearStats.otherPlaces > 0 ? (
+                        <PiePlacementChart data={yearStats} />
+                      ) : (
+                        <ChartPlaceholder text="Keine Platzierungen vorhanden" />
+                      )}
+                    </ChartWrapper>
                   )}
-                </ChartWrapper>
-              </div>
 
-              <div
-                className={`profile-chart-panel ${
-                  activeYearChart === "points" ? "active" : ""
-                }`}
-              >
-                <ChartWrapper title="Punktetrend">
+                  {activeYearChart === "points" && (
+                    <ChartWrapper title="Punkteverlauf">
+                      {yearStats.scoreTrend?.length ? (
+                        <LinePointsChart data={yearStats.scoreTrend} />
+                      ) : (
+                        <ChartPlaceholder text="Noch keine Punkte vorhanden" />
+                      )}
+                    </ChartWrapper>
+                  )}
+
+                  {activeYearChart === "activity" && (
+                    <ChartWrapper title={`Teilnahmen ${selectedYear}`}>
+                      <ActivityHeatmap
+                        years={[selectedYear]}
+                        showYearLabel={false}
+                        byYear={{
+                          [selectedYear]: {
+                            totalPossibleEvenings: yearStats.totalPossibleEvenings,
+                            eveningsAttended: yearStats.eveningsAttended,
+                          },
+                        }}
+                      />
+                    </ChartWrapper>
+                  )}
+                </section>
+
+                <section className="profile-section">
+                  <SectionHeading count={yearStats.scoreTrend?.length || 0} eyebrow="Verlauf" title="Spielabende" />
                   {yearStats.scoreTrend?.length ? (
-                    <LinePointsChart data={yearStats.scoreTrend} />
-                  ) : (
-                    <ChartPlaceholder text="Noch keine Daten" />
-                  )}
-                </ChartWrapper>
-              </div>
+                    <ul className="profile-evening-list">
+                      {yearStats.scoreTrend.map((entry, index) => {
+                        const eveningId = String(entry.eveningId || "");
+                        const placement = placementsByEvening.get(eveningId) ?? yearStats.placementTrend?.[index]?.place;
+                        const formattedDate = formatSwissDate(entry.date, {
+                          weekday: "short",
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        });
 
-              <section className="profile-evenings-section">
-                <div className="profile-section-title-row">
-                  <h2 className="section-title">Alle Abende</h2>
-                  <span>{yearStats.scoreTrend?.length || 0} Einträge</span>
-                </div>
-                {yearStats.scoreTrend?.length ? (
-                  <ul className="profile-evening-list">
-                    {yearStats.scoreTrend.map((entry, index) => {
-                      const eveningId = String(entry.eveningId || "");
-                      const placement =
-                        placementsByEvening.get(eveningId) ??
-                        yearStats.placementTrend?.[index]?.place;
-                      const formattedDate = formatSwissDate(entry.date, {
-                        weekday: "short",
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                      });
-
-                      return (
-                        <li key={eveningId || index}>
-                          <button
-                            type="button"
-                            className="profile-evening-entry"
-                            onClick={() => navigate(`/abende/${entry.eveningId}`)}
-                            aria-label={`Details zum Spieleabend vom ${formattedDate}`}
-                          >
-                            <span className="profile-evening-date">
-                              <span className="profile-evening-icon">
-                                <CalendarDays size={18} />
-                              </span>
-                              <span>
-                                <span className="profile-evening-eyebrow">
-                                  Spieleabend
-                                </span>
+                        return (
+                          <Card as="li" key={eveningId || index} padding="none">
+                            <button
+                              type="button"
+                              className="profile-evening-entry"
+                              onClick={() => navigate(`/abende/${entry.eveningId}`)}
+                              aria-label={`Spieleabend vom ${formattedDate} öffnen`}
+                            >
+                              <span className="profile-evening-date">
+                                <CalendarDays size={18} aria-hidden="true" />
                                 <strong>{formattedDate}</strong>
                               </span>
-                            </span>
-
-                            <span className="profile-evening-metrics">
-                              <span className="profile-evening-metric">
-                                <span>Punkte</span>
-                                <strong>
-                                  {formatProfileNumber(entry.points, 1)}
-                                </strong>
+                              <span className="profile-evening-metrics">
+                                <span><small>Punkte</small><strong>{formatProfileNumber(entry.points, 1)}</strong></span>
+                                <span><small>Platz</small><strong>{placement == null ? "–" : formatProfileNumber(placement, 1)}</strong></span>
                               </span>
-                              <span className="profile-evening-metric">
-                                <span>Platz</span>
-                                <strong>
-                                  {placement == null
-                                    ? "-"
-                                    : formatProfileNumber(placement, 1)}
-                                </strong>
+                              <span className="profile-evening-action" aria-hidden="true">
+                                <span>Details</span><ChevronRight size={18} />
                               </span>
-                            </span>
-
-                            <span className="profile-evening-link">
-                              <span>Details</span>
-                              <ChevronRight size={18} />
-                            </span>
-                          </button>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                ) : (
-                  <p className="profile-evening-empty">
-                    Für dieses Jahr sind noch keine Abende vorhanden.
-                  </p>
-                )}
-              </section>
-            </>
+                            </button>
+                          </Card>
+                        );
+                      })}
+                    </ul>
+                  ) : (
+                    <Card className="profile-state" variant="muted">
+                      <CalendarDays size={22} aria-hidden="true" />
+                      <p>Für dieses Jahr sind noch keine Abende vorhanden.</p>
+                    </Card>
+                  )}
+                </section>
+              </>
+            )
           )}
-        </div>
+        </section>
       )}
 
       {viewAllYears && (
-        <div className="profile-stats-view">
-          {loadingMulti && <p className="profile-loading">Lade Gesamtstatistik...</p>}
+        <section className="profile-view">
+          <SectionHeading eyebrow="Gesamtstatistik" title="Alle Jahre" />
+          {loadingMulti ? (
+            <ProfileStatsSkeleton />
+          ) : multiError ? (
+            <LoadError message={multiError} onRetry={loadMultiYearStats} />
+          ) : (
+            multiStats && (
+              <>
+                <div className="profile-metric-grid profile-metric-grid--global">
+                  <MetricCard icon={<Trophy size={19} />} label="Punkte" value={formatProfileNumber(multiStats.global.totalPoints)} />
+                  <MetricCard icon={<Gauge size={19} />} label="Ø Punkte" value={formatProfileNumber(multiStats.global.avgPoints, 1)} />
+                  <MetricCard icon={<UserRoundCheck size={19} />} label="Teilnahmequote" value={formatProfilePercent(multiStats.global.attendanceRate)} />
+                  <MetricCard icon={<Percent size={19} />} label="Gewinnrate" value={formatProfilePercent(multiStats.global.winRate)} />
+                  <MetricCard icon={<Medal size={19} />} label="Ø Platz" value={formatProfileNumber(multiStats.global.avgPlacement, 1)} wide />
+                </div>
 
-          {multiStats && (
-            <>
-              <div className="kpi-grid">
-                <KpiCard
-                  title="Gesamtpunkte"
-                  value={formatProfileNumber(multiStats.global.totalPoints)}
-                />
-                <KpiCard
-                  title="Gesamt-Ø Punkte"
-                  value={formatProfileNumber(multiStats.global.avgPoints, 1)}
-                />
-                <KpiCard
-                  title="Teilnahmequote"
-                  value={formatProfilePercent(multiStats.global.attendanceRate)}
-                />
-                <KpiCard
-                  title="Gewinnrate"
-                  value={formatProfilePercent(multiStats.global.winRate)}
-                />
-                <KpiCard
-                  title="Ø Platzierung"
-                  value={formatProfileNumber(
-                    multiStats.global.avgPlacement,
-                    1,
+                <section className="profile-section">
+                  <SectionHeading eyebrow="Entwicklung" title="Jahresvergleich" />
+                  <SegmentedControl
+                    ariaLabel="Gesamtdiagramm auswählen"
+                    className="profile-chart-control profile-chart-control--scroll"
+                    onChange={setActiveMultiChart}
+                    options={MULTI_CHART_OPTIONS}
+                    value={activeMultiChart}
+                  />
+
+                  {activeMultiChart === "points" && (
+                    <ChartWrapper title="Punkte pro Jahr"><MultiYearPointsChart years={multiStats.years} byYear={multiStats.byYear} /></ChartWrapper>
                   )}
-                />
-              </div>
+                  {activeMultiChart === "winRate" && (
+                    <ChartWrapper title="Gewinnrate pro Jahr"><MultiYearWinRateChart years={multiStats.years} byYear={multiStats.byYear} /></ChartWrapper>
+                  )}
+                  {activeMultiChart === "placements" && (
+                    <ChartWrapper title="Platzierungen pro Jahr"><BarYearComparison years={multiStats.years} byYear={multiStats.byYear} /></ChartWrapper>
+                  )}
+                  {activeMultiChart === "activity" && (
+                    <ChartWrapper title="Teilnahmen pro Jahr"><ActivityHeatmap years={multiStats.years} byYear={multiStats.byYear} /></ChartWrapper>
+                  )}
+                </section>
 
-              <ChartTabs
-                label="Gesamtdiagramm auswählen"
-                activeValue={activeMultiChart}
-                onChange={setActiveMultiChart}
-                options={[
-                  { value: "points", label: "Punkte" },
-                  { value: "winRate", label: "Gewinnrate" },
-                  { value: "placements", label: "Plätze" },
-                  { value: "activity", label: "Aktivität" },
-                ]}
-              />
-
-              <div
-                className={`profile-chart-panel ${
-                  activeMultiChart === "points" ? "active" : ""
-                }`}
-              >
-                <div className="chart-card">
-                  <h2 className="section-title">
-                    Punkteverlauf über alle Jahre
-                  </h2>
-                  <MultiYearPointsChart
-                    years={multiStats.years}
-                    byYear={multiStats.byYear}
-                  />
-                </div>
-              </div>
-
-              <div
-                className={`profile-chart-panel ${
-                  activeMultiChart === "winRate" ? "active" : ""
-                }`}
-              >
-                <div className="chart-card">
-                  <h2 className="section-title">
-                    Gewinnrate über alle Jahre
-                  </h2>
-                  <MultiYearWinRateChart
-                    years={multiStats.years}
-                    byYear={multiStats.byYear}
-                  />
-                </div>
-              </div>
-
-              <div
-                className={`profile-chart-panel ${
-                  activeMultiChart === "placements" ? "active" : ""
-                }`}
-              >
-                <div className="chart-card">
-                  <h2 className="section-title">Platzierungen pro Jahr</h2>
-                  <BarYearComparison
-                    years={multiStats.years}
-                    byYear={multiStats.byYear}
-                  />
-                </div>
-              </div>
-
-              <div
-                className={`profile-chart-panel ${
-                  activeMultiChart === "activity" ? "active" : ""
-                }`}
-              >
-                <div className="chart-card">
-                  <h2 className="section-title">Aktivitäts-Heatmap</h2>
-                  <ActivityHeatmap
-                    years={multiStats.years}
-                    byYear={multiStats.byYear}
-                  />
-                </div>
-              </div>
-
-              <h2 className="section-title">Jahr-für-Jahr Vergleich</h2>
-              <div className="year-compare-grid">
-                {multiStats.years.map((year) => {
-                  const stats = multiStats.byYear[year];
-                  return (
-                    <div className="year-card" key={year}>
-                      <h3>{year}</h3>
-                      <div className="year-row">
-                        <span>Punkte:</span>
-                        <span className="value">
-                          {formatProfileNumber(stats.totalPoints)}
-                        </span>
-                      </div>
-                      <div className="year-row">
-                        <span>Teilnahmen:</span>
-                        <span className="value">
-                          {stats.eveningsAttended}/
-                          {stats.totalPossibleEvenings ?? "?"}
-                        </span>
-                      </div>
-                      <div className="year-row">
-                        <span>Gewinnrate:</span>
-                        <span className="value">
-                          {formatProfilePercent(stats.winRate)}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </>
+                <section className="profile-section">
+                  <SectionHeading count={multiStats.years.length} eyebrow="Übersicht" title="Jahr für Jahr" />
+                  <div className="profile-year-grid">
+                    {multiStats.years.map((year) => {
+                      const stats = multiStats.byYear[year];
+                      return (
+                        <Card as="article" className="profile-year-card" key={year} padding="md">
+                          <h3>{year}</h3>
+                          <dl>
+                            <div><dt>Punkte</dt><dd>{formatProfileNumber(stats.totalPoints)}</dd></div>
+                            <div><dt>Teilnahmen</dt><dd>{stats.eveningsAttended}/{stats.totalPossibleEvenings ?? "–"}</dd></div>
+                            <div><dt>Gewinnrate</dt><dd>{formatProfilePercent(stats.winRate)}</dd></div>
+                          </dl>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </section>
+              </>
+            )
           )}
-        </div>
+        </section>
       )}
+    </div>
+  );
+}
 
+function ProfileStatsSkeleton() {
+  return (
+    <div className="profile-skeleton" aria-label="Profilstatistik wird geladen">
+      <div className="profile-skeleton__metrics">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <SkeletonBlock key={index} />
+        ))}
+      </div>
+      <SkeletonBlock className="profile-skeleton__chart" />
     </div>
   );
 }

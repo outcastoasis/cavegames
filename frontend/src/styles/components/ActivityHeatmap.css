@@ -1,45 +1,42 @@
-/* src/styles/components/ActivityHeatmap.css */
-
 .activity-heatmap {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--space-4);
 }
 
 .heatmap-year-block {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: var(--space-2);
 }
 
 .heatmap-year-label {
-  font-weight: 600;
-  color: var(--text);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
 }
 
 .heatmap-row {
   display: flex;
-  gap: 4px;
   flex-wrap: wrap;
+  gap: var(--space-1);
 }
 
 .heatmap-tile {
-  width: 14px;
-  height: 14px;
-  border-radius: 3px;
-  box-shadow: var(--shadow-s);
-  transition: opacity 0.2s;
+  width: 0.875rem;
+  height: 0.875rem;
+  border-radius: 0.1875rem;
 }
 
 .heatmap-tile.active {
-  background: var(--primary);
+  background: var(--color-primary);
 }
 
 .heatmap-tile.inactive {
-  background: var(--neutral);
+  background: var(--color-border);
 }
 
 .heatmap-info {
-  font-size: 0.8rem;
-  color: var(--text-muted);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
 }

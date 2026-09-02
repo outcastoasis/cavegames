@@ -13,6 +13,9 @@ import {
 } from "lucide-react";
 import { useOutletContext } from "react-router-dom";
 import PasswordChangeDialog from "../components/forms/PasswordChangeDialog";
+import Button from "../components/ui/Button";
+import Card from "../components/ui/Card";
+import Switch from "../components/ui/Switch";
 import Toast from "../components/ui/Toast";
 import { useAuth } from "../context/authState";
 import API from "../services/api";
@@ -45,46 +48,43 @@ const notificationCategories = [
   {
     key: "pollAssignment",
     title: "Als Spielleiter eingeteilt",
-    description:
-      "Wenn du für einen neuen Spieleabend die Termin-Umfrage erstellen sollst.",
+    description: "Wenn du eine Termin-Umfrage erstellen sollst.",
     icon: ClipboardList,
   },
   {
     key: "pollCreated",
     title: "Neue Umfragen",
-    description: "Sobald eine neue Termin-Umfrage erstellt wurde.",
+    description: "Sobald eine neue Termin-Umfrage bereit ist.",
     icon: ListChecks,
   },
   {
     key: "pollReminder",
     title: "Offene Abstimmungen",
-    description:
-      "Einmal pro Woche, aber nur wenn deine eigene Abstimmung noch fehlt.",
+    description: "Wöchentlich, solange deine Auswahl fehlt.",
     icon: CalendarClock,
   },
   {
     key: "pollFinalized",
-    title: "Termin wurde fixiert",
-    description: "Mit dem festgelegten Datum und der genauen Uhrzeit.",
+    title: "Termin fixiert",
+    description: "Wenn Datum und Uhrzeit festgelegt wurden.",
     icon: CalendarCheck2,
   },
   {
     key: "eveningChanged",
-    title: "Spieleabend wurde geändert",
-    description: "Wenn Termin, Spieljahr oder Spielleitung geändert wurden.",
+    title: "Spieleabend geändert",
+    description: "Bei Änderungen an Termin, Jahr oder Spielleitung.",
     icon: CalendarSync,
   },
   {
     key: "resultsAvailable",
-    title: "Resultate sind verfügbar",
-    description: "Sobald der Abend abgeschlossen und ausgewertet wurde.",
+    title: "Resultate verfügbar",
+    description: "Sobald ein Abend ausgewertet wurde.",
     icon: Trophy,
   },
   {
     key: "eveningUpcoming",
     title: "Spieleabend in einer Woche",
-    description:
-      "Erinnert an den Termin und den Teilnahme-Schalter «Dabei / Nicht dabei».",
+    description: "Erinnerung an Termin und Teilnahme.",
     icon: CalendarClock,
   },
 ];
@@ -110,6 +110,7 @@ export default function Settings() {
     () => () => {
       window.clearTimeout(logoutTimerRef.current);
     },
+    [],
   );
 
   useEffect(() => {
@@ -208,10 +209,7 @@ export default function Settings() {
       setPreferences(response.data);
       setToast("Benachrichtigungseinstellung gespeichert");
     } catch (error) {
-      setPreferences((current) => ({
-        ...current,
-        [key]: previousValue,
-      }));
+      setPreferences((current) => ({ ...current, [key]: previousValue }));
       setToast(
         error.response?.data?.error ||
           "Benachrichtigungseinstellung konnte nicht gespeichert werden.",
@@ -227,165 +225,139 @@ export default function Settings() {
     logoutTimerRef.current = window.setTimeout(() => logout(), 1600);
   };
 
-  const buttonText = updatingPush
-    ? "Wird geändert…"
+  const pushButtonText = updatingPush
+    ? "Wird geändert …"
     : pushState.loading
-      ? "Status wird geladen…"
+      ? "Wird geladen …"
       : !pushState.supported
         ? "Nicht unterstützt"
         : pushState.subscribed
           ? "Deaktivieren"
           : "Aktivieren";
+  const pushDisabled =
+    pushState.loading ||
+    updatingPush ||
+    !pushState.supported ||
+    pushState.needsIosInstallation ||
+    (!pushState.subscribed && pushState.permission === "denied");
   const enabledCategoryCount = notificationCategories.filter(
     ({ key }) => preferences[key],
   ).length;
 
   return (
-    <div className="settings-page">
+    <div className="page-shell page-shell--compact settings-page">
       {toast && <Toast message={toast} onClose={() => setToast("")} />}
 
-      <div
-        className="settings-notifications-group"
-        aria-label="Benachrichtigungseinstellungen"
-      >
-      <section className="settings-card" aria-labelledby="push-title">
-        <div className="settings-card-icon" aria-hidden="true">
-          {pushState.subscribed ? <Bell size={22} /> : <BellOff size={22} />}
+      <section className="settings-section" aria-labelledby="settings-notifications-title">
+        <div className="settings-section-heading">
+          <span>Mitteilungen</span>
+          <h2 id="settings-notifications-title">Benachrichtigungen</h2>
         </div>
-        <div className="settings-card-content">
-          <h2 id="push-title">Benachrichtigungen</h2>
-          <p>
-            {pushState.subscribed
-              ? "Dieses Gerät kann die unten ausgewählten Meldungen empfangen."
-              : "Aktiviere Push-Meldungen auf diesem Gerät."}
-          </p>
+
+        <Card className="settings-notification-card" padding="none">
+          <div className="settings-primary-row">
+            <span className="settings-row-icon" aria-hidden="true">
+              {pushState.subscribed ? <Bell size={21} /> : <BellOff size={21} />}
+            </span>
+            <div className="settings-row-copy">
+              <strong>Push auf diesem Gerät</strong>
+              <span>
+                {pushState.subscribed
+                  ? "Dieses Gerät empfängt deine Auswahl."
+                  : "Push-Mitteilungen für dieses Gerät aktivieren."
+                }
+              </span>
+            </div>
+            <Button
+              disabled={pushDisabled}
+              onClick={handlePushToggle}
+              size="sm"
+              variant={pushState.subscribed ? "secondary" : "primary"}
+            >
+              {pushButtonText}
+            </Button>
+          </div>
+
           {pushState.needsIosInstallation && (
-            <p className="settings-hint">
-              Auf dem iPhone muss Cavegames zuerst über «Zum Home-Bildschirm»
-              installiert und von dort geöffnet werden.
+            <p className="settings-notice">
+              Auf dem iPhone zuerst über „Zum Home-Bildschirm“ installieren.
             </p>
           )}
           {pushState.permission === "denied" && (
-            <p className="settings-hint settings-hint--warning">
-              Benachrichtigungen sind in den Browser-Einstellungen blockiert.
+            <p className="settings-notice settings-notice--warning">
+              Push ist in den Browser-Einstellungen blockiert.
             </p>
           )}
-        </div>
-        <button
-          type="button"
-          className={`button small ${
-            pushState.subscribed ? "neutral" : "primary"
-          }`}
-          onClick={handlePushToggle}
-          disabled={
-            pushState.loading ||
-            updatingPush ||
-            !pushState.supported ||
-            pushState.needsIosInstallation ||
-            (!pushState.subscribed && pushState.permission === "denied")
-          }
-        >
-          {buttonText}
-        </button>
-      </section>
 
-      <section
-        className="settings-category-section"
-        aria-label="Benachrichtigungsarten"
-      >
-        <button
-          type="button"
-          className={`settings-category-heading ${
-            categoriesOpen ? "settings-category-heading--open" : ""
-          }`}
-          aria-expanded={categoriesOpen}
-          aria-controls="notification-category-list"
-          onClick={() => setCategoriesOpen((open) => !open)}
-        >
-          <span className="settings-category-heading-copy">
-            <span className="settings-category-title">
-              Benachrichtigungsarten
+          <button
+            type="button"
+            className={`settings-category-trigger${categoriesOpen ? " is-open" : ""}`}
+            aria-expanded={categoriesOpen}
+            aria-controls="notification-category-list"
+            onClick={() => setCategoriesOpen((open) => !open)}
+          >
+            <span>
+              <strong>Benachrichtigungsarten</strong>
+              <small>
+                {loadingPreferences
+                  ? "Wird geladen …"
+                  : `${enabledCategoryCount} von ${notificationCategories.length} aktiv`}
+              </small>
             </span>
-            <span className="settings-category-description">
-              Diese Auswahl gilt für dein Konto auf allen Geräten.
-            </span>
-          </span>
-          <span className="settings-category-heading-action">
-            <span className="settings-category-status">
-              {loadingPreferences
-                ? "Wird geladen…"
-                : `${enabledCategoryCount} von ${notificationCategories.length} aktiv`}
-            </span>
-            <ChevronDown
-              className="settings-category-chevron"
-              size={21}
-              aria-hidden="true"
-            />
-          </span>
-        </button>
+            <ChevronDown size={20} aria-hidden="true" />
+          </button>
 
-        <div
-          id="notification-category-list"
-          className="settings-category-list"
-          hidden={!categoriesOpen}
-        >
-          {notificationCategories.map((category) => {
-            const Icon = category.icon;
-            const inputId = `notification-${category.key}`;
-            return (
-              <div className="settings-category-row" key={category.key}>
-                <div className="settings-category-icon" aria-hidden="true">
-                  <Icon size={19} />
-                </div>
-                <label
-                  className="settings-category-content"
-                  htmlFor={inputId}
-                >
-                  <strong>{category.title}</strong>
-                  <span>{category.description}</span>
-                </label>
-                <label className="settings-switch" htmlFor={inputId}>
-                  <input
-                    id={inputId}
-                    type="checkbox"
+          <div
+            id="notification-category-list"
+            className="settings-category-list"
+            hidden={!categoriesOpen}
+          >
+            {notificationCategories.map((category) => {
+              const Icon = category.icon;
+              return (
+                <div className="settings-category-row" key={category.key}>
+                  <span className="settings-category-icon" aria-hidden="true">
+                    <Icon size={18} />
+                  </span>
+                  <Switch
                     checked={Boolean(preferences[category.key])}
-                    onChange={(event) =>
-                      handlePreferenceToggle(
-                        category.key,
-                        event.target.checked,
-                      )
-                    }
-                    disabled={
-                      loadingPreferences || Boolean(savingPreference)
+                    description={category.description}
+                    disabled={loadingPreferences || Boolean(savingPreference)}
+                    label={category.title}
+                    name={`notification-${category.key}`}
+                    onChange={(enabled) =>
+                      handlePreferenceToggle(category.key, enabled)
                     }
                   />
-                  <span className="settings-switch-track" aria-hidden="true" />
-                  <span className="settings-switch-label">
-                    {preferences[category.key] ? "Ein" : "Aus"}
-                  </span>
-                </label>
-              </div>
-            );
-          })}
-        </div>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
       </section>
-      </div>
 
-      <section className="settings-card" aria-labelledby="password-title">
-        <div className="settings-card-icon" aria-hidden="true">
-          <KeyRound size={22} />
+      <section className="settings-section" aria-labelledby="settings-security-title">
+        <div className="settings-section-heading">
+          <span>Konto</span>
+          <h2 id="settings-security-title">Sicherheit</h2>
         </div>
-        <div className="settings-card-content">
-          <h2 id="password-title">Passwort</h2>
-          <p>Ändere das Passwort für deinen persönlichen Zugang.</p>
-        </div>
-        <button
-          type="button"
-          className="button small neutral"
-          onClick={() => setPasswordDialogOpen(true)}
-        >
-          Passwort ändern
-        </button>
+
+        <Card className="settings-primary-row" padding="md">
+          <span className="settings-row-icon" aria-hidden="true">
+            <KeyRound size={21} />
+          </span>
+          <div className="settings-row-copy">
+            <strong>Passwort</strong>
+            <span>Persönlichen Zugang aktualisieren.</span>
+          </div>
+          <Button
+            onClick={() => setPasswordDialogOpen(true)}
+            size="sm"
+            variant="secondary"
+          >
+            Ändern
+          </Button>
+        </Card>
       </section>
 
       {passwordDialogOpen && (
@@ -394,7 +366,6 @@ export default function Settings() {
           onSuccess={handlePasswordChanged}
         />
       )}
-
     </div>
   );
 }

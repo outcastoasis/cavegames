@@ -1,8 +1,9 @@
-// src/components/forms/EveningCreateModal.jsx
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { CalendarPlus, MapPinHouse } from "lucide-react";
 import API from "../../services/api";
-import "../../styles/components/Modal.css";
+import Button from "../ui/Button";
+import "../../styles/components/EveningCreateModal.css";
 
 export default function EveningCreateModal({ onClose, onSuccess }) {
   const [years, setYears] = useState([]);
@@ -10,100 +11,180 @@ export default function EveningCreateModal({ onClose, onSuccess }) {
   const [selectedYear, setSelectedYear] = useState("");
   const [selectedUserId, setSelectedUserId] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [dataLoading, setDataLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const yearSelectRef = useRef(null);
 
   useEffect(() => {
+    let active = true;
+
+    const fetchDropdownData = async () => {
+      setDataLoading(true);
+      setError("");
+      try {
+        const [yearsResponse, usersResponse] = await Promise.all([
+          API.get("/years"),
+          API.get("/users"),
+        ]);
+        if (!active) return;
+
+        const nextYears = yearsResponse.data;
+        const nextUsers = usersResponse.data.filter(
+          (user) => user.active !== false,
+        );
+        const firstOpenYear = nextYears.find((year) => !year.closed);
+
+        setYears(nextYears);
+        setUsers(nextUsers);
+        setSelectedYear(firstOpenYear ? String(firstOpenYear.year) : "");
+      } catch (requestError) {
+        console.error("Auswahldaten konnten nicht geladen werden:", requestError);
+        if (active) setError("Jahre und Benutzer konnten nicht geladen werden.");
+      } finally {
+        if (active) setDataLoading(false);
+      }
+    };
+
     fetchDropdownData();
+    return () => {
+      active = false;
+    };
   }, []);
 
-  const fetchDropdownData = async () => {
-    try {
-      const [yearsRes, usersRes] = await Promise.all([
-        API.get("/years"),
-        API.get("/users"),
-      ]);
-      setYears(yearsRes.data);
-      setUsers(usersRes.data.filter((u) => u.active !== false));
-    } catch {
-      setError("Fehler beim Laden der Daten");
-    }
-  };
+  useEffect(() => {
+    if (!dataLoading) yearSelectRef.current?.focus();
+  }, [dataLoading]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape" && !submitting) onClose();
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onClose, submitting]);
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setError("");
+
     if (!selectedYear || !selectedUserId) {
-      setError("Bitte Jahr und Spielleiter auswählen.");
+      setError("Bitte Spieljahr und Spielleiter auswählen.");
       return;
     }
 
+    setSubmitting(true);
     try {
-      setLoading(true);
       await API.post("/evenings", {
-        spieljahr: selectedYear,
+        spieljahr: Number(selectedYear),
         spielleiterId: selectedUserId,
       });
-      onSuccess();
+      await onSuccess?.();
       onClose();
-    } catch (err) {
-      setError(err.response?.data?.error || "Fehler beim Erstellen");
+    } catch (requestError) {
+      setError(
+        requestError.response?.data?.error ||
+          "Der Spieleabend konnte nicht erstellt werden.",
+      );
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
-  const spielleiterName =
-    users.find((u) => u._id === selectedUserId)?.displayName || "";
+  const selectedGameLeader = users.find(
+    (user) => user._id === selectedUserId,
+  );
 
   return createPortal(
-    <div className="modal-overlay">
-      <div className="modal">
-        <h2>Neuen Abend erstellen</h2>
+    <div className="evening-create-overlay">
+      <div
+        aria-labelledby="evening-create-title"
+        aria-describedby="evening-create-description"
+        aria-modal="true"
+        className="evening-create-modal"
+        role="dialog"
+      >
+        <div className="evening-create-header">
+          <span className="evening-create-header__icon" aria-hidden="true">
+            <CalendarPlus size={23} />
+          </span>
+          <div>
+            <h2 id="evening-create-title">Neuer Abend</h2>
+            <p id="evening-create-description">
+              Spieljahr und Standardort festlegen.
+            </p>
+          </div>
+        </div>
 
-        <form onSubmit={handleSubmit} className="modal-form">
-          <label>Spieljahr</label>
-          <select
-            className="input"
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(e.target.value)}
-          >
-            <option value="">– bitte wählen –</option>
-            {years.map((y) => (
-              <option key={y._id} value={y.year} disabled={y.closed}>
-                {y.year} {y.closed ? "(abgeschlossen)" : ""}
-              </option>
-            ))}
-          </select>
+        <form className="evening-create-form" onSubmit={handleSubmit}>
+          <label className="evening-create-field">
+            <span>Spieljahr</span>
+            <select
+              ref={yearSelectRef}
+              disabled={dataLoading || submitting}
+              onChange={(event) => setSelectedYear(event.target.value)}
+              required
+              value={selectedYear}
+            >
+              <option value="">Bitte wählen</option>
+              {years.map((year) => (
+                <option key={year._id} value={year.year} disabled={year.closed}>
+                  {year.year} {year.closed ? "(abgeschlossen)" : ""}
+                </option>
+              ))}
+            </select>
+          </label>
 
-          <label>Spielleiter</label>
-          <select
-            className="input"
-            value={selectedUserId}
-            onChange={(e) => setSelectedUserId(e.target.value)}
-          >
-            <option value="">– bitte wählen –</option>
-            {users.map((u) => (
-              <option key={u._id} value={u._id}>
-                {u.displayName} ({u.username})
-              </option>
-            ))}
-          </select>
+          <label className="evening-create-field">
+            <span>Spielleiter</span>
+            <select
+              disabled={dataLoading || submitting}
+              onChange={(event) => setSelectedUserId(event.target.value)}
+              required
+              value={selectedUserId}
+            >
+              <option value="">Bitte wählen</option>
+              {users.map((user) => (
+                <option key={user._id} value={user._id}>
+                  {user.displayName} ({user.username})
+                </option>
+              ))}
+            </select>
+          </label>
 
-          {selectedUserId && <p className="note">Ort: bei {spielleiterName}</p>}
+          {selectedGameLeader && (
+            <div className="evening-create-location">
+              <MapPinHouse size={18} aria-hidden="true" />
+              <span>
+                Ort <strong>Bei {selectedGameLeader.displayName}</strong>
+              </span>
+            </div>
+          )}
 
-          {error && <p className="error-text">{error}</p>}
+          {error && (
+            <p className="evening-create-error" role="alert">
+              {error}
+            </p>
+          )}
 
-          <div className="modal-actions">
-            <button type="button" className="button neutral" onClick={onClose}>
+          <div className="evening-create-actions">
+            <Button
+              disabled={submitting}
+              onClick={onClose}
+              variant="secondary"
+            >
               Abbrechen
-            </button>
-            <button type="submit" className="button primary" disabled={loading}>
-              {loading ? "Erstelle..." : "Speichern"}
-            </button>
+            </Button>
+            <Button
+              disabled={dataLoading || submitting}
+              type="submit"
+            >
+              {submitting ? "Wird erstellt …" : "Abend erstellen"}
+            </Button>
           </div>
         </form>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }

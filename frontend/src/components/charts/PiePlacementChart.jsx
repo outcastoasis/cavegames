@@ -18,10 +18,10 @@ export default function PiePlacementChart({ data }) {
   ];
 
   const COLORS = [
-    "var(--accent)", // Gold / Gelb → 1. Platz
-    "var(--secondary)", // Blau → 2. Platz
-    "var(--primary-light)", // Lila → 3. Platz
-    "var(--neutral-dark)", // Grau → Andere
+    "var(--color-warning)",
+    "var(--color-text-muted)",
+    "var(--color-primary)",
+    "var(--color-border-strong)",
   ];
 
   return (
@@ -41,7 +41,6 @@ export default function PiePlacementChart({ data }) {
           ))}
         </Pie>
 
-        {/* LEGENDE */}
         <Legend verticalAlign="bottom" height={36} formatter={(name) => name} />
 
         <Tooltip formatter={(value) => `${value}x`} />

@@ -17,7 +17,7 @@ export default function MultiYearWinRateChart({ years, byYear }) {
   }));
 
   return (
-    <ResponsiveContainer width="100%" height={250}>
+    <ResponsiveContainer width="100%" height="100%">
       <LineChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="year" tick={{ fontSize: 12 }} />
@@ -26,7 +26,7 @@ export default function MultiYearWinRateChart({ years, byYear }) {
         <Line
           type="monotone"
           dataKey="winRate"
-          stroke="var(--secondary)"
+          stroke="var(--color-primary)"
           strokeWidth={3}
           dot={{ r: 4, strokeWidth: 2 }}
           activeDot={{ r: 7 }}
