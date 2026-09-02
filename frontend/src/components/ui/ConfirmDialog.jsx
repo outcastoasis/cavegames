@@ -13,6 +13,7 @@ export default function ConfirmDialog({
   cancelLabel = "Abbrechen",
   busy = false,
   danger = false,
+  icon = null,
   onCancel,
   onConfirm,
 }) {
@@ -40,13 +41,18 @@ export default function ConfirmDialog({
     >
       <div
         className="confirm-dialog"
-        role="alertdialog"
+        role={danger ? "alertdialog" : "dialog"}
         aria-modal="true"
         aria-labelledby="confirm-dialog-title"
         aria-describedby="confirm-dialog-description"
       >
-        <div className="confirm-dialog-icon" aria-hidden="true">
-          <AlertTriangle size={24} />
+        <div
+          className={`confirm-dialog-icon confirm-dialog-icon--${
+            danger ? "danger" : "primary"
+          }`}
+          aria-hidden="true"
+        >
+          {icon || <AlertTriangle size={24} />}
         </div>
         <div className="confirm-dialog-content">
           <h2 id="confirm-dialog-title">{title}</h2>

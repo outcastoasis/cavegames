@@ -1,197 +1,201 @@
-/* ===== 🎨 PollCreateModal.css ===== */
-@import "../variables.css";
-
-/* === Overlay === */
 .poll-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  z-index: var(--z-modal);
   display: flex;
-  justify-content: center;
   align-items: center;
-  z-index: 1200;
+  justify-content: center;
+  padding: max(var(--space-4), var(--safe-area-top))
+    max(var(--space-4), var(--safe-area-right))
+    max(var(--space-4), var(--safe-area-bottom))
+    max(var(--space-4), var(--safe-area-left));
+  background: rgba(15, 23, 42, 0.72);
   backdrop-filter: blur(2px);
 }
 
-/* === Modal === */
 .poll-modal {
-  background: #fff;
-  border-radius: var(--card-radius);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
-  padding: var(--spacing-l);
-  width: 92%;
-  max-width: 420px;
-  animation: modal-fade-in 0.2s ease-in-out;
+  width: min(100%, 34rem);
+  max-height: calc(
+    100dvh - max(var(--space-8), var(--safe-area-top)) -
+      max(var(--space-8), var(--safe-area-bottom))
+  );
+  overflow-y: auto;
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-overlay);
+  animation: poll-modal-in var(--transition-fast) both;
 }
 
-@keyframes modal-fade-in {
-  from {
-    opacity: 0;
-    transform: scale(0.96);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+.poll-modal__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
 }
 
-/* === Titel === */
-.poll-modal h2 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--primary);
-  text-align: center;
-  margin-bottom: var(--spacing-m);
+.poll-modal__icon {
+  width: var(--control-height-sm);
+  height: var(--control-height-sm);
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
 }
 
-/* === Formular-Struktur === */
-.poll-modal-form {
+.poll-modal__header h2 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-heading);
+}
+
+.poll-modal__header p {
+  margin: var(--space-1) 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.poll-modal-form,
+.poll-modal-options {
   display: flex;
   flex-direction: column;
 }
 
-/* === Terminauswahl (Date + Time + Remove) === */
+.poll-modal-form {
+  gap: var(--space-4);
+}
+
+.poll-modal-options {
+  gap: var(--space-3);
+}
+
 .poll-option-row {
-  margin-bottom: var(--spacing-s);
-}
-
-.poll-input-group {
   display: grid;
-  grid-template-columns: 1fr 1fr 42px;
-  gap: var(--spacing-s);
-  align-items: stretch; /* statt center → gleiche Höhe */
+  grid-template-columns: minmax(0, 1fr) var(--control-height-sm);
+  grid-template-areas: "datetime remove";
+  align-items: end;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-muted);
 }
 
-/* === Inputs === */
-.poll-input-group .input {
+.poll-option-row:not(:has(.poll-option-row__remove)) {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "datetime";
+}
+
+.poll-modal-field {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.poll-modal-field--datetime {
+  grid-area: datetime;
+}
+
+.poll-modal-field > span {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.poll-modal-input {
   width: 100%;
-  height: 42px;
-  padding: 0 0.75rem;
-  border-radius: var(--border-radius-sm);
-  border: 1px solid var(--neutral-dark);
-  background: var(--bg);
-  font-family: inherit;
-  font-size: var(--font-size-base);
-  display: block; /* kein flex mehr, sonst vertikal verschoben */
-  box-sizing: border-box;
+  min-width: 0;
+  min-height: var(--control-height-sm);
+  margin: 0;
+  padding: 0.5rem var(--space-2);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
   transition: border-color var(--transition-fast),
     box-shadow var(--transition-fast);
 }
 
-.poll-input-group .input:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 2px rgba(109, 40, 217, 0.25);
+.poll-modal-input:focus {
+  border-color: var(--color-primary);
   outline: none;
+  box-shadow: var(--focus-ring);
 }
 
-/* === Entfernen-Button (✕) === */
-.poll-remove-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 42px;
-  height: 42px;
-  margin: 0; /* keine Abstände */
-  background: linear-gradient(180deg, #f87171, var(--danger));
-  color: #fff;
-  font-size: 1.1rem;
-  font-weight: 700;
-  border-radius: var(--border-radius-sm);
-  border: none;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-  cursor: pointer;
-  transition: transform var(--transition-fast),
-    box-shadow var(--transition-fast);
+.poll-modal-input:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
-.poll-remove-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+.poll-option-row__remove {
+  grid-area: remove;
+  align-self: center;
 }
 
-.poll-remove-btn:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-}
-
-/* === Termin hinzufügen === */
-.poll-add-btn {
+.poll-modal-add {
   align-self: flex-start;
-  background: linear-gradient(180deg, #fde047, var(--accent));
-  color: #1f2937;
-  font-weight: 600;
-  border: none;
-  padding: 0.55rem 1.1rem;
-  border-radius: var(--border-radius-full);
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
-  cursor: pointer;
-  transition: transform var(--transition-fast),
-    box-shadow var(--transition-fast);
 }
 
-.poll-add-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.25);
-}
-
-/* === Fehlertext === */
 .poll-error-text {
-  color: var(--danger);
-  font-weight: 600;
-  font-size: var(--font-size-small);
-  margin-top: -0.25rem;
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--color-error-border);
+  border-radius: var(--radius-md);
+  background: var(--color-error-soft);
+  color: var(--color-error);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
 }
 
-/* === Footer-Aktionen === */
 .poll-modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--spacing-s);
-  margin-top: var(--spacing-m);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
 }
 
-/* === Mobile Optimierung === */
-@media (max-width: 420px) {
+.poll-modal-actions .ui-button {
+  width: 100%;
+  min-width: 0;
+}
+
+@keyframes poll-modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 380px) {
   .poll-modal {
-    padding: var(--spacing-m);
-    max-width: 300px; /* etwas breiter für 3 Spalten */
-  }
-
-  /* 3 Spalten auch mobil beibehalten */
-  .poll-input-group {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 42px;
-    gap: var(--spacing-xs);
-  }
-
-  .poll-input-group .input,
-  .poll-remove-btn {
-    height: 40px;
+    padding: var(--space-4);
   }
 
   .poll-modal-actions {
-    flex-direction: column;
-    align-items: stretch;
+    grid-template-columns: 1fr;
+  }
+
+  .poll-modal-actions .ui-button:first-child {
+    order: 2;
   }
 }
 
-/* Nur bei sehr kleinen Displays umbrechen */
-@media (max-width: 320px) {
-  .poll-input-group {
-    grid-template-columns: 1fr 1fr;
+@media (prefers-reduced-motion: reduce) {
+  .poll-modal,
+  .poll-modal-input {
+    animation: none;
+    transition: none;
   }
-  .poll-remove-btn {
-    grid-column: 1 / -1;
-    width: 100%;
-    height: 34px;
-  }
-}
-
-input[type="date"],
-input[type="time"] {
-  line-height: normal;
-  -webkit-appearance: none;
-  appearance: none;
-  padding-top: 0;
-  padding-bottom: 0;
-  vertical-align: middle;
 }

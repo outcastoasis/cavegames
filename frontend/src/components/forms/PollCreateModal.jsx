@@ -1,129 +1,186 @@
-// src/components/forms/PollCreateModal.jsx
 import { useState } from "react";
 import { createPortal } from "react-dom";
+import { CalendarPlus, Plus, Trash2 } from "lucide-react";
 import API from "../../services/api";
-import "../../styles/components/PollCreateModal.css";
+import Button from "../ui/Button";
 import {
   getSwissTodayInputValue,
-  swissDateTimeToIso,
+  swissDateTimeInputToIso,
 } from "../../utils/swissDateTime";
+import "../../styles/components/PollCreateModal.css";
+
+const padDateTimePart = (value) => String(value).padStart(2, "0");
+
+const roundDateTimeToQuarterHour = (value) => {
+  if (!value) return "";
+
+  const [datePart, timePart] = value.split("T");
+  const [year, month, day] = (datePart || "").split("-").map(Number);
+  const [hours, minutes] = (timePart || "").split(":").map(Number);
+  if ([year, month, day, hours, minutes].some(Number.isNaN)) return value;
+
+  const roundedMinutes = Math.round(minutes / 15) * 15;
+  const roundedDate = new Date(year, month - 1, day, hours, roundedMinutes);
+
+  return `${roundedDate.getFullYear()}-${padDateTimePart(
+    roundedDate.getMonth() + 1,
+  )}-${padDateTimePart(roundedDate.getDate())}T${padDateTimePart(
+    roundedDate.getHours(),
+  )}:${padDateTimePart(roundedDate.getMinutes())}`;
+};
 
 export default function PollCreateModal({ onClose, eveningId, onSuccess }) {
-  const [options, setOptions] = useState([{ date: "", time: "" }]);
+  const [options, setOptions] = useState([{ value: "" }]);
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleChange = (index, field, value) => {
-    const updated = [...options];
-    updated[index][field] = value;
-    setOptions(updated);
+  const handleChange = (index, value) => {
+    setOptions((currentOptions) =>
+      currentOptions.map((option, optionIndex) =>
+        optionIndex === index ? { ...option, value } : option,
+      ),
+    );
   };
 
   const addOption = () => {
     if (options.length >= 5) return;
-    setOptions([...options, { date: "", time: "" }]);
+    setOptions((currentOptions) => [
+      ...currentOptions,
+      { value: "" },
+    ]);
   };
 
   const removeOption = (index) => {
-    const updated = [...options];
-    updated.splice(index, 1);
-    setOptions(updated);
+    setOptions((currentOptions) =>
+      currentOptions.filter((_, optionIndex) => optionIndex !== index),
+    );
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setError("");
 
-    const validOptions = options.filter((opt) => opt.date && opt.time);
+    const validOptions = options.filter((option) => option.value);
     if (validOptions.length < 2) {
-      return setError("Mindestens zwei gültige Terminvorschläge nötig.");
+      setError("Mindestens zwei gültige Terminvorschläge nötig.");
+      return;
     }
 
     const payload = {
       eveningId,
-      options: validOptions.map((opt) => ({
-        date: swissDateTimeToIso(opt.date, opt.time),
+      options: validOptions.map((option) => ({
+        date: swissDateTimeInputToIso(
+          roundDateTimeToQuarterHour(option.value),
+        ),
       })),
     };
 
+    setSubmitting(true);
     try {
       await API.post("/polls", payload);
       onSuccess?.();
       onClose();
     } catch (err) {
       setError(err.response?.data?.error || "Fehler beim Erstellen.");
+    } finally {
+      setSubmitting(false);
     }
-  };
-
-  const normalizeTime = (value) => {
-    const [h, m] = value.split(":").map(Number);
-    const allowed = [0, 15, 30, 45];
-
-    // Falls m nicht exakt 0/15/30/45 → nächste gültige Minute finden
-    const closest = allowed.reduce((a, b) =>
-      Math.abs(b - m) < Math.abs(a - m) ? b : a
-    );
-
-    const mm = closest.toString().padStart(2, "0");
-    const hh = h.toString().padStart(2, "0");
-
-    return `${hh}:${mm}`;
   };
 
   return createPortal(
     <div className="poll-modal-overlay">
-      <div className="poll-modal">
-        <h2>Umfrage erstellen</h2>
-        <form onSubmit={handleSubmit} className="poll-modal-form">
-          {options.map((opt, idx) => (
-            <div key={idx} className="poll-option-row">
-              <div className="poll-input-group">
-                <input
-                  type="date"
-                  min={getSwissTodayInputValue()}
-                  value={opt.date}
-                  onChange={(e) => handleChange(idx, "date", e.target.value)}
-                  className="input"
-                />
+      <div
+        aria-labelledby="poll-modal-title"
+        aria-modal="true"
+        className="poll-modal"
+        role="dialog"
+      >
+        <div className="poll-modal__header">
+          <span className="poll-modal__icon" aria-hidden="true">
+            <CalendarPlus size={23} />
+          </span>
+          <div>
+            <h2 id="poll-modal-title">Umfrage erstellen</h2>
+            <p>Zwei bis fünf Terminvorschläge.</p>
+          </div>
+        </div>
 
-                <input
-                  type="time"
-                  value={opt.time}
-                  step="900"
-                  onChange={(e) =>
-                    handleChange(idx, "time", normalizeTime(e.target.value))
-                  }
-                  className="input"
-                />
+        <form onSubmit={handleSubmit} className="poll-modal-form">
+          <div className="poll-modal-options">
+            {options.map((option, index) => (
+              <div key={index} className="poll-option-row">
+                <label className="poll-modal-field poll-modal-field--datetime">
+                  <span>Datum und Uhrzeit</span>
+                  <input
+                    aria-label={`Datum und Uhrzeit für Vorschlag ${index + 1}`}
+                    className="poll-modal-input"
+                    disabled={submitting}
+                    min={`${getSwissTodayInputValue()}T00:00`}
+                    onBlur={(event) =>
+                      handleChange(
+                        index,
+                        roundDateTimeToQuarterHour(event.target.value),
+                      )
+                    }
+                    onChange={(event) =>
+                      handleChange(index, event.target.value)
+                    }
+                    step="900"
+                    type="datetime-local"
+                    value={option.value}
+                  />
+                </label>
 
                 {options.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeOption(idx)}
-                    className="poll-remove-btn"
+                  <Button
+                    aria-label={`Terminvorschlag ${index + 1} entfernen`}
+                    className="poll-option-row__remove"
+                    disabled={submitting}
+                    iconOnly
+                    onClick={() => removeOption(index)}
+                    size="sm"
+                    title="Terminvorschlag entfernen"
+                    variant="danger-ghost"
                   >
-                    ✕
-                  </button>
+                    <Trash2 size={18} />
+                  </Button>
                 )}
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
 
-          <button type="button" onClick={addOption} className="poll-add-btn">
-            + Termin hinzufügen
-          </button>
+          <Button
+            className="poll-modal-add"
+            disabled={submitting || options.length >= 5}
+            leadingIcon={<Plus size={18} />}
+            onClick={addOption}
+            size="sm"
+            variant="secondary"
+          >
+            Termin hinzufügen
+          </Button>
 
-          {error && <p className="poll-error-text">{error}</p>}
+          {error && (
+            <p className="poll-error-text" role="alert">
+              {error}
+            </p>
+          )}
 
           <div className="poll-modal-actions">
-            <button type="button" className="button neutral" onClick={onClose}>
+            <Button
+              disabled={submitting}
+              onClick={onClose}
+              variant="secondary"
+            >
               Abbrechen
-            </button>
-            <button type="submit" className="button primary">
-              Umfrage speichern
-            </button>
+            </Button>
+            <Button disabled={submitting} type="submit">
+              {submitting ? "Wird gespeichert..." : "Umfrage speichern"}
+            </Button>
           </div>
         </form>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }

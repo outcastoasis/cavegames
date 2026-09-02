@@ -31,8 +31,16 @@
   justify-content: center;
   margin-bottom: var(--space-3);
   border-radius: var(--radius-full);
+}
+
+.confirm-dialog-icon--danger {
   background: var(--color-error-soft);
   color: var(--color-error);
+}
+
+.confirm-dialog-icon--primary {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
 }
 
 .confirm-dialog-content h2 {

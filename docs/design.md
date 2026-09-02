@@ -366,6 +366,24 @@ The entire option may act as the touch target.
 
 Participant names are secondary information.
 
+Show voters primarily as a compact stack of profile images. Limit the visible
+stack and summarize additional voters with `+n`; reveal names only when the
+available width can accommodate them without crowding the option.
+
+Keep the comparison axes stable at every width: date and vote count align to
+the left, while time and the voter stack align to the right.
+
+Use a native checkbox or equivalent accessible selection control inside the
+full touch target. Selection must remain visible through shape or iconography,
+not color alone. Fixing a date is a separate action and requires confirmation.
+
+Restore the signed-in user's saved choices when an open poll is loaded so a
+vote can be adjusted rather than recreated from an empty state. In the poll
+creation dialog, use the same combined `datetime-local` control as the game
+night date editor. Normalize suggestions to 15-minute intervals before saving.
+Do not dismiss a data-entry modal when the user clicks its backdrop; require an
+explicit cancel or save action so partially entered values are not lost.
+
 ## Results
 
 Results may be slightly more playful than administrative screens.

@@ -77,7 +77,7 @@ exports.getPoll = async (req, res) => {
   try {
     const poll = await Poll.findOne(
       scopedFilter(req, { _id: req.params.id }),
-    ).populate("options.votes", "displayName");
+    ).populate("options.votes", "displayName profileImageUrl");
 
     if (!poll) {
       return res.status(404).json({
@@ -263,7 +263,7 @@ exports.getAllPolls = async (req, res) => {
     const polls = await Poll.find(scopedFilter(req))
       .populate("eveningId", "date status spielleiterId spieljahr games")
       .populate("createdBy", "displayName role") // Ersteller der Umfrage
-      .populate("options.votes", "displayName"); // Stimmenanzeige (Namen)
+      .populate("options.votes", "displayName profileImageUrl");
 
     res.json(polls);
   } catch (err) {
