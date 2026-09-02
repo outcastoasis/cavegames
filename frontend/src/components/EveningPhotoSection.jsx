@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import API from "../services/api";
 import ConfirmDialog from "./ui/ConfirmDialog";
+import Button from "./ui/Button";
 import "../styles/components/EveningPhoto.css";
 
 const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
@@ -141,15 +142,15 @@ export default function EveningPhotoSection({
           <h2 className="abenddetail-section-title">Bild des Abends</h2>
         </div>
         {hasPhoto && canDownload && (
-          <button
-            type="button"
-            className="button neutral small"
+          <Button
             onClick={downloadOriginal}
             disabled={downloading}
+            leadingIcon={<Download size={16} />}
+            size="sm"
+            variant="secondary"
           >
-            <Download size={16} />
-            <span>{downloading ? "Wird geöffnet..." : "Original"}</span>
-          </button>
+            {downloading ? "Wird geöffnet..." : "Original"}
+          </Button>
         )}
       </div>
 
@@ -199,34 +200,30 @@ export default function EveningPhotoSection({
             onChange={handleFileSelection}
             disabled={uploading || deleting}
           />
-          <button
-            type="button"
-            className="button primary"
+          <Button
             onClick={() => cameraInputRef.current?.click()}
             disabled={uploading || deleting}
+            leadingIcon={<Camera size={17} />}
           >
-            <Camera size={17} />
-            <span>Foto aufnehmen</span>
-          </button>
-          <button
-            type="button"
-            className="button neutral"
+            Kamera
+          </Button>
+          <Button
             onClick={() => galleryInputRef.current?.click()}
             disabled={uploading || deleting}
+            leadingIcon={<Images size={17} />}
+            variant="secondary"
           >
-            <Images size={17} />
-            <span>{uploading ? "Wird hochgeladen..." : "Galerie wählen"}</span>
-          </button>
+            {uploading ? "Wird hochgeladen..." : "Galerie"}
+          </Button>
           {hasPhoto && (
-            <button
-              type="button"
-              className="button danger"
+            <Button
               onClick={() => setShowDeleteConfirmation(true)}
               disabled={uploading || deleting}
+              leadingIcon={<Trash2 size={17} />}
+              variant="danger"
             >
-              <Trash2 size={17} />
-              <span>Löschen</span>
-            </button>
+              Löschen
+            </Button>
           )}
         </div>
       )}

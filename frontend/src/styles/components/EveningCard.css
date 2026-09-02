@@ -98,7 +98,7 @@
   margin-top: var(--space-4);
 }
 
-.evening-card__person {
+.evening-card__location {
   min-width: 0;
   display: flex;
   align-items: center;
@@ -125,19 +125,19 @@
   object-fit: cover;
 }
 
-.evening-card__person-copy {
+.evening-card__location-copy {
   min-width: 0;
   display: flex;
   flex-direction: column;
   line-height: var(--line-height-heading);
 }
 
-.evening-card__person small {
+.evening-card__location small {
   color: var(--color-text-muted);
   font-size: var(--font-size-xs);
 }
 
-.evening-card__person strong {
+.evening-card__location strong {
   overflow: hidden;
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
@@ -151,10 +151,6 @@
   justify-content: flex-end;
   flex-wrap: wrap;
   gap: var(--space-3);
-}
-
-.evening-card__quick-facts--result {
-  margin-top: var(--space-3);
 }
 
 .evening-card__quick-fact {
@@ -307,7 +303,7 @@
     margin-inline: -0.875rem;
   }
 
-  .evening-card__person {
+  .evening-card__location {
     gap: 0.45rem;
   }
 

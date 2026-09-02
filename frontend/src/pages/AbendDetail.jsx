@@ -10,20 +10,23 @@ import {
   PlusCircle,
   CalendarDays,
   Clock,
+  MapPin,
   Users as UsersIcon,
   XCircle,
   Trash2,
   Pencil,
-  MapPinHouse,
   Gamepad2,
-  Info,
   RefreshCw,
 } from "lucide-react";
 import "../styles/pages/AbendDetail.css";
 import GameAddModal from "../components/forms/GameAddModal";
 import defaultAvatar from "../assets/images/avatar.jpg";
 import { AbendDetailSkeleton } from "../components/ui/Skeleton";
+import Button from "../components/ui/Button";
+import Card from "../components/ui/Card";
 import ConfirmDialog from "../components/ui/ConfirmDialog";
+import StatusBadge from "../components/ui/StatusBadge";
+import ParticipationControl from "../components/evenings/ParticipationControl";
 import EveningPhotoSection from "../components/EveningPhotoSection";
 import {
   formatSwissDate,
@@ -32,6 +35,8 @@ import {
   swissDateTimeInputToIso,
   toSwissDateTimeInputValue,
 } from "../utils/swissDateTime";
+
+const toId = (value) => String(value?._id ?? value ?? "");
 
 function GameImage({ imageUrl, name, onPreview }) {
   const hasImage = Boolean(imageUrl);
@@ -361,7 +366,7 @@ export default function AbendDetail() {
       (count, game) =>
         count +
         (game.scores || []).filter(
-          (score) => score.userId === participant._id,
+          (score) => toId(score.userId) === toId(participant._id),
         ).length,
       0,
     );
@@ -369,7 +374,7 @@ export default function AbendDetail() {
       (total, game) =>
         total +
         (game.scores || [])
-          .filter((score) => score.userId === participant._id)
+          .filter((score) => toId(score.userId) === toId(participant._id))
           .reduce((sum, score) => sum + (Number(score.points) || 0), 0),
       0,
     );
@@ -401,11 +406,14 @@ export default function AbendDetail() {
   if (!abend) return <p className="abenddetail-error">Abend nicht gefunden.</p>;
 
   const isAdmin = user?.role === "admin";
-  const isSpielleiter = abend.spielleiterRef?._id === user._id;
+  const isSpielleiter =
+    toId(abend.spielleiterRef?._id) === toId(user._id);
   const isPrivileged = isAdmin || isSpielleiter;
   const isFixiert = abend.status === "fixiert";
   const isAbgeschlossen = abend.status === "abgeschlossen";
-  const isTeilnehmer = abend.participantRefs?.some((p) => p._id === user._id);
+  const isTeilnehmer = abend.participantRefs?.some(
+    (participant) => toId(participant._id) === toId(user._id),
+  );
   const hasRecordedGames = (abend.games?.length || 0) > 0;
   const backTarget = abend.status === "gesperrt" ? "/historie" : "/abende";
   const isGesperrt = abend.status === "gesperrt";
@@ -436,10 +444,9 @@ export default function AbendDetail() {
 
   const formattedDate = abend.date
     ? formatSwissDate(abend.date, {
-        weekday: "long",
+        weekday: "short",
         day: "2-digit",
-        month: "long",
-        year: "numeric",
+        month: "short",
       })
     : null;
   const formattedTime = abend.date
@@ -448,6 +455,11 @@ export default function AbendDetail() {
         minute: "2-digit",
       })
     : null;
+  const formattedLocation =
+    abend.location?.trim() ||
+    (abend.spielleiterRef?.displayName
+      ? `Bei ${abend.spielleiterRef.displayName}`
+      : "Ort offen");
 
   const getScoreInputValue = (gameId, userId, defaultValue) => {
     return scoreInputs[`${gameId}-${userId}`] ?? defaultValue;
@@ -476,113 +488,117 @@ export default function AbendDetail() {
   };
 
   return (
-    <div className="abenddetail-container">
-      <button
-        className="button neutral abenddetail-backbutton"
+    <div className="page-shell page-shell--compact abenddetail-page">
+      <Button
+        className="abenddetail-backbutton"
+        leadingIcon={<ArrowLeft size={18} />}
         onClick={() => navigate(backTarget)}
+        size="sm"
+        variant="ghost"
       >
-        <ArrowLeft size={18} />
-        <span>Zurück</span>
-      </button>
+        Zurück
+      </Button>
 
-      <div className="abenddetail-card card">
-        <section className="abenddetail-event-summary">
+      <div className="abenddetail-content">
+        <Card
+          as="section"
+          className={`abenddetail-event-summary abenddetail-event-summary--${abend.status}`}
+        >
           <div className="abenddetail-event-summary-main">
             <div className="abenddetail-event-date">
-              <CalendarDays size={20} />
+              <CalendarDays size={20} aria-hidden="true" />
               <span>{formattedDate || "Termin wird abgestimmt"}</span>
-            </div>
-            <div className="abenddetail-event-summary-actions">
-              <span
-                className={`abenddetail-status-badge abenddetail-status-badge--${abend.status}`}
-              >
-                {abend.status}
-              </span>
               {canEditDate && (
-                <button
-                  type="button"
-                  className="abenddetail-edit-date-button"
-                  onClick={openDateEditModal}
+                <Button
                   aria-label="Termin bearbeiten"
+                  className="abenddetail-edit-date-button"
+                  iconOnly
+                  onClick={openDateEditModal}
+                  size="sm"
                   title="Termin bearbeiten"
+                  variant="ghost"
                 >
                   <Pencil size={17} />
-                </button>
+                </Button>
               )}
+            </div>
+            <div className="abenddetail-event-summary-actions">
+              <StatusBadge status={abend.status} />
             </div>
           </div>
 
-          <div className="abenddetail-event-meta">
-            <div className="abenddetail-event-meta-item abenddetail-event-meta-item--time">
-              {formattedTime && (
-                <>
-                  <Clock size={16} />
-                  <span>{formattedTime} Uhr</span>
-                </>
-              )}
-            </div>
-            <div className="abenddetail-event-meta-item abenddetail-event-meta-item--host-place">
-              <span className="abenddetail-event-meta-group">
-                <UsersIcon size={16} />
-                <span>Spielleiter: {abend.spielleiterRef?.displayName}</span>
+          <div className="abenddetail-event-facts">
+            {formattedTime && (
+              <span className="abenddetail-event-fact">
+                <Clock size={17} aria-hidden="true" />
+                <span>{formattedTime}</span>
               </span>
-              <span className="abenddetail-event-meta-group">
-                <MapPinHouse size={16} />
-                <span>bei {abend.spielleiterRef?.displayName}</span>
-              </span>
-            </div>
+            )}
+            <span className="abenddetail-event-fact abenddetail-event-fact--location">
+              <MapPin size={17} aria-hidden="true" />
+              <span className="abenddetail-visually-hidden">Ort: </span>
+              <span>{formattedLocation}</span>
+            </span>
+            <span className="abenddetail-event-fact">
+              <UsersIcon size={17} aria-hidden="true" />
+              <span className="abenddetail-visually-hidden">Teilnehmer: </span>
+              <strong>{abend.participantRefs?.length ?? 0}</strong>
+            </span>
+            <span className="abenddetail-event-fact">
+              <Gamepad2 size={17} aria-hidden="true" />
+              <span className="abenddetail-visually-hidden">Spiele: </span>
+              <strong>{abend.games?.length ?? 0}</strong>
+            </span>
           </div>
-        </section>
+        </Card>
 
-        {/* Teilnahme-Toggle */}
         {isFixiert && !isToday && !hasRecordedGames && (
-          <section className="abenddetail-section abenddetail-section--participation">
-            <div className="abenddetail-section-header">
-              <UsersIcon size={18} />
-              <h2 className="abenddetail-section-title">Teilnahme</h2>
-            </div>
-            <div className="abenddetail-toggle-wrapper">
-              <label className="abenddetail-toggle-label">
-                <input
-                  type="checkbox"
-                  checked={isTeilnehmer}
-                  onChange={(e) =>
-                    e.target.checked ? handleJoin() : handleLeave()
-                  }
-                  disabled={busy}
-                />
-                <span className="abenddetail-toggle-slider" />
-                <span className="abenddetail-toggle-text">
-                  {isTeilnehmer ? "Dabei" : "Nicht dabei"}
-                </span>
-              </label>
-            </div>
-          </section>
+          <Card
+            as="section"
+            aria-label="Teilnahme"
+            className="abenddetail-participation"
+            padding="sm"
+            variant="muted"
+          >
+            <ParticipationControl
+              busy={busy}
+              isParticipating={isTeilnehmer}
+              onJoin={handleJoin}
+              onLeave={handleLeave}
+            />
+          </Card>
         )}
 
         {/* Tagessieger */}
         {(isAbgeschlossen || isGesperrt) && abend.winnerIds?.length > 0 && (
-          <section className="abenddetail-winner">
-            <Trophy size={20} />
+          <Card
+            as="section"
+            className="abenddetail-winner"
+            variant="accent"
+          >
+            <Trophy size={20} aria-hidden="true" />
             <div className="abenddetail-winner-text">
               <span className="abenddetail-winner-label">Tagessieger</span>
               <span className="abenddetail-winner-value">
                 {abend.winnerIds
                   .map((id) => {
-                    const u = abend.participantRefs?.find((p) => p._id === id);
+                    const u = abend.participantRefs?.find(
+                      (participant) => toId(participant._id) === toId(id),
+                    );
                     return u?.displayName || "Unbekannt";
                   })
                   .join(", ")}{" "}
                 (
                 {
                   abend.playerPoints?.find(
-                    (p) => p.userId === abend.winnerIds[0],
+                    (entry) =>
+                      toId(entry.userId) === toId(abend.winnerIds[0]),
                   )?.points
                 }{" "}
                 Punkte)
               </span>
             </div>
-          </section>
+          </Card>
         )}
 
         {/* Platzierungen */}
@@ -595,10 +611,12 @@ export default function AbendDetail() {
             <ul className="abenddetail-rank-list">
               {abend.placements.map((p) => {
                 const userRef = abend.participantRefs?.find(
-                  (u) => u._id === p.userId,
+                  (userItem) => toId(userItem._id) === toId(p.userId),
                 );
                 const pts =
-                  abend.playerPoints?.find((x) => x.userId === p.userId)
+                  abend.playerPoints?.find(
+                    (entry) => toId(entry.userId) === toId(p.userId),
+                  )
                     ?.points || 0;
 
                 return (
@@ -625,23 +643,35 @@ export default function AbendDetail() {
               <h2 className="abenddetail-section-title">Abendstatistik</h2>
             </div>
             <div className="abenddetail-stats-grid">
-              <div className="abenddetail-stat-card">
+              <Card
+                className="abenddetail-stat-card"
+                padding="sm"
+                variant="muted"
+              >
                 <span className="abenddetail-stat-label">
                   Gesamtpunkte aller Spieler
                 </span>
                 <span className="abenddetail-stat-value">
                   {abend.totalPoints || 0}
                 </span>
-              </div>
+              </Card>
 
-              <div className="abenddetail-stat-card">
+              <Card
+                className="abenddetail-stat-card"
+                padding="sm"
+                variant="muted"
+              >
                 <span className="abenddetail-stat-label">Spieleanzahl</span>
                 <span className="abenddetail-stat-value">
                   {abend.gamesPlayedCount}
                 </span>
-              </div>
+              </Card>
 
-              <div className="abenddetail-stat-card">
+              <Card
+                className="abenddetail-stat-card"
+                padding="sm"
+                variant="muted"
+              >
                 <span className="abenddetail-stat-label">
                   Meistgespieltes Spiel
                 </span>
@@ -652,14 +682,14 @@ export default function AbendDetail() {
                       (a, b) => b.count - a.count,
                     )[0];
                     const gameEntry = abend.games.find(
-                      (g) => g.gameId?._id === sorted.gameId,
+                      (game) => toId(game.gameId?._id) === toId(sorted.gameId),
                     );
                     return gameEntry?.gameId?.name
                       ? `${gameEntry.gameId.name} (${sorted.count}x)`
                       : "Unbekannt";
                   })()}
                 </span>
-              </div>
+              </Card>
             </div>
           </section>
         )}
@@ -673,41 +703,58 @@ export default function AbendDetail() {
 
           {abend.participantRefs?.length ? (
             <ul className="abenddetail-participant-list">
-              {abend.participantRefs.map((p) => (
-                <li
-                  key={p._id}
-                  className="abenddetail-participant-pill abenddetail-pill"
-                >
-                  <img
-                    className="abenddetail-participant-avatar"
-                    src={p.profileImageUrl || defaultAvatar}
-                    alt=""
-                    loading="lazy"
-                    referrerPolicy="no-referrer"
-                    onError={(e) => {
-                      e.currentTarget.src = defaultAvatar;
-                    }}
-                  />
+              {abend.participantRefs.map((participant) => {
+                const isHost =
+                  toId(participant._id) === toId(abend.spielleiterRef?._id);
 
-                  <span className="abenddetail-participant-name">
-                    {p.displayName}
-                  </span>
+                return (
+                  <li
+                    key={participant._id}
+                    className={`abenddetail-participant-pill ${
+                      isHost ? "abenddetail-participant-pill--host" : ""
+                    }`}
+                  >
+                    <img
+                      className="abenddetail-participant-avatar"
+                      src={participant.profileImageUrl || defaultAvatar}
+                      alt=""
+                      loading="lazy"
+                      referrerPolicy="no-referrer"
+                      onError={(event) => {
+                        event.currentTarget.src = defaultAvatar;
+                      }}
+                    />
 
-                  {isPrivileged &&
-                    isFixiert &&
-                    p._id !== abend.spielleiterRef?._id && (
-                    <button
-                      type="button"
-                      className="abenddetail-participant-remove"
-                      onClick={() => requestRemoveParticipant(p)}
-                      title="Teilnehmer entfernen"
-                      disabled={removingParticipant || Boolean(editScores)}
-                    >
-                      <XCircle size={18} />
-                    </button>
-                  )}
-                </li>
-              ))}
+                    <span className="abenddetail-participant-name">
+                      {participant.displayName}
+                    </span>
+
+                    {isHost && (
+                      <StatusBadge
+                        className="abenddetail-participant-role"
+                        label="Spielleiter"
+                        showDot={false}
+                        tone="primary"
+                      />
+                    )}
+
+                    {isPrivileged && isFixiert && !isHost && (
+                      <Button
+                        aria-label={`${participant.displayName} entfernen`}
+                        className="abenddetail-participant-remove"
+                        disabled={removingParticipant || Boolean(editScores)}
+                        iconOnly
+                        onClick={() => requestRemoveParticipant(participant)}
+                        size="sm"
+                        title="Teilnehmer entfernen"
+                        variant="danger-ghost"
+                      >
+                        <XCircle size={18} />
+                      </Button>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           ) : (
             <p className="abenddetail-muted">Noch keine Teilnehmer.</p>
@@ -756,9 +803,10 @@ export default function AbendDetail() {
           ) : (
             <div className="abenddetail-games-list">
               {abend.games.map((game) => (
-                <article
+                <Card
+                  as="article"
                   key={game._id}
-                  className="abenddetail-game-card abenddetail-subcard"
+                  className="abenddetail-game-card"
                 >
                   <div className="abenddetail-game-header">
                     <div className="abenddetail-game-title-row">
@@ -780,28 +828,36 @@ export default function AbendDetail() {
                     {(canEditScores || canDeleteGame) && (
                       <div className="abenddetail-game-actions">
                         {canEditScores && editScores !== game._id && (
-                          <button
+                          <Button
+                            aria-label="Punkte bearbeiten"
                             className="abenddetail-button-round-edit"
-                            onClick={() => handleEditScores(game._id)}
-                            title="Punkte bearbeiten"
                             disabled={
                               Boolean(savingGameId) ||
                               (editScores && editScores !== game._id)
                             }
+                            iconOnly
+                            onClick={() => handleEditScores(game._id)}
+                            size="sm"
+                            title="Punkte bearbeiten"
+                            variant="ghost"
                           >
                             <Pencil size={18} />
-                          </button>
+                          </Button>
                         )}
 
                         {canDeleteGame && (
-                          <button
+                          <Button
+                            aria-label="Spiel löschen"
                             className="abenddetail-button-round-delete"
-                            onClick={() => handleDeleteGame(game._id)}
-                            title="Spiel löschen"
                             disabled={savingGameId === game._id}
+                            iconOnly
+                            onClick={() => handleDeleteGame(game._id)}
+                            size="sm"
+                            title="Spiel löschen"
+                            variant="danger-ghost"
                           >
                             <Trash2 size={18} />
-                          </button>
+                          </Button>
                         )}
                       </div>
                     )}
@@ -826,7 +882,7 @@ export default function AbendDetail() {
                             type="number"
                             min="0"
                             step="1"
-                            className="input abenddetail-score-input"
+                            className="abenddetail-score-input"
                             value={getScoreInputValue(
                               game._id,
                               s.userId,
@@ -854,22 +910,18 @@ export default function AbendDetail() {
                               focusedField === `${game._id}-${s.userId}`
                             }
                           />
-                        ) : (
-                          <span
-                            className={
-                              canEditScores
-                                ? "abenddetail-score-value abenddetail-score-value--editable"
-                                : "abenddetail-score-value"
-                            }
-                            onClick={() => {
-                              if (canEditScores) {
-                                handleEditScores(game._id, s.userId);
-                              }
-                            }}
-                            title={
-                              canEditScores ? "Klicken zum Bearbeiten" : ""
-                            }
+                        ) : canEditScores ? (
+                          <Button
+                            className="abenddetail-score-value abenddetail-score-value--editable"
+                            onClick={() => handleEditScores(game._id, s.userId)}
+                            size="sm"
+                            title="Punkte bearbeiten"
+                            variant="ghost"
                           >
+                            {s.points} Punkte
+                          </Button>
+                        ) : (
+                          <span className="abenddetail-score-value">
                             {s.points} Punkte
                           </span>
                         )}
@@ -879,25 +931,26 @@ export default function AbendDetail() {
 
                   {editScores === game._id && canEditScores && (
                     <div className="abenddetail-game-footer">
-                      <button
-                        className="button neutral"
-                        onClick={handleCancelScores}
+                      <Button
                         disabled={savingGameId === game._id}
+                        onClick={handleCancelScores}
+                        size="sm"
+                        variant="secondary"
                       >
                         Abbrechen
-                      </button>
-                      <button
-                        className="button primary"
-                        onClick={() => handleSaveScores(game._id)}
+                      </Button>
+                      <Button
                         disabled={savingGameId === game._id}
+                        onClick={() => handleSaveScores(game._id)}
+                        size="sm"
                       >
                         {savingGameId === game._id
                           ? "Speichere..."
                           : "Speichern"}
-                      </button>
+                      </Button>
                     </div>
                   )}
-                </article>
+                </Card>
               ))}
             </div>
           )}
@@ -905,13 +958,12 @@ export default function AbendDetail() {
 
         {canAddGame && (
           <div className="abenddetail-footer-actions abenddetail-footer-actions--games">
-            <button
-              className="button accent"
+            <Button
+              leadingIcon={<PlusCircle size={18} />}
               onClick={() => setShowGameModal(true)}
             >
-              <PlusCircle size={18} />
-              <span>Spiel hinzufügen</span>
-            </button>
+              Spiel hinzufügen
+            </Button>
           </div>
         )}
 
@@ -926,25 +978,25 @@ export default function AbendDetail() {
           <footer className="abenddetail-footer-actions abenddetail-footer-actions--completion">
             {/* Abend abschliessen – nur Spielleiter ODER Admin, aber nur solange fixiert */}
             {canFinishEvening && (
-              <button className="button primary" onClick={handleFinishEvening}>
-                <Trophy size={18} />
-                <span>Abend abschliessen</span>
-              </button>
+              <Button
+                leadingIcon={<Trophy size={18} />}
+                onClick={handleFinishEvening}
+              >
+                Abend abschliessen
+              </Button>
             )}
 
             {canRecalculateStats && (
-              <button
-                className="button neutral"
-                onClick={handleRecalculateStats}
+              <Button
                 disabled={recalculatingStats}
+                leadingIcon={<RefreshCw size={18} />}
+                onClick={handleRecalculateStats}
+                variant="secondary"
               >
-                <RefreshCw size={18} />
-                <span>
-                  {recalculatingStats
-                    ? "Berechne..."
-                    : "Statistik neu berechnen"}
-                </span>
-              </button>
+                {recalculatingStats
+                  ? "Berechne..."
+                  : "Statistik neu berechnen"}
+              </Button>
             )}
           </footer>
         )}
@@ -971,7 +1023,7 @@ export default function AbendDetail() {
                   Datum und Uhrzeit
                   <input
                     type="datetime-local"
-                    className="input"
+                    className="abenddetail-date-input"
                     value={dateEditValue}
                     onChange={(event) => setDateEditValue(event.target.value)}
                     disabled={savingDateEdit}
@@ -983,21 +1035,20 @@ export default function AbendDetail() {
                   </p>
                 )}
                 <div className="abenddetail-date-modal-actions">
-                  <button
+                  <Button
                     type="button"
-                    className="button neutral"
                     onClick={() => setShowDateEditModal(false)}
                     disabled={savingDateEdit}
+                    variant="secondary"
                   >
                     Abbrechen
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="submit"
-                    className="button primary"
                     disabled={savingDateEdit}
                   >
                     {savingDateEdit ? "Speichern..." : "Speichern"}
-                  </button>
+                  </Button>
                 </div>
               </form>
             </div>

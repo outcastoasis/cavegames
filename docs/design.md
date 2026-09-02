@@ -267,7 +267,8 @@ could be misunderstood.
 Use the shared React UI components instead of recreating their appearance in a
 page stylesheet:
 
-- `Button`: primary, secondary, ghost and destructive actions
+- `Button`: primary, secondary, ghost and destructive actions; use
+  `danger-ghost` for compact removal icons that should not dominate the page
 - `Card`: default, muted, accent and interactive surfaces
 - `StatusBadge`: consistent text and colors for evening statuses
 - `ActionNotice`: contextual tasks, warnings and informational actions
@@ -276,7 +277,7 @@ page stylesheet:
 
 Use the shared domain components for recurring game-night behavior:
 
-- `EveningCard`: date, status, host, participants and optional results or actions
+- `EveningCard`: date, status, location, participants and optional results or actions
 - `ParticipationControl`: the consistent `Dabei` / `Nicht dabei` selection
 
 Page styles should arrange these components but must not redefine their core
@@ -317,9 +318,14 @@ Game-night cards should prioritize:
 2. Time
 3. Current status
 4. Relevant action
-5. Game leader / location
+5. Location
 6. Participants
 7. Number of games when it helps users scan the overview
+
+Treat the location as its own piece of event data. If no custom location is
+stored, use `Bei [Spielleiter]` as the fallback so the location remains visible
+and automatically follows a change of game leader. In overview cards, retain
+the game leader's profile image as the visual reference for this default venue.
 
 Do not display every available property in overview cards.
 
@@ -327,8 +333,8 @@ Do not add a separate metadata row by default. Time, participant count and game
 count may form one compact icon-and-value group. Values such as season year
 belong only in views where they support the user's immediate task.
 
-Use abbreviated month names in dense lists and full month names in prominent
-dashboard cards.
+Use abbreviated month names in all game-night overview cards so dates remain
+compact and consistent on mobile.
 
 Today's game night and the next upcoming game night may receive stronger visual emphasis.
 

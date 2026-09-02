@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { AlertTriangle } from "lucide-react";
+import Button from "./Button";
 import "../../styles/components/ConfirmDialog.css";
 
 export default function ConfirmDialog({
@@ -52,23 +53,21 @@ export default function ConfirmDialog({
           <div id="confirm-dialog-description">{children}</div>
         </div>
         <div className="confirm-dialog-actions">
-          <button
+          <Button
             ref={cancelButtonRef}
-            type="button"
-            className="button neutral"
             onClick={onCancel}
             disabled={busy}
+            variant="secondary"
           >
             {cancelLabel}
-          </button>
-          <button
-            type="button"
-            className={`button ${danger ? "danger" : "primary"}`}
+          </Button>
+          <Button
             onClick={onConfirm}
             disabled={busy}
+            variant={danger ? "danger" : "primary"}
           >
             {busy ? busyLabel : confirmLabel}
-          </button>
+          </Button>
         </div>
       </div>
     </div>,

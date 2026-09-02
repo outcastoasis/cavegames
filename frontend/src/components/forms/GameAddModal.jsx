@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import API from "../../services/api";
+import Button from "../ui/Button";
 import "../../styles/components/Modal.css";
 
 export default function GameAddModal({ eveningId, onClose, onSuccess }) {
@@ -55,17 +56,25 @@ export default function GameAddModal({ eveningId, onClose, onSuccess }) {
   };
 
   return createPortal(
-    <div className="modal-overlay">
-      <div className="modal game-add-modal">
-        <h2>Spiel auswählen oder hinzufügen</h2>
+    <div className="modal-overlay game-add-modal-overlay">
+      <div
+        className="modal game-add-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="game-add-modal-title"
+      >
+        <h2 id="game-add-modal-title">Spiel auswählen oder hinzufügen</h2>
 
         <form onSubmit={handleSubmit} className="modal-form">
           {loading ? (
             <p>Lade Spiele...</p>
           ) : (
             <>
-              <label>Bestehendes Spiel auswählen</label>
+              <label htmlFor="game-add-existing">
+                Bestehendes Spiel auswählen
+              </label>
               <select
+                id="game-add-existing"
                 className="input"
                 value={selectedGame}
                 onChange={(e) => setSelectedGame(e.target.value)}
@@ -81,32 +90,38 @@ export default function GameAddModal({ eveningId, onClose, onSuccess }) {
 
               {!selectedGame && (
                 <>
-                  <label>Spielname</label>
+                  <label htmlFor="game-add-name">Spielname</label>
                   <input
+                    id="game-add-name"
                     className="input"
                     placeholder="z. B. Codenames"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                   />
 
-                  <label>Kategorie (optional)</label>
+                  <label htmlFor="game-add-category">Kategorie (optional)</label>
                   <input
+                    id="game-add-category"
                     className="input"
                     placeholder="z. B. Party, Strategie, Karten..."
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
                   />
 
-                  <label>Bild-URL (optional)</label>
+                  <label htmlFor="game-add-image">Bild-URL (optional)</label>
                   <input
+                    id="game-add-image"
                     className="input"
                     placeholder="Link zu einem Spielbild"
                     value={imageUrl}
                     onChange={(e) => setImageUrl(e.target.value)}
                   />
 
-                  <label>Beschreibung (optional)</label>
+                  <label htmlFor="game-add-description">
+                    Beschreibung (optional)
+                  </label>
                   <input
+                    id="game-add-description"
                     className="input"
                     placeholder="Kurzbeschreibung oder Hinweise"
                     value={description}
@@ -120,17 +135,16 @@ export default function GameAddModal({ eveningId, onClose, onSuccess }) {
           {error && <p className="error-text">{error}</p>}
 
           <div className="modal-actions">
-            <button
-              type="button"
-              className="button neutral"
+            <Button
               onClick={onClose}
               disabled={loading}
+              variant="secondary"
             >
               Abbrechen
-            </button>
-            <button type="submit" className="button primary" disabled={loading}>
+            </Button>
+            <Button type="submit" disabled={loading}>
               {selectedGame ? "Auswählen" : "Speichern"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

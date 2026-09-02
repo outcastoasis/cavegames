@@ -19,6 +19,7 @@ const eveningSchema = new mongoose.Schema(
     spieljahr: { type: Number, required: true },
     organizerId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     spielleiterId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    location: { type: String, trim: true, maxlength: 120, default: null },
     participantIds: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     pollId: { type: mongoose.Schema.Types.ObjectId, ref: "Poll" },
     status: {

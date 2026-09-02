@@ -14,7 +14,7 @@ import {
 } from "../../utils/swissDateTime";
 import "../../styles/components/EveningCard.css";
 
-const formatEveningDate = (date, dateFormat = "long") =>
+const formatEveningDate = (date, dateFormat = "short") =>
   date
     ? formatSwissDate(date, {
         weekday: "short",
@@ -35,7 +35,7 @@ export default function EveningCard({
   actionLabel,
   className = "",
   currentUserId,
-  dateFormat = "long",
+  dateFormat = "short",
   emphasis = false,
   evening,
   footer = null,
@@ -45,6 +45,9 @@ export default function EveningCard({
   showResult = false,
 }) {
   const host = evening.spielleiterRef;
+  const location =
+    evening.location?.trim() ||
+    (host?.displayName ? `Bei ${host.displayName}` : "Noch offen");
   const winners = (evening.winnerIds || [])
     .map((id) =>
       evening.participantRefs?.find(
@@ -130,29 +133,17 @@ export default function EveningCard({
         )}
       </div>
 
-      {!showResult && (
-        <div className="evening-card__details">
-          <PersonSummary
-            imageUrl={host?.profileImageUrl}
-            label="Spielleiter"
-            value={host?.displayName || "Noch offen"}
-          />
-          <QuickFacts
-            gameCount={evening.games?.length ?? 0}
-            participantCount={evening.participantRefs?.length ?? 0}
-            time={time}
-          />
-        </div>
-      )}
-
-      {showResult && (
+      <div className="evening-card__details">
+        <LocationSummary
+          imageUrl={host?.profileImageUrl}
+          value={location}
+        />
         <QuickFacts
-          className="evening-card__quick-facts--result"
           gameCount={evening.games?.length ?? 0}
           participantCount={evening.participantRefs?.length ?? 0}
           time={time}
         />
-      )}
+      </div>
 
       {showResult && winners.length > 0 && (
         <div className="evening-card__result">
@@ -205,13 +196,9 @@ export default function EveningCard({
   );
 }
 
-function PersonSummary({
-  imageUrl,
-  label,
-  value,
-}) {
+function LocationSummary({ imageUrl, value }) {
   return (
-    <div className="evening-card__person">
+    <div className="evening-card__location">
       <span className="evening-card__avatar" aria-hidden="true">
         {imageUrl ? (
           <img src={imageUrl} alt="" />
@@ -219,17 +206,17 @@ function PersonSummary({
           <UserRound size={20} />
         )}
       </span>
-      <span className="evening-card__person-copy">
-        <small>{label}</small>
+      <span className="evening-card__location-copy">
+        <small>Ort</small>
         <strong>{value}</strong>
       </span>
     </div>
   );
 }
 
-function QuickFacts({ className = "", gameCount, participantCount, time }) {
+function QuickFacts({ gameCount, participantCount, time }) {
   return (
-    <div className={`evening-card__quick-facts ${className}`.trim()}>
+    <div className="evening-card__quick-facts">
       {time && (
         <QuickFact icon={<Clock3 size={17} />} label="Uhrzeit" value={time} />
       )}

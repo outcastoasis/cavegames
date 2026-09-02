@@ -37,6 +37,18 @@ const {
 
 const STAT_FINAL_STATUSES = new Set(["abgeschlossen", "gesperrt"]);
 
+function parseEveningLocation(value) {
+  if (value == null || value === "") return { value: null };
+  if (typeof value !== "string") return { error: "Ungültiger Ort" };
+
+  const normalized = value.trim();
+  if (normalized.length > 120) {
+    return { error: "Der Ort darf maximal 120 Zeichen lang sein." };
+  }
+
+  return { value: normalized || null };
+}
+
 function getEveningPhotoResponseFields(evening) {
   const photo = buildEveningPhotoPresentation(getEveningPhotoData(evening));
   if (!photo) {
@@ -128,12 +140,17 @@ exports.getEvenings = async (req, res) => {
 
 exports.createEvening = async (req, res) => {
   try {
-    const { spieljahr, spielleiterId } = req.body;
+    const { spieljahr, spielleiterId, location } = req.body;
 
     if (!spieljahr || !spielleiterId) {
       return res
         .status(400)
         .json({ error: "Spieljahr und Spielleiter sind erforderlich." });
+    }
+
+    const parsedLocation = parseEveningLocation(location);
+    if (parsedLocation.error) {
+      return res.status(400).json({ error: parsedLocation.error });
     }
 
     // Jahr prüfen
@@ -163,6 +180,7 @@ exports.createEvening = async (req, res) => {
     const newEvening = new Evening({
       spieljahr,
       spielleiterId,
+      location: parsedLocation.value,
       participantIds: [spielleiterId],
       status: "offen",
       date: null,
@@ -287,8 +305,9 @@ exports.updateEvening = async (req, res) => {
 
     const oldYear = evening.spieljahr;
     const oldDate = evening.date?.getTime?.() || null;
+    const oldLocation = evening.location || null;
     const oldSpielleiterId = normalizeId(evening.spielleiterId);
-    const { spieljahr, spielleiterId, date } = req.body;
+    const { spieljahr, spielleiterId, date, location } = req.body;
 
     if (spieljahr != null) {
       const nextYear = Number(spieljahr);
@@ -346,6 +365,14 @@ exports.updateEvening = async (req, res) => {
       evening.date = date ? new Date(date) : null;
     }
 
+    if (Object.prototype.hasOwnProperty.call(req.body, "location")) {
+      const parsedLocation = parseEveningLocation(location);
+      if (parsedLocation.error) {
+        return res.status(400).json({ error: parsedLocation.error });
+      }
+      evening.location = parsedLocation.value;
+    }
+
     await evening.save();
 
     if (oldYear !== evening.spieljahr && hasGeneratedEveningStats(evening)) {
@@ -373,10 +400,12 @@ exports.updateEvening = async (req, res) => {
     res.json(response);
 
     const dateChanged = oldDate !== (evening.date?.getTime?.() || null);
+    const locationChanged = oldLocation !== (evening.location || null);
     const spielleiterChanged =
       oldSpielleiterId !== normalizeId(evening.spielleiterId);
     const detailsChanged =
       dateChanged ||
+      locationChanged ||
       oldYear !== evening.spieljahr ||
       spielleiterChanged;
 
