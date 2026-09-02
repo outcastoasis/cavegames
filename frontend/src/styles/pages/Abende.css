@@ -1,160 +1,72 @@
-@import "../variables.css";
-
 .abende-page {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: var(--spacing-m);
-  padding-bottom: var(--spacing-l);
+  padding-block: var(--space-6) var(--space-12);
 }
 
 .abende-header {
   display: flex;
   justify-content: flex-end;
-  margin-bottom: var(--spacing-m);
+  margin-bottom: var(--space-6);
 }
 
 .abend-list {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-l);
+  gap: var(--space-8);
 }
 
-.abend-list .home-section {
-  margin-top: 0;
+.abende-section-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
 }
 
-.abend-list .home-section-heading {
-  margin-bottom: var(--spacing-s);
+.abende-section-heading h2 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-heading);
+}
+
+.abende-section-heading > span {
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
 }
 
 .abende-card-item + .abende-card-item {
-  margin-top: var(--spacing-s);
+  margin-top: var(--space-3);
 }
 
-.abende-page .home-evening-card {
-  border-top: 1px solid rgba(31, 41, 55, 0.08);
-  border-right: 1px solid rgba(31, 41, 55, 0.08);
-  border-bottom: 1px solid rgba(31, 41, 55, 0.08);
-  box-shadow: 0 4px 14px rgba(31, 41, 55, 0.12);
-}
-
-.abende-page .home-evening-card:hover {
-  box-shadow: 0 8px 18px rgba(31, 41, 55, 0.16);
+.abende-card-actions {
+  display: grid;
+  gap: var(--space-3);
 }
 
 .abende-empty {
-  padding: 1.5rem;
+  margin: 0;
+  padding: var(--space-6);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
   text-align: center;
-  color: var(--text-muted);
 }
 
-.abende-create-poll-button {
-  align-self: flex-start;
-}
-
-.badge-abende {
-  padding: 0.3rem 0.8rem;
-  border-radius: var(--border-radius-full);
-  font-size: var(--font-size-small);
-  font-weight: 600;
-  text-transform: uppercase;
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.3);
-}
-
-.status-offen {
-  background: var(--secondary);
-  color: #fff;
-}
-
-.status-fixiert {
-  background: var(--accent);
-  color: #1f2937;
-}
-
-.status-abgeschlossen {
-  background: var(--primary);
-  color: #fff;
-}
-
-.status-gesperrt {
-  background: var(--neutral-dark);
-  color: #fff;
-}
-
-.toggle-label.small {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  cursor: pointer;
-  font-weight: 600;
-  user-select: none;
-  font-size: 0.9rem;
-}
-
-.toggle-label.small input {
-  display: none;
-}
-
-.toggle-slider {
-  position: relative;
-  width: 56px;
-  height: 32px;
-  border-radius: var(--border-radius-full);
-  background: var(--neutral);
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.15);
-  transition: all 0.25s ease;
-}
-
-.toggle-slider::after {
-  content: "";
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: #ffffff;
-  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.25);
-  transition: transform 0.25s ease;
-}
-
-.toggle-label.small input:checked ~ .toggle-slider {
-  background: linear-gradient(180deg, #4ade80, #059669);
-}
-
-.toggle-label.small input:checked ~ .toggle-slider::after {
-  transform: translateX(24px);
-}
-
-.toggle-label.small input:checked ~ .toggle-text {
-  color: #059669;
-}
-
-.toggle-label.small input:not(:checked) ~ .toggle-text {
-  color: var(--danger);
-}
-
-.toggle-label.small:hover .toggle-slider {
-  box-shadow: 0 0 0 2px rgba(109, 40, 217, 0.1);
-}
-
-@media (max-width: 600px) {
+@media (min-width: 700px) {
   .abende-page {
-    padding-inline: var(--spacing-s);
+    padding-block: var(--space-8) 4rem;
   }
 
-  .abende-header .button {
-    width: auto;
-    justify-content: center;
+  .abende-card-actions {
+    grid-template-columns: minmax(0, 1fr) minmax(12rem, 0.5fr);
+    align-items: end;
   }
 
-  .badge-abende {
-    padding: 0.25rem 0.6rem;
-    font-size: 0.75rem;
-  }
-
-  .abende-create-poll-button {
-    width: 100%;
-    justify-content: center;
+  .abende-card-actions > :only-child {
+    grid-column: 1 / -1;
   }
 }

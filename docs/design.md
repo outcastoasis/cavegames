@@ -269,6 +269,11 @@ page stylesheet:
 - `SegmentedControl`: a small set of mutually exclusive choices
 - `Switch`: binary settings that take effect independently
 
+Use the shared domain components for recurring game-night behavior:
+
+- `EveningCard`: date, status, host, participants and optional result or metadata
+- `ParticipationControl`: the consistent `Dabei` / `Nicht dabei` selection
+
 Page styles should arrange these components but must not redefine their core
 colors, sizes or interaction states. A page stylesheet must never be imported
 by another page.

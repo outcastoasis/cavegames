@@ -4,25 +4,19 @@ import { useAuth } from "../context/authState";
 import { useOutletContext, useNavigate } from "react-router-dom";
 import API from "../services/api";
 import {
-  CalendarDays,
-  CheckCircle2,
-  ChevronRight,
   Lightbulb,
   Megaphone,
   UserRound,
   UserRoundCheck,
   Vote,
-  XCircle,
   Trophy,
 } from "lucide-react";
 import "../styles/pages/Home.css";
+import EveningCard from "../components/evenings/EveningCard";
+import ParticipationControl from "../components/evenings/ParticipationControl";
 import { EveningListSkeleton } from "../components/ui/Skeleton";
 import ActionNotice from "../components/ui/ActionNotice";
-import SegmentedControl from "../components/ui/SegmentedControl";
-import StatusBadge from "../components/ui/StatusBadge";
 import {
-  formatSwissDate,
-  formatSwissTime,
   getSwissCalendarDayDiff,
   getSwissDateKey,
 } from "../utils/swissDateTime";
@@ -270,23 +264,6 @@ export default function Home() {
     return getSwissCalendarDayDiff(dateStr);
   };
 
-  const formatEveningDate = (date) =>
-    date
-      ? formatSwissDate(date, {
-          weekday: "short",
-          day: "2-digit",
-          month: "long",
-        })
-      : "Datum offen";
-
-  const formatEveningTime = (date) =>
-    date
-      ? formatSwissTime(date, {
-          hour: "2-digit",
-          minute: "2-digit",
-        })
-      : null;
-
   const getHomeSaying = () => {
     let pool = homeSayings.facts;
 
@@ -312,184 +289,36 @@ export default function Home() {
 
   const renderEveningCard = (abend, variant = "default") => {
     const isFixiert = abend.status === "fixiert";
-    const isTeilnehmer = abend.participantRefs?.some((p) => p._id === user._id);
+    const isTeilnehmer = abend.participantRefs?.some(
+      (participant) => String(participant._id) === String(user._id),
+    );
     const hasOpenPoll = abend.status === "offen" && !abend.date && abend.pollId;
     const hasRecordedGames = (abend.games?.length || 0) > 0;
-    const winnerPlayers = (abend.winnerIds || [])
-      .map((id) =>
-        abend.participantRefs?.find((p) => String(p._id) === String(id)),
-      )
-      .filter(Boolean);
-    const userPoints = abend.playerPoints?.find(
-      (entry) => String(entry.userId) === String(user._id),
-    )?.points;
-    const isCurrentUserWinner = winnerPlayers.some(
-      (winner) => String(winner._id) === String(user._id),
-    );
-    const host = abend.spielleiterRef;
     const openEvening = () =>
       navigate(hasOpenPoll ? "/umfragen" : `/abende/${abend._id}`);
+    const participationControl = isFixiert && !hasRecordedGames ? (
+      <ParticipationControl
+        busy={busy}
+        isParticipating={isTeilnehmer}
+        onJoin={() => handleJoin(abend._id)}
+        onLeave={() => handleLeave(abend._id)}
+      />
+    ) : null;
 
     return (
-      <article
+      <EveningCard
         key={abend._id}
-        className={`home-evening-card home-evening-card--${variant} home-evening-card-status-${abend.status} ${
-          variant === "last" && abend.groupPhotoUrl
-            ? "home-evening-card--with-photo"
-            : ""
-        }`}
-        onClick={(event) => {
-          if (event.target.closest(".home-evening-actions")) return;
-          openEvening();
-        }}
-        role="link"
-        tabIndex={0}
-        onKeyDown={(event) => {
-          if (event.target.closest(".home-evening-actions")) return;
-
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            openEvening();
-          }
-        }}
-        aria-label={`${formatEveningDate(abend.date)} öffnen`}
-      >
-        {variant === "last" && abend.groupPhotoUrl && (
-          <img
-            className="home-evening-photo"
-            src={abend.groupPhotoUrl}
-            srcSet={abend.groupPhotoSrcSet || undefined}
-            sizes="(max-width: 600px) calc(100vw - 3rem), 850px"
-            width={abend.groupPhotoWidth || undefined}
-            height={abend.groupPhotoHeight || undefined}
-            alt="Bild des letzten Spieleabends"
-            loading="lazy"
-            decoding="async"
-          />
-        )}
-
-        <div className="home-evening-header">
-          <div className="home-evening-date">
-            <CalendarDays size={19} aria-hidden="true" />
-            <span>{formatEveningDate(abend.date)}</span>
-            {formatEveningTime(abend.date) && (
-              <>
-                <span className="home-date-separator" aria-hidden="true">
-                  •
-                </span>
-                <span>{formatEveningTime(abend.date)}</span>
-              </>
-            )}
-          </div>
-
-          {variant === "last" && isCurrentUserWinner ? (
-            <span className="home-result-title">
-              <Trophy size={17} aria-hidden="true" />
-              Tagessieg
-            </span>
-          ) : (
-            <StatusBadge status={abend.status} />
-          )}
-        </div>
-
-        {variant !== "last" && (
-          <div className="home-evening-people">
-            <div className="home-person-summary">
-              <span className="home-avatar" aria-hidden="true">
-                {host?.profileImageUrl ? (
-                  <img src={host.profileImageUrl} alt="" />
-                ) : (
-                  <UserRound size={20} />
-                )}
-              </span>
-              <span>
-                <small>Spielleiter</small>
-                <strong>{host?.displayName || "Noch offen"}</strong>
-              </span>
-            </div>
-            <div className="home-person-summary">
-              <span className="home-avatar home-avatar--neutral" aria-hidden="true">
-                <UserRound size={20} />
-              </span>
-              <span>
-                <small>Teilnehmer</small>
-                <strong>{abend.participantRefs?.length ?? 0} zugesagt</strong>
-              </span>
-            </div>
-          </div>
-        )}
-
-        {variant === "last" && winnerPlayers.length > 0 && (
-          <div className="home-result-block">
-            <div className="home-result-summary">
-              <div className="home-result-column">
-                <span className="home-result-label">Sieger</span>
-                <div className="home-winner-list">
-                  {winnerPlayers.map((winner) => (
-                    <div className="home-winner" key={winner._id}>
-                      <span className="home-winner-avatar" aria-hidden="true">
-                        {winner.profileImageUrl ? (
-                          <img src={winner.profileImageUrl} alt="" />
-                        ) : (
-                          <UserRound size={18} />
-                        )}
-                      </span>
-                      <strong>
-                        {winner.displayName}
-                        {String(winner._id) === String(user._id) ? " (Du)" : ""}
-                      </strong>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              {userPoints != null && (
-                <div className="home-result-column home-result-column--score">
-                  <span className="home-result-label">Deine Punkte</span>
-                  <strong>{userPoints}</strong>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {variant === "last" && (
-          <div className="home-card-link-hint" aria-hidden="true">
-            <span>Abend ansehen</span>
-            <ChevronRight size={19} />
-          </div>
-        )}
-
-        {isFixiert && !hasRecordedGames && (
-          <div
-            className="home-evening-actions"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <SegmentedControl
-              ariaLabel="Teilnahme auswählen"
-              value={isTeilnehmer ? "yes" : "no"}
-              onChange={(nextValue) =>
-                nextValue === "yes"
-                  ? handleJoin(abend._id)
-                  : handleLeave(abend._id)
-              }
-              disabled={busy}
-              options={[
-                {
-                  value: "yes",
-                  label: "Dabei",
-                  tone: "success",
-                  icon: <CheckCircle2 size={18} />,
-                },
-                {
-                  value: "no",
-                  label: "Nicht dabei",
-                  icon: <XCircle size={18} />,
-                },
-              ]}
-            />
-          </div>
-        )}
-      </article>
+        actionLabel={variant === "last" ? "Abend ansehen" : undefined}
+        currentUserId={user._id}
+        detailLevel={variant === "last" ? "result" : "essential"}
+        emphasis={variant === "primary"}
+        evening={abend}
+        footer={participationControl}
+        onOpen={openEvening}
+        showPersonalWinBadge={variant === "last"}
+        showPhoto={variant === "last"}
+        showResult={variant === "last"}
+      />
     );
   };
 
