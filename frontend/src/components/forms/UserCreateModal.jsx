@@ -1,9 +1,9 @@
-// frontend/src/components/forms/UserCreateModal.jsx
-
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { UserPlus } from "lucide-react";
 import API from "../../services/api";
-import "../../styles/components/Modal.css";
+import Button from "../ui/Button";
+import "../../styles/components/AdminUserModal.css";
 
 export default function UserCreateModal({ onClose, onSuccess }) {
   const [form, setForm] = useState({
@@ -12,107 +12,168 @@ export default function UserCreateModal({ onClose, onSuccess }) {
     password: "",
     role: "spieler",
   });
-
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const firstInputRef = useRef(null);
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  useEffect(() => {
+    firstInputRef.current?.focus();
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape" && !submitting) onClose();
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onClose, submitting]);
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setForm((current) => ({ ...current, [name]: value }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setError("");
-    setLoading(true);
 
     if (!form.displayName || !form.username || !form.password) {
-      setError("Bitte alle Felder ausfüllen.");
-      setLoading(false);
+      setError("Bitte alle Pflichtfelder ausfüllen.");
       return;
     }
-
     if (form.password.length < 6) {
-      setError("Passwort muss mindestens 6 Zeichen lang sein.");
-      setLoading(false);
+      setError("Das Passwort benötigt mindestens 6 Zeichen.");
       return;
     }
 
+    setSubmitting(true);
     try {
       await API.post("/users", form);
-      onSuccess();
+      await onSuccess?.();
       onClose();
-    } catch (err) {
-      setError(err.response?.data?.error || "Fehler beim Erstellen.");
-      setLoading(false);
+    } catch (requestError) {
+      setError(
+        requestError.response?.data?.error ||
+          "Benutzer konnte nicht erstellt werden.",
+      );
+      setSubmitting(false);
     }
   };
 
   return createPortal(
-    <div className="modal-overlay">
-      <div className="modal">
-        <h2>Neuen Benutzer erstellen</h2>
+    <div className="admin-user-modal-overlay">
+      <div
+        aria-labelledby="user-create-title"
+        aria-modal="true"
+        className="admin-user-modal"
+        role="dialog"
+      >
+        <ModalHeader
+          icon={<UserPlus size={22} />}
+          id="user-create-title"
+          subtitle="Zugang und Rolle festlegen."
+          title="Neuer Benutzer"
+        />
 
-        <form onSubmit={handleSubmit} className="modal-form">
-          <label>Anzeigename</label>
-          <input
-            className="input"
-            name="displayName"
-            placeholder="z. B. Jascha Bucher"
-            value={form.displayName}
-            onChange={handleChange}
-            required
-          />
-
-          <label>Benutzername</label>
-          <input
-            className="input"
-            name="username"
-            placeholder="z. B. jascha"
-            value={form.username}
-            onChange={handleChange}
-            required
-          />
-
-          <label>Passwort</label>
-          <input
-            className="input"
-            name="password"
-            type="password"
-            placeholder="Mind. 6 Zeichen"
-            value={form.password}
-            onChange={handleChange}
-            required
-          />
-
-          <label>Rolle</label>
-          <select
-            className="input"
-            name="role"
-            value={form.role}
-            onChange={handleChange}
-          >
-            <option value="spieler">Spieler</option>
-            <option value="admin">Admin</option>
-          </select>
-
-          {error && <p className="error-text">{error}</p>}
-
-          <div className="modal-actions">
-            <button
-              type="button"
-              className="button neutral"
-              onClick={onClose}
-              disabled={loading}
+        <form className="admin-user-modal-form" onSubmit={handleSubmit}>
+          <Field label="Anzeigename">
+            <input
+              ref={firstInputRef}
+              autoComplete="name"
+              disabled={submitting}
+              name="displayName"
+              onChange={handleChange}
+              placeholder="z. B. Jascha Bucher"
+              required
+              value={form.displayName}
+            />
+          </Field>
+          <Field label="Benutzername">
+            <input
+              autoCapitalize="none"
+              autoComplete="username"
+              disabled={submitting}
+              name="username"
+              onChange={handleChange}
+              placeholder="z. B. jascha"
+              required
+              value={form.username}
+            />
+          </Field>
+          <Field label="Passwort">
+            <input
+              autoComplete="new-password"
+              disabled={submitting}
+              minLength={6}
+              name="password"
+              onChange={handleChange}
+              placeholder="Mindestens 6 Zeichen"
+              required
+              type="password"
+              value={form.password}
+            />
+          </Field>
+          <Field label="Rolle">
+            <select
+              disabled={submitting}
+              name="role"
+              onChange={handleChange}
+              value={form.role}
             >
-              Abbrechen
-            </button>
-            <button type="submit" className="button primary" disabled={loading}>
-              {loading ? "Speichere..." : "Erstellen"}
-            </button>
-          </div>
+              <option value="spieler">Spieler</option>
+              <option value="admin">Admin</option>
+            </select>
+          </Field>
+
+          <ModalError message={error} />
+          <ModalActions
+            busy={submitting}
+            onClose={onClose}
+            submitLabel="Erstellen"
+            busyLabel="Wird erstellt …"
+          />
         </form>
       </div>
     </div>,
-    document.body
+    document.body,
+  );
+}
+
+export function ModalHeader({ icon, id, subtitle, title }) {
+  return (
+    <div className="admin-user-modal-header">
+      <span aria-hidden="true">{icon}</span>
+      <div>
+        <h2 id={id}>{title}</h2>
+        <p>{subtitle}</p>
+      </div>
+    </div>
+  );
+}
+
+export function Field({ children, label }) {
+  return (
+    <label className="admin-user-modal-field">
+      <span>{label}</span>
+      {children}
+    </label>
+  );
+}
+
+export function ModalError({ message }) {
+  return message ? (
+    <p className="admin-user-modal-error" role="alert">
+      {message}
+    </p>
+  ) : null;
+}
+
+export function ModalActions({ busy, busyLabel, onClose, submitLabel }) {
+  return (
+    <div className="admin-user-modal-actions">
+      <Button disabled={busy} onClick={onClose} variant="secondary">
+        Abbrechen
+      </Button>
+      <Button disabled={busy} type="submit">
+        {busy ? busyLabel : submitLabel}
+      </Button>
+    </div>
   );
 }

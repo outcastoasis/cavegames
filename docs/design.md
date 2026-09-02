@@ -457,6 +457,18 @@ Settings and other data-entry dialogs must preserve partially entered values:
 do not close them from a backdrop tap. Use explicit cancel and submit actions,
 touch-friendly form controls and concise inline feedback.
 
+## Administrative Lists
+
+Administrative overview pages remain mobile first even when they contain
+search, filtering and several row actions. Keep filters collapsible, render
+records as stacked cards on small screens and progressively align identity,
+status and actions into columns on wider screens.
+
+Use shared status badges and icon-only buttons for compact row actions, with
+accessible labels and tooltips. Never use browser `prompt` or `confirm` for
+administrative workflows; use focused form and confirmation dialogs with clear
+busy, error and destructive states.
+
 ## Avatars
 
 Profile images are useful because Cavegames represents a small private group.
