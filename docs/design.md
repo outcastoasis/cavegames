@@ -400,6 +400,16 @@ Avoid excessive podium, glow or gaming effects.
 
 Multiple winners must receive equal visual treatment.
 
+## History
+
+Use a compact, horizontally scrollable year selector when more years are
+available than fit at the minimum mobile width. The selected year must remain a
+clear pressed state with a full touch target.
+
+Prioritize the annual winner, followed by a small set of comparable yearly
+metrics. Render archived game nights with the shared `EveningCard` result
+variant instead of maintaining a separate history-card design.
+
 ## Statistics
 
 Show the most useful statistics first.

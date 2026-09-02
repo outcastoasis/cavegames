@@ -1,169 +1,237 @@
-@import "../variables.css";
-
-/* ================================
-   Historie – überarbeitetes Layout
-   ================================ */
-
 .historie-page {
-  padding: var(--spacing-m);
-  max-width: 900px;
-  margin: 0 auto;
-}
-
-/* Jahresauswahl */
-.historie-year-selector {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-s);
-  margin-bottom: var(--spacing-m);
-}
-
-.year-tab {
-  background: var(--neutral);
-  color: var(--text);
-  padding: 0.45rem 1rem;
-  border-radius: var(--border-radius-full);
-  font-weight: 600;
-  cursor: pointer;
-  border: none;
-  transition: var(--transition-fast);
-  box-shadow: var(--shadow-raised);
-}
-
-.year-tab.active {
-  background: var(--primary);
-  color: white;
-}
-
-/* Jahreszusammenfassung */
-
-.year-summary.card {
-  margin-bottom: var(--spacing-l);
-  padding: var(--spacing-m);
-}
-
-/* Jahressieger-Hero */
-
-.year-winner-hero {
-  background: linear-gradient(
-    135deg,
-    var(--primary-light) 0%,
-    var(--primary) 100%
-  );
-  color: white;
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-m);
-  padding: var(--spacing-m);
-  border-radius: var(--card-radius);
-  box-shadow: var(--shadow-hover);
-  margin-bottom: var(--spacing-m);
-}
-
-.year-winner-icon {
-  color: var(--accent);
-  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.25));
-}
-
-.year-winner-text {
   display: flex;
   flex-direction: column;
+  gap: var(--space-8);
+  padding-block: var(--space-6) var(--space-12);
 }
 
-.winner-label {
-  font-size: 0.9rem;
-  opacity: 0.9;
-}
-
-.winner-name {
-  font-size: 1.5rem;
-  font-weight: 700;
-}
-
-.winner-points {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--accent);
-}
-
-/* Kennzahlen-Grid */
-
-.year-summary-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: var(--spacing-m);
-}
-
-.summary-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-}
-
-.summary-item .label {
-  font-size: 0.85rem;
-  opacity: 0.7;
-}
-
-.summary-item .value {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--primary);
-}
-
-/* Abendkarten */
-
-.history-card {
-  padding: var(--spacing-m);
-  margin-bottom: var(--spacing-m);
-}
-
-.history-date {
-  font-size: 1.1rem;
-  color: var(--primary);
-  padding-bottom: 0.3rem;
-  margin-bottom: 0.6rem;
-  border-bottom: 1px solid var(--neutral);
-}
-
-.history-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
-  margin-bottom: var(--spacing-m);
-}
-
-.history-row {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  font-size: 1rem;
-}
-
-/* Gewinner-Zeile etwas stärker betonen */
-
-.history-row-winner .history-winner-name {
-  font-weight: 600;
-  color: var(--primary);
-}
-
-.history-icon-winner {
-  color: var(--accent);
-}
-
-/* Button */
-
-.history-btn {
+.historie-year-selector.ui-segmented-control {
   width: 100%;
-  justify-content: center;
-  padding: 0.55rem 1.1rem; /* etwas kompakter als Standard */
-  font-size: 0.95rem;
+  display: flex;
+  grid-template-columns: none;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+  scroll-snap-type: inline proximity;
 }
 
-/* Leerer Zustand */
+.historie-year-selector .ui-segmented-control__option {
+  min-width: 5rem;
+  flex: 1 0 auto;
+  scroll-snap-align: start;
+}
 
-.history-empty {
-  padding: 1.5rem;
+.historie-section-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.historie-section-heading h2 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-heading);
+}
+
+.historie-section-heading > span {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.historie-summary {
+  overflow: hidden;
+}
+
+.historie-winner {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: var(--control-height-sm) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--color-primary-soft-hover);
+  border-radius: var(--radius-md);
+  background: var(--color-primary-subtle);
+}
+
+.historie-winner__icon,
+.historie-empty-state__icon {
+  width: var(--control-height-sm);
+  height: var(--control-height-sm);
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.historie-winner__icon {
+  background: var(--color-warning-emphasis);
+  color: var(--color-warning-hover);
+}
+
+.historie-winner__copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.historie-winner__copy span {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.historie-winner__copy strong {
+  overflow: hidden;
+  color: var(--color-text);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.historie-winner__points {
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+}
+
+.historie-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.historie-summary-metric {
+  min-width: 0;
+  min-height: 5.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-muted);
   text-align: center;
-  opacity: 0.7;
+}
+
+.historie-summary-metric > span {
+  display: inline-flex;
+  color: var(--color-primary);
+}
+
+.historie-summary-metric strong {
+  color: var(--color-text);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+}
+
+.historie-summary-metric small {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-tight);
+}
+
+.historie-evening-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.historie-summary-error,
+.historie-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.historie-summary-error {
+  min-height: 9rem;
+  justify-content: center;
+}
+
+.historie-summary-error p {
+  margin: 0 0 var(--space-3);
+  font-size: var(--font-size-sm);
+}
+
+.historie-empty-state {
+  padding: var(--space-6);
+}
+
+.historie-empty-state h2 {
+  margin: var(--space-3) 0 var(--space-1);
+  color: var(--color-text);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+}
+
+.historie-empty-state p {
+  margin: 0 0 var(--space-4);
+  font-size: var(--font-size-sm);
+}
+
+.historie-summary-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.historie-summary-skeleton__winner {
+  height: 4.75rem;
+  border-radius: var(--radius-md);
+}
+
+.historie-summary-skeleton__metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.historie-summary-skeleton__metrics .skeleton {
+  height: 5.25rem;
+  border-radius: var(--radius-md);
+}
+
+@media (min-width: 700px) {
+  .historie-page {
+    padding-block: var(--space-8) 4rem;
+  }
+
+  .historie-summary.ui-card--padding-md {
+    padding: var(--space-5);
+  }
+
+  .historie-summary-grid {
+    gap: var(--space-3);
+  }
+}
+
+@media (max-width: 380px) {
+  .historie-winner {
+    grid-template-columns: var(--control-height-sm) minmax(0, 1fr);
+  }
+
+  .historie-winner__points {
+    grid-column: 2;
+  }
+
+  .historie-summary-metric {
+    padding-inline: var(--space-1);
+  }
 }
