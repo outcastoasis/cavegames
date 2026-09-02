@@ -5,62 +5,57 @@ import {
   Gamepad2,
   Home,
   ClipboardList,
-  Users,
   User,
 } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import "../../styles/Navbar.css";
 
 export default function Navbar() {
-  const { pathname } = useLocation();
-
   return (
-    <footer className="navbar">
+    <nav className="navbar" aria-label="Hauptnavigation">
       <NavItem
-        icon={<BookOpenCheck />}
+        icon={<BookOpenCheck aria-hidden="true" />}
         label="Historie"
         to="/historie"
-        active={pathname === "/historie"}
       />
       <NavItem
-        icon={<Gamepad2 />}
+        icon={<Gamepad2 aria-hidden="true" />}
         label="Abende"
         to="/abende"
-        active={pathname === "/abende"}
       />
       <NavItem
-        icon={<Home />}
+        icon={<Home aria-hidden="true" />}
         label="Home"
         to="/"
-        active={pathname === "/"}
         center
       />
       <NavItem
-        icon={<ClipboardList />}
+        icon={<ClipboardList aria-hidden="true" />}
         label="Umfragen"
         to="/umfragen"
-        active={pathname === "/umfragen"}
       />
       <NavItem
-        icon={<User />}
+        icon={<User aria-hidden="true" />}
         label="Profil"
         to="/profil"
-        active={pathname === "/profil"}
       />
-    </footer>
+    </nav>
   );
 }
 
-function NavItem({ icon, label, to, active, center }) {
+function NavItem({ icon, label, to, center = false }) {
   return (
-    <Link
+    <NavLink
       to={to}
-      className={`nav-item ${active ? "active" : ""} ${
-        center ? "center-button" : ""
-      }`}
+      end={to === "/"}
+      className={({ isActive }) =>
+        `nav-item${isActive ? " active" : ""}${center ? " center-button" : ""}`
+      }
     >
-      <div className={center ? "center-icon" : ""}>{icon}</div>
+      <span className={`nav-item-icon${center ? " center-icon" : ""}`}>
+        {icon}
+      </span>
       <span>{label}</span>
-    </Link>
+    </NavLink>
   );
 }

@@ -1,0 +1,45 @@
+.ui-status-badge {
+  min-height: 2rem;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0.35rem 0.65rem;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.ui-status-badge__dot {
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.ui-status-badge--primary {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.ui-status-badge--success {
+  background: var(--color-success-soft);
+  color: var(--color-success-hover);
+}
+
+.ui-status-badge--warning {
+  background: var(--color-warning-soft);
+  color: var(--color-warning-hover);
+}
+
+.ui-status-badge--error {
+  background: var(--color-error-soft);
+  color: var(--color-error);
+}
+
+.ui-status-badge--neutral {
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+}

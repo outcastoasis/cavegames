@@ -1,20 +1,22 @@
-/* 🎨 Header Styles – Spielabend App */
 @import "./variables.css";
 
-header {
-  padding: 0.5rem;
-  background-color: var(--primary);
-  color: white;
-  font-size: 1.2rem;
+.header {
   position: fixed;
   top: 0;
-  left: 0;
   right: 0;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.6);
-  z-index: 101;
-  min-height: 52px;
-  align-items: center;
+  left: 0;
+  z-index: var(--z-header);
+  min-height: calc(var(--app-header-height) + var(--safe-area-top));
   display: flex;
+  align-items: center;
+  padding-top: calc(var(--space-1) + var(--safe-area-top));
+  padding-right: max(var(--page-gutter), var(--safe-area-right));
+  padding-bottom: var(--space-1);
+  padding-left: max(var(--page-gutter), var(--safe-area-left));
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  font-size: var(--font-size-lg);
+  box-shadow: var(--shadow-sm);
 }
 
 .header-bar {
@@ -29,25 +31,29 @@ header {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  font-weight: 600;
+  max-width: calc(100% - 7rem);
+  overflow: hidden;
+  font-weight: var(--font-weight-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .header-menu-wrapper {
   position: relative;
-  z-index: 102;
+  z-index: 2;
 }
 
 .header-icon-wrapper {
   background: rgba(255, 255, 255, 0.2);
   border: 2px solid white;
   border-radius: 50%;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background var(--transition-fast);
+  transition: background var(--transition-fast), border-color var(--transition-fast);
   padding: 0;
   color: white;
   font: inherit;
@@ -57,22 +63,31 @@ header {
   background: rgba(255, 255, 255, 0.3);
 }
 
+.header-icon-wrapper:focus-visible {
+  outline-color: rgba(255, 255, 255, 0.9);
+}
+
 .header-popup-menu {
   position: absolute;
   top: calc(100% + 0.75rem);
   right: 0;
   background: white;
   border-radius: var(--card-radius);
-  box-shadow: 0 12px 30px rgba(31, 41, 55, 0.24);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-overlay);
   padding: var(--spacing-s);
-  z-index: 103;
+  z-index: 3;
   width: min(300px, calc(100vw - 1rem));
-  max-height: calc(100vh - 5rem);
+  max-height: calc(
+    100dvh - var(--app-header-height) - var(--safe-area-top) -
+      var(--safe-area-bottom) - var(--space-4)
+  );
   overflow-y: auto;
 }
 
 .header-popup-item {
   width: 100%;
+  min-height: var(--control-height-sm);
   display: flex;
   align-items: center;
   padding: var(--spacing-s);
@@ -88,13 +103,16 @@ header {
 
 .header-popup-item:hover,
 .header-popup-item:focus-visible {
-  background: var(--bg);
-  outline: none;
+  background: var(--color-surface-muted);
+}
+
+.header-popup-item:focus-visible {
+  outline-offset: -2px;
 }
 
 .header-popup-icon {
-  background: var(--secondary);
-  color: white;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
   border-radius: var(--border-radius-full);
   padding: 0.4rem;
   margin-right: var(--spacing-s);
@@ -110,22 +128,22 @@ header {
 }
 
 .header-popup-label {
-  font-weight: 600;
-  color: var(--text);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
 }
 
 .header-popup-desc {
-  color: #666;
+  color: var(--color-text-muted);
   font-size: 0.75rem;
 }
 
 .header-popup-section-label {
   margin: var(--spacing-s) var(--spacing-s) 0.2rem;
   padding-top: var(--spacing-s);
-  border-top: 1px solid var(--neutral);
-  color: var(--neutral-dark);
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text-muted);
   font-size: 0.68rem;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -133,16 +151,16 @@ header {
 .header-popup-divider {
   height: 1px;
   margin: var(--spacing-s) 0;
-  background: var(--neutral);
+  background: var(--color-border);
 }
 
 .header-popup-item--logout .header-popup-icon {
   background: rgba(220, 38, 38, 0.12);
-  color: var(--danger);
+  color: var(--color-error);
 }
 
 .header-popup-item--logout .header-popup-label {
-  color: var(--danger);
+  color: var(--color-error);
 }
 
 /* Optionaler Blur-Hintergrund */
@@ -151,5 +169,5 @@ header {
   inset: 0;
   backdrop-filter: blur(3px);
   background-color: #00000010;
-  z-index: 101;
+  z-index: 1;
 }

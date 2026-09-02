@@ -1,0 +1,92 @@
+.ui-switch {
+  min-height: var(--control-height-md);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-4);
+  cursor: pointer;
+}
+
+.ui-switch__copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.ui-switch__label {
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-heading);
+}
+
+.ui-switch__description {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-body);
+}
+
+.ui-switch__input {
+  width: 1px;
+  height: 1px;
+  position: absolute;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.ui-switch__control {
+  width: 3.25rem;
+  height: 1.875rem;
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  padding: 0.1875rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-full);
+  background: var(--color-surface-muted);
+  transition: border-color var(--transition-fast), background var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.ui-switch__thumb {
+  width: 1.375rem;
+  height: 1.375rem;
+  border-radius: 50%;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-medium);
+}
+
+.ui-switch__input:checked + .ui-switch__control {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+}
+
+.ui-switch__input:checked + .ui-switch__control .ui-switch__thumb {
+  transform: translateX(1.3125rem);
+}
+
+.ui-switch__input:focus-visible {
+  outline: none;
+}
+
+.ui-switch__input:focus-visible + .ui-switch__control {
+  box-shadow: var(--focus-ring);
+}
+
+.ui-switch__input:disabled ~ .ui-switch__control,
+.ui-switch:has(.ui-switch__input:disabled) {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-switch__control,
+  .ui-switch__thumb {
+    transition: none;
+  }
+}

@@ -17,6 +17,9 @@ import {
 } from "lucide-react";
 import "../styles/pages/Home.css";
 import { EveningListSkeleton } from "../components/ui/Skeleton";
+import ActionNotice from "../components/ui/ActionNotice";
+import SegmentedControl from "../components/ui/SegmentedControl";
+import StatusBadge from "../components/ui/StatusBadge";
 import {
   formatSwissDate,
   formatSwissTime,
@@ -300,14 +303,6 @@ export default function Home() {
     return pool[Math.floor(sayingSeed * pool.length)];
   };
 
-  const getStatusLabel = (status) =>
-    ({
-      offen: "Offen",
-      fixiert: "Bestätigt",
-      abgeschlossen: "Abgeschlossen",
-      gesperrt: "Gesperrt",
-    })[status] || status;
-
   const getCountdownLabel = (date) => {
     const days = calculateDaysLeft(date);
 
@@ -393,10 +388,7 @@ export default function Home() {
               Tagessieg
             </span>
           ) : (
-            <span className={`home-status-badge status-${abend.status}`}>
-              <span className="home-status-dot" aria-hidden="true" />
-              {getStatusLabel(abend.status)}
-            </span>
+            <StatusBadge status={abend.status} />
           )}
         </div>
 
@@ -472,28 +464,29 @@ export default function Home() {
             className="home-evening-actions"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="home-participation">
-              <button
-                type="button"
-                className={`home-participation-option ${isTeilnehmer ? "is-selected is-yes" : ""}`}
-                onClick={() => !isTeilnehmer && handleJoin(abend._id)}
-                aria-pressed={isTeilnehmer}
-                disabled={busy}
-              >
-                <CheckCircle2 size={18} aria-hidden="true" />
-                Dabei
-              </button>
-              <button
-                type="button"
-                className={`home-participation-option ${!isTeilnehmer ? "is-selected" : ""}`}
-                onClick={() => isTeilnehmer && handleLeave(abend._id)}
-                aria-pressed={!isTeilnehmer}
-                disabled={busy}
-              >
-                <XCircle size={18} aria-hidden="true" />
-                Nicht dabei
-              </button>
-            </div>
+            <SegmentedControl
+              ariaLabel="Teilnahme auswählen"
+              value={isTeilnehmer ? "yes" : "no"}
+              onChange={(nextValue) =>
+                nextValue === "yes"
+                  ? handleJoin(abend._id)
+                  : handleLeave(abend._id)
+              }
+              disabled={busy}
+              options={[
+                {
+                  value: "yes",
+                  label: "Dabei",
+                  tone: "success",
+                  icon: <CheckCircle2 size={18} />,
+                },
+                {
+                  value: "no",
+                  label: "Nicht dabei",
+                  icon: <XCircle size={18} />,
+                },
+              ]}
+            />
           </div>
         )}
       </article>
@@ -501,7 +494,7 @@ export default function Home() {
   };
 
   return (
-    <div className="home-page">
+    <div className="page-shell home-page">
       <section className="home-welcome" aria-labelledby="home-greeting">
         <span className="home-welcome-avatar" aria-hidden="true">
           {user.profileImageUrl ? (
@@ -521,21 +514,21 @@ export default function Home() {
       {!loading && notificationList.length > 0 && (
         <section className="home-alerts" aria-label="Offene Aufgaben">
           {notificationList.map((n, i) => (
-            <button
-              type="button"
+            <ActionNotice
               key={i}
-              className={`home-alert home-alert--${n.type}`}
+              tone={n.type === "leader" ? "warning" : "primary"}
+              icon={
+                n.type === "leader" ? (
+                  <Megaphone size={21} />
+                ) : (
+                  <Vote size={21} />
+                )
+              }
+              title={n.title}
               onClick={() => navigate(n.target)}
             >
-              <span className="home-alert-icon" aria-hidden="true">
-                {n.type === "leader" ? <Megaphone size={21} /> : <Vote size={21} />}
-              </span>
-              <span className="home-alert-copy">
-                <strong>{n.title}</strong>
-                <span>{n.description}</span>
-              </span>
-              <ChevronRight className="home-alert-chevron" size={21} aria-hidden="true" />
-            </button>
+              {n.description}
+            </ActionNotice>
           ))}
         </section>
       )}

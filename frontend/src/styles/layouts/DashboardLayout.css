@@ -1,8 +1,25 @@
 @import "../variables.css";
 
 .dashboard-main {
-  margin-top: 3.3rem; /* Höhe des Headers */
-  margin-bottom: 4.5rem; /* Platz für Navbar */
+  min-height: 100dvh;
+  padding-top: calc(var(--app-header-height) + var(--safe-area-top));
+  padding-bottom: calc(var(--app-navbar-height) + var(--safe-area-bottom));
+}
+
+.page-shell {
+  width: 100%;
+  max-width: var(--page-max-default);
+  margin-inline: auto;
+  padding-right: max(var(--page-gutter), var(--safe-area-right));
+  padding-left: max(var(--page-gutter), var(--safe-area-left));
+}
+
+.page-shell--compact {
+  max-width: var(--page-max-compact);
+}
+
+.page-shell--wide {
+  max-width: var(--page-max-wide);
 }
 
 .logout-container {
@@ -43,19 +60,29 @@
 
 .testmode-banner {
   position: fixed;
-  top: 3.3rem;
+  top: calc(var(--app-header-height) + var(--safe-area-top));
   left: 0;
   right: 0;
-  z-index: 100;
-  padding: 0.35rem var(--spacing-m);
+  z-index: calc(var(--z-header) - 1);
+  min-height: var(--app-banner-height);
+  padding: 0.35rem max(var(--page-gutter), var(--safe-area-right)) 0.35rem
+    max(var(--page-gutter), var(--safe-area-left));
   background: var(--accent);
   color: #1f2937;
   font-size: 0.85rem;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   text-align: center;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.18);
 }
 
 .testmode-banner + .dashboard-main {
-  margin-top: 5.4rem;
+  padding-top: calc(
+    var(--app-header-height) + var(--app-banner-height) + var(--safe-area-top)
+  );
+}
+
+@media (min-width: 700px) {
+  .page-shell {
+    --page-gutter: var(--space-6);
+  }
 }

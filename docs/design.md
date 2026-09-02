@@ -16,7 +16,7 @@ colors:
   error: "#dc2626"
 
 typography:
-  fontFamily: "Inter, system-ui, sans-serif"
+  fontFamily: "Poppins, system-ui, sans-serif"
   body-md:
     fontSize: 16px
     fontWeight: 400
@@ -86,6 +86,10 @@ The primary visual priority is smartphone usage.
 - Preserve existing functionality when redesigning UI.
 - Prefer improving existing components over replacing the entire frontend.
 - Reuse consistent components across all pages.
+- Use the approved Home page as the visual reference for spacing, surfaces,
+  borders, typography and interaction patterns on other pages.
+- Avoid displaying the same information more than once within the same page
+  context unless repetition materially improves usability.
 
 ## Colors
 
@@ -107,7 +111,8 @@ Status must never rely on color alone. Combine color with text, icons or badges.
 
 ## Typography
 
-Use **Inter** when available. Otherwise use a clean system sans-serif font.
+Use **Poppins** with the weights 400, 500, 600 and 700. Use the system
+sans-serif fallback only when the web font cannot be loaded.
 
 - **Page headings**: Bold, clear, compact
 - **Section headings**: Semi-bold
@@ -182,6 +187,10 @@ Prefer borders and background contrast over heavy elevation.
 
 Avoid unnecessary nested cards.
 
+Cards that are fully interactive must also look interactive. On mobile, use a
+clear, concise affordance such as `Ansehen`, `Details` or `Öffnen` with a
+directional icon when the click behavior would otherwise be unclear.
+
 ## Buttons
 
 ### Primary
@@ -244,6 +253,26 @@ This applies to:
 
 Do not use tiny standalone icons as important controls.
 
+Icons must match the meaning of the associated action, status or metric. Do not
+use a merely decorative icon when a more semantically appropriate one is
+available.
+
+## Reusable UI Patterns
+
+Use the shared React UI components instead of recreating their appearance in a
+page stylesheet:
+
+- `Button`: primary, secondary, ghost and destructive actions
+- `Card`: default, muted, accent and interactive surfaces
+- `StatusBadge`: consistent text and colors for evening statuses
+- `ActionNotice`: contextual tasks, warnings and informational actions
+- `SegmentedControl`: a small set of mutually exclusive choices
+- `Switch`: binary settings that take effect independently
+
+Page styles should arrange these components but must not redefine their core
+colors, sizes or interaction states. A page stylesheet must never be imported
+by another page.
+
 ## Home
 
 The Home page is a personal dashboard.
@@ -258,6 +287,10 @@ Prioritize content approximately in this order:
 6. Game-related fact or tip
 
 Pending actions should stand out clearly but must not look like errors.
+
+Use subtle warning styling for tasks that require attention and soft primary
+styling for active or informational tasks. Only show task cards when the task is
+currently relevant to the user.
 
 Examples:
 
@@ -409,6 +442,7 @@ Use subtle game-related personality through:
 
 Do not use:
 
+- emojis as interface icons or decorative UI elements
 - neon gaming aesthetics
 - strong gradients everywhere
 - heavy animations

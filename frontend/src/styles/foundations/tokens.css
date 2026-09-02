@@ -1,0 +1,148 @@
+:root {
+  /* Brand and semantic colors */
+  --color-primary: #6d28d9;
+  --color-primary-hover: #5b21b6;
+  --color-primary-active: #4c1d95;
+  --color-primary-soft: #ede9fe;
+  --color-primary-soft-hover: #ddd6fe;
+  --color-primary-subtle: #f5f3ff;
+  --color-primary-emphasis: #e9d5ff;
+
+  --color-background: #f8fafc;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f1f5f9;
+  --color-surface-raised: #ffffff;
+
+  --color-text: #0f172a;
+  --color-text-secondary: #334155;
+  --color-text-muted: #64748b;
+  --color-text-disabled: #94a3b8;
+  --color-text-inverse: #ffffff;
+
+  --color-border: #e2e8f0;
+  --color-border-strong: #cbd5e1;
+
+  --color-success: #16a34a;
+  --color-success-hover: #15803d;
+  --color-success-soft: #dcfce7;
+  --color-success-border: #bbf7d0;
+  --color-warning: #d97706;
+  --color-warning-hover: #b45309;
+  --color-warning-soft: #fff7ed;
+  --color-warning-border: #fed7aa;
+  --color-warning-emphasis: #ffedd5;
+  --color-warning-text: #c2410c;
+  --color-error: #dc2626;
+  --color-error-hover: #b91c1c;
+  --color-error-soft: #fef2f2;
+  --color-error-border: #fecaca;
+  --color-error-emphasis: #fee2e2;
+  --color-info: #2563eb;
+  --color-info-hover: #1d4ed8;
+  --color-info-soft: #eff6ff;
+  --color-info-border: #bfdbfe;
+  --color-info-emphasis: #dbeafe;
+
+  /* Typography */
+  --font-family-sans: "Poppins", system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+
+  --line-height-tight: 1.25;
+  --line-height-heading: 1.35;
+  --line-height-body: 1.5;
+  --line-height-relaxed: 1.65;
+
+  /* Spacing */
+  --space-0: 0;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+
+  /* Shape and elevation */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-full: 9999px;
+
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08);
+  --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.1);
+  --shadow-overlay: 0 16px 40px rgba(15, 23, 42, 0.18);
+
+  /* Interaction */
+  --control-height-sm: 2.75rem;
+  --control-height-md: 3rem;
+  --focus-ring-color: rgba(109, 40, 217, 0.3);
+  --focus-ring: 0 0 0 3px var(--focus-ring-color);
+  --transition-fast: 150ms ease;
+  --transition-medium: 220ms ease;
+
+  /* Responsive app layout */
+  --page-gutter: 1rem;
+  --page-max-compact: 45rem;
+  --page-max-default: 56.25rem;
+  --page-max-wide: 75rem;
+  --app-header-height: 3.5rem;
+  --app-navbar-height: 3.75rem;
+  --app-banner-height: 2rem;
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
+
+  /* Layering */
+  --z-header: 100;
+  --z-navigation: 100;
+  --z-dropdown: 200;
+  --z-modal: 300;
+  --z-toast: 400;
+
+  /* Temporary legacy aliases; remove after all pages are migrated. */
+  --primary: #6d28d9;
+  --primary-light: #8b5cf6;
+  --secondary: #3b82f6;
+  --accent: #facc15;
+  --bg: #f9fafb;
+  --text: #1f2937;
+  --text-muted: #64748b;
+  --danger: #dc2626;
+  --neutral: #e5e7eb;
+  --neutral-dark: #9ca3af;
+
+  --card-radius: 0.75rem;
+  --border-radius-sm: 0.4rem;
+  --border-radius-full: 999px;
+
+  --shadow-inset: inset 0 1px 2px rgba(255, 255, 255, 0.25);
+  --shadow-raised: 0 3px 6px rgba(0, 0, 0, 0.3);
+  --shadow-hover: 0 6px 10px rgba(0, 0, 0, 0.5);
+  --shadow-pressed: 0 2px 4px rgba(0, 0, 0, 0.25);
+
+  --font-family: var(--font-family-sans);
+  --font-size-base: 1.1rem;
+  --font-size-small: 0.9rem;
+  --font-size-large: 1.25rem;
+
+  --spacing-xs: 0.25rem;
+  --spacing-s: 0.5rem;
+  --spacing-m: 1rem;
+  --spacing-l: 2rem;
+}
