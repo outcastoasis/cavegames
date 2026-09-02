@@ -309,8 +309,8 @@ export default function Home() {
       <EveningCard
         key={abend._id}
         actionLabel={variant === "last" ? "Abend ansehen" : undefined}
+        className="home-evening-card"
         currentUserId={user._id}
-        detailLevel={variant === "last" ? "result" : "essential"}
         emphasis={variant === "primary"}
         evening={abend}
         footer={participationControl}

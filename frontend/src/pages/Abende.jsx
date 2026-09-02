@@ -179,7 +179,7 @@ export default function Abende() {
       <div key={abend._id} className="abende-card-item">
         <EveningCard
           currentUserId={user._id}
-          detailLevel="extended"
+          dateFormat="short"
           emphasis={
             isToday || String(evenings.nextEvening?._id) === String(abend._id)
           }

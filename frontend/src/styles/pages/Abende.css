@@ -11,7 +11,7 @@
 .abend-list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-8);
+  gap: var(--space-6);
 }
 
 .abende-section-heading {
@@ -19,7 +19,7 @@
   align-items: baseline;
   justify-content: space-between;
   gap: var(--space-3);
-  margin-bottom: var(--space-3);
+  margin-bottom: var(--space-2);
 }
 
 .abende-section-heading h2 {

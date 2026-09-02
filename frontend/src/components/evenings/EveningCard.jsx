@@ -1,10 +1,11 @@
 import {
   CalendarDays,
-  CalendarRange,
   ChevronRight,
+  Clock3,
   Gamepad2,
   Trophy,
   UserRound,
+  Users,
 } from "lucide-react";
 import StatusBadge from "../ui/StatusBadge";
 import {
@@ -13,12 +14,12 @@ import {
 } from "../../utils/swissDateTime";
 import "../../styles/components/EveningCard.css";
 
-const formatEveningDate = (date) =>
+const formatEveningDate = (date, dateFormat = "long") =>
   date
     ? formatSwissDate(date, {
         weekday: "short",
         day: "2-digit",
-        month: "long",
+        month: dateFormat === "short" ? "short" : "long",
       })
     : "Datum offen";
 
@@ -34,7 +35,7 @@ export default function EveningCard({
   actionLabel,
   className = "",
   currentUserId,
-  detailLevel = "essential",
+  dateFormat = "long",
   emphasis = false,
   evening,
   footer = null,
@@ -47,12 +48,14 @@ export default function EveningCard({
   const winners = (evening.winnerIds || [])
     .map((id) =>
       evening.participantRefs?.find(
-        (participant) => String(participant._id) === String(id),
+        (participant) =>
+          String(participant._id) === String(id?._id ?? id),
       ),
     )
     .filter(Boolean);
   const currentUserPoints = evening.playerPoints?.find(
-    (entry) => String(entry.userId) === String(currentUserId),
+    (entry) =>
+      String(entry.userId?._id ?? entry.userId) === String(currentUserId),
   )?.points;
   const currentUserWon = winners.some(
     (winner) => String(winner._id) === String(currentUserId),
@@ -61,6 +64,7 @@ export default function EveningCard({
   const interactive = Boolean(onOpen);
   const classes = [
     "evening-card",
+    `evening-card--status-${evening.status || "unknown"}`,
     emphasis ? "evening-card--featured" : "",
     showPhoto && evening.groupPhotoUrl ? "evening-card--with-photo" : "",
     interactive ? "evening-card--interactive" : "",
@@ -91,7 +95,9 @@ export default function EveningCard({
       role={interactive ? "link" : undefined}
       tabIndex={interactive ? 0 : undefined}
       aria-label={
-        interactive ? `${formatEveningDate(evening.date)} öffnen` : undefined
+        interactive
+          ? `${formatEveningDate(evening.date, dateFormat)} öffnen`
+          : undefined
       }
     >
       {showPhoto && evening.groupPhotoUrl && (
@@ -111,15 +117,7 @@ export default function EveningCard({
       <div className="evening-card__header">
         <div className="evening-card__date">
           <CalendarDays size={19} aria-hidden="true" />
-          <span>{formatEveningDate(evening.date)}</span>
-          {time && (
-            <>
-              <span className="evening-card__date-separator" aria-hidden="true">
-                •
-              </span>
-              <span>{time}</span>
-            </>
-          )}
+          <span>{formatEveningDate(evening.date, dateFormat)}</span>
         </div>
 
         {showPersonalWinBadge && currentUserWon ? (
@@ -132,34 +130,28 @@ export default function EveningCard({
         )}
       </div>
 
-      {detailLevel !== "result" && (
-        <div className="evening-card__people">
+      {!showResult && (
+        <div className="evening-card__details">
           <PersonSummary
             imageUrl={host?.profileImageUrl}
             label="Spielleiter"
             value={host?.displayName || "Noch offen"}
           />
-          <PersonSummary
-            label="Teilnehmer"
-            value={`${evening.participantRefs?.length ?? 0} zugesagt`}
-            neutral
+          <QuickFacts
+            gameCount={evening.games?.length ?? 0}
+            participantCount={evening.participantRefs?.length ?? 0}
+            time={time}
           />
         </div>
       )}
 
-      {detailLevel === "extended" && (
-        <div className="evening-card__metadata">
-          <MetadataItem
-            icon={<Gamepad2 size={17} />}
-            label="Spiele"
-            value={evening.games?.length ?? 0}
-          />
-          <MetadataItem
-            icon={<CalendarRange size={17} />}
-            label="Spieljahr"
-            value={evening.spieljahr || "–"}
-          />
-        </div>
+      {showResult && (
+        <QuickFacts
+          className="evening-card__quick-facts--result"
+          gameCount={evening.games?.length ?? 0}
+          participantCount={evening.participantRefs?.length ?? 0}
+          time={time}
+        />
       )}
 
       {showResult && winners.length > 0 && (
@@ -213,13 +205,14 @@ export default function EveningCard({
   );
 }
 
-function PersonSummary({ imageUrl, label, neutral = false, value }) {
+function PersonSummary({
+  imageUrl,
+  label,
+  value,
+}) {
   return (
     <div className="evening-card__person">
-      <span
-        className={`evening-card__avatar ${neutral ? "evening-card__avatar--neutral" : ""}`}
-        aria-hidden="true"
-      >
+      <span className="evening-card__avatar" aria-hidden="true">
         {imageUrl ? (
           <img src={imageUrl} alt="" />
         ) : (
@@ -234,16 +227,34 @@ function PersonSummary({ imageUrl, label, neutral = false, value }) {
   );
 }
 
-function MetadataItem({ icon, label, value }) {
+function QuickFacts({ className = "", gameCount, participantCount, time }) {
   return (
-    <span className="evening-card__metadata-item">
-      <span className="evening-card__metadata-icon" aria-hidden="true">
+    <div className={`evening-card__quick-facts ${className}`.trim()}>
+      {time && (
+        <QuickFact icon={<Clock3 size={17} />} label="Uhrzeit" value={time} />
+      )}
+      <QuickFact
+        icon={<Users size={17} />}
+        label="Teilnehmer"
+        value={participantCount}
+      />
+      <QuickFact
+        icon={<Gamepad2 size={17} />}
+        label="Spiele"
+        value={gameCount}
+      />
+    </div>
+  );
+}
+
+function QuickFact({ icon, label, value }) {
+  return (
+    <span className="evening-card__quick-fact">
+      <span className="evening-card__quick-fact-icon" aria-hidden="true">
         {icon}
       </span>
-      <span>
-        <small>{label}</small>
-        <strong>{value}</strong>
-      </span>
+      <span className="evening-card__visually-hidden">{label}: </span>
+      <strong>{value}</strong>
     </span>
   );
 }

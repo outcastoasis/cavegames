@@ -109,6 +109,14 @@
   white-space: nowrap;
 }
 
+.home-evening-card .evening-card__details {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.home-evening-card .evening-card__quick-facts {
+  justify-content: flex-start;
+}
+
 .home-stats-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

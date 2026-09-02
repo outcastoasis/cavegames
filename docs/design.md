@@ -257,6 +257,11 @@ Icons must match the meaning of the associated action, status or metric. Do not
 use a merely decorative icon when a more semantically appropriate one is
 available.
 
+Avoid repeating an obvious icon with a visible label in compact cards. When the
+meaning is clear from the icon and its value, show only those two elements and
+retain the label as accessible text. Keep a visible label whenever the icon
+could be misunderstood.
+
 ## Reusable UI Patterns
 
 Use the shared React UI components instead of recreating their appearance in a
@@ -271,7 +276,7 @@ page stylesheet:
 
 Use the shared domain components for recurring game-night behavior:
 
-- `EveningCard`: date, status, host, participants and optional result or metadata
+- `EveningCard`: date, status, host, participants and optional results or actions
 - `ParticipationControl`: the consistent `Dabei` / `Nicht dabei` selection
 
 Page styles should arrange these components but must not redefine their core
@@ -314,11 +319,22 @@ Game-night cards should prioritize:
 4. Relevant action
 5. Game leader / location
 6. Participants
-7. Additional metadata
+7. Number of games when it helps users scan the overview
 
 Do not display every available property in overview cards.
 
+Do not add a separate metadata row by default. Time, participant count and game
+count may form one compact icon-and-value group. Values such as season year
+belong only in views where they support the user's immediate task.
+
+Use abbreviated month names in dense lists and full month names in prominent
+dashboard cards.
+
 Today's game night and the next upcoming game night may receive stronger visual emphasis.
+
+Use a slim status-colored inline-start border on overview cards. Keep the card
+surface neutral and retain the text badge so status is never communicated by
+color alone.
 
 ## Participation
 
