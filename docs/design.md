@@ -271,6 +271,7 @@ page stylesheet:
   `danger-ghost` for compact removal icons that should not dominate the page
 - `Card`: default, muted, accent and interactive surfaces
 - `StatusBadge`: consistent text and colors for evening statuses
+- `AvatarStack`: compact recognition of several participants or voters
 - `ActionNotice`: contextual tasks, warnings and informational actions
 - `SegmentedControl`: a small set of mutually exclusive choices
 - `Switch`: binary settings that take effect independently

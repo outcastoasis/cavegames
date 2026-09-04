@@ -200,10 +200,7 @@ export default function AdminUsers() {
           onClick={() => setFiltersOpen((open) => !open)}
           size="sm"
           trailingIcon={
-            <ChevronDown
-              className={filtersOpen ? "is-open" : ""}
-              size={17}
-            />
+            <ChevronDown className={filtersOpen ? "is-open" : ""} size={17} />
           }
           variant="secondary"
         >
@@ -291,7 +288,12 @@ export default function AdminUsers() {
       ) : (
         <div className="admin-users-list">
           {visibleUsers.map((userItem) => (
-            <Card as="article" className="admin-user-card" key={userItem._id} padding="md">
+            <Card
+              as="article"
+              className="admin-user-card"
+              key={userItem._id}
+              padding="md"
+            >
               <div className="admin-user-card__identity">
                 <img
                   className="admin-user-card__avatar"
@@ -403,9 +405,13 @@ export default function AdminUsers() {
       <ConfirmDialog
         busy={actionBusy}
         busyLabel={
-          confirmAction?.type === "delete" ? "Wird gelöscht …" : "Wird entfernt …"
+          confirmAction?.type === "delete"
+            ? "Wird gelöscht …"
+            : "Wird entfernt …"
         }
-        confirmLabel={confirmAction?.type === "delete" ? "Löschen" : "Entfernen"}
+        confirmLabel={
+          confirmAction?.type === "delete" ? "Löschen" : "Entfernen"
+        }
         danger={confirmAction?.type === "delete"}
         icon={confirmAction?.type === "avatar" ? <ImageOff size={23} /> : null}
         onCancel={() => setConfirmAction(null)}
