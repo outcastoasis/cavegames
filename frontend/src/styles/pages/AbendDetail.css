@@ -205,7 +205,7 @@
 .abenddetail-rank-item {
   min-height: var(--control-height-sm);
   display: grid;
-  grid-template-columns: 2rem minmax(0, 1fr) auto;
+  grid-template-columns: 2rem 2.25rem minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-3);
@@ -218,6 +218,13 @@
 .abenddetail-rank-place,
 .abenddetail-rank-points {
   font-weight: var(--font-weight-semibold);
+}
+
+.abenddetail-rank-avatar {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .abenddetail-rank-name,
@@ -705,7 +712,7 @@
   }
 
   .abenddetail-rank-item {
-    grid-template-columns: 1.75rem minmax(0, 1fr) auto;
+    grid-template-columns: 1.75rem 2.25rem minmax(0, 1fr) auto;
     padding-inline: var(--space-2);
   }
 }

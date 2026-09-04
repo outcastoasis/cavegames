@@ -634,6 +634,16 @@ export default function AbendDetail() {
                 return (
                   <li key={p.userId} className="abenddetail-rank-item">
                     <span className="abenddetail-rank-place">{p.place}.</span>
+                    <img
+                      className="abenddetail-rank-avatar"
+                      src={userRef?.profileImageUrl || defaultAvatar}
+                      alt=""
+                      loading="lazy"
+                      referrerPolicy="no-referrer"
+                      onError={(event) => {
+                        event.currentTarget.src = defaultAvatar;
+                      }}
+                    />
                     <span className="abenddetail-rank-name">
                       {userRef?.displayName || "?"}
                     </span>
