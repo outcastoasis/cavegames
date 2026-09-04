@@ -105,6 +105,13 @@
   white-space: normal;
 }
 
+.abenddetail-event-counters {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--space-3);
+}
+
 .abenddetail-event-fact strong {
   font-weight: var(--font-weight-semibold);
 }
@@ -709,6 +716,10 @@
 @media (max-width: 380px) {
   .abenddetail-event-summary-main {
     gap: var(--space-2);
+  }
+
+  .abenddetail-event-fact--location {
+    flex-basis: 0;
   }
 
   .abenddetail-rank-item {

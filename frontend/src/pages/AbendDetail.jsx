@@ -551,15 +551,17 @@ export default function AbendDetail() {
               <span className="abenddetail-visually-hidden">Ort: </span>
               <span>{formattedLocation}</span>
             </span>
-            <span className="abenddetail-event-fact">
-              <UsersIcon size={17} aria-hidden="true" />
-              <span className="abenddetail-visually-hidden">Teilnehmer: </span>
-              <strong>{abend.participantRefs?.length ?? 0}</strong>
-            </span>
-            <span className="abenddetail-event-fact">
-              <Gamepad2 size={17} aria-hidden="true" />
-              <span className="abenddetail-visually-hidden">Spiele: </span>
-              <strong>{abend.games?.length ?? 0}</strong>
+            <span className="abenddetail-event-counters">
+              <span className="abenddetail-event-fact">
+                <UsersIcon size={17} aria-hidden="true" />
+                <span className="abenddetail-visually-hidden">Teilnehmer: </span>
+                <strong>{abend.participantRefs?.length ?? 0}</strong>
+              </span>
+              <span className="abenddetail-event-fact">
+                <Gamepad2 size={17} aria-hidden="true" />
+                <span className="abenddetail-visually-hidden">Spiele: </span>
+                <strong>{abend.games?.length ?? 0}</strong>
+              </span>
             </span>
           </div>
         </Card>
