@@ -6,6 +6,7 @@ const {
   getYearDetails,
   getYearClosePreview,
   closeYear,
+  deleteYear,
 } = require("../controllers/yearController");
 
 const checkAuth = require("../middleware/checkAuth");
@@ -21,5 +22,6 @@ router.get("/:year", getYearDetails);
 router.post("/", checkRole("admin"), createYear);
 router.get("/:year/close-preview", checkRole("admin"), getYearClosePreview);
 router.post("/:year/close", checkRole("admin"), closeYear);
+router.delete("/:year", checkRole("admin"), deleteYear);
 
 module.exports = router;

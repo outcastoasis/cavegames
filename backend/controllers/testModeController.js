@@ -3,6 +3,7 @@ const Game = require("../models/Game");
 const Poll = require("../models/Poll");
 const User = require("../models/User");
 const UserStat = require("../models/UserStat");
+const Year = require("../models/Year");
 const { ensureTestUsers } = require("../utils/testUsers");
 
 exports.resetTestEveningData = async (req, res) => {
@@ -11,6 +12,10 @@ exports.resetTestEveningData = async (req, res) => {
       Poll.deleteMany({ isTestData: true }),
       Evening.deleteMany({ isTestData: true }),
       UserStat.deleteMany({ isTestData: true }),
+      Year.updateMany(
+        { isTestData: true },
+        { $set: { closed: false }, $unset: { closedAt: "" } },
+      ),
     ]);
 
     res.json({ message: "Testabend-Daten wurden gelöscht" });
@@ -29,6 +34,7 @@ exports.resetAllTestData = async (req, res) => {
       UserStat.deleteMany({ isTestData: true }),
       Game.deleteMany({ isTestData: true }),
       User.deleteMany({ isTestData: true }),
+      Year.deleteMany({ isTestData: true }),
     ]);
 
     res.json({ message: "Alle Testdaten wurden gelöscht" });

@@ -1,60 +1,74 @@
-// src/pages/YearDetail.jsx
 import { useCallback, useEffect, useState } from "react";
-import { createPortal } from "react-dom";
-import { useParams, useNavigate, useOutletContext } from "react-router-dom";
-import { useAuth } from "../context/authState";
-import API from "../services/api";
+import {
+  Navigate,
+  useNavigate,
+  useOutletContext,
+  useParams,
+} from "react-router-dom";
 import {
   ArrowLeft,
+  CalendarCheck2,
   CalendarDays,
+  CheckCircle2,
   Gamepad2,
-  Info,
-  Lock,
-  MapPinHouse,
   Pencil,
+  RefreshCw,
   RotateCcw,
   Trash2,
+  Trophy,
   Users,
 } from "lucide-react";
+import YearCloseDialog from "../components/forms/YearCloseDialog";
+import YearEveningModal from "../components/forms/YearEveningModal";
+import EveningCard from "../components/evenings/EveningCard";
+import Button from "../components/ui/Button";
+import Card from "../components/ui/Card";
+import ConfirmDialog from "../components/ui/ConfirmDialog";
+import PageLoader from "../components/ui/PageLoader";
+import StatusBadge from "../components/ui/StatusBadge";
+import Toast from "../components/ui/Toast";
+import { useAuth } from "../context/authState";
+import API from "../services/api";
+import { formatSwissDate } from "../utils/swissDateTime";
 import "../styles/pages/YearDetail.css";
-import "../styles/components/Modal.css";
-import {
-  formatSwissDate,
-  swissDateTimeInputToIso,
-  toSwissDateTimeInputValue,
-} from "../utils/swissDateTime";
+
+const statusTone = {
+  offen: "warning",
+  fixiert: "success",
+  abgeschlossen: "primary",
+  gesperrt: "neutral",
+};
 
 export default function YearDetail() {
   const { user } = useAuth();
   const { year } = useParams();
   const navigate = useNavigate();
   const { setTitle } = useOutletContext();
-
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [deletingId, setDeletingId] = useState(null);
+  const [loadError, setLoadError] = useState("");
   const [editEvening, setEditEvening] = useState(null);
   const [fixEvening, setFixEvening] = useState(null);
-  const [fixDate, setFixDate] = useState("");
-  const [editForm, setEditForm] = useState({
-    spieljahr: "",
-    spielleiterId: "",
-    date: "",
-  });
   const [users, setUsers] = useState([]);
   const [years, setYears] = useState([]);
-  const [savingEdit, setSavingEdit] = useState(false);
-  const [savingFix, setSavingFix] = useState(false);
-  const [error, setError] = useState("");
+  const [closeState, setCloseState] = useState(null);
+  const [closing, setClosing] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null);
+  const [actionBusy, setActionBusy] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
 
-  const fetchYearData = useCallback(async () => {
+  const fetchYearData = useCallback(async ({ showLoader = false } = {}) => {
+    if (showLoader) setLoading(true);
+    setLoadError("");
+
     try {
-      const res = await API.get(`/years/${year}`);
-      setData(res.data);
-      setError("");
-    } catch (err) {
-      console.error("Fehler beim Laden der Jahresdaten:", err);
-      setError("Fehler beim Laden der Jahresdaten");
+      const response = await API.get(`/years/${year}`);
+      setData(response.data);
+    } catch (error) {
+      console.error("Fehler beim Laden der Jahresdaten:", error);
+      setLoadError(
+        error.response?.data?.error || "Jahresdaten konnten nicht geladen werden.",
+      );
     } finally {
       setLoading(false);
     }
@@ -62,383 +76,453 @@ export default function YearDetail() {
 
   useEffect(() => {
     setTitle(`Jahr ${year}`);
-    setLoading(true);
     fetchYearData();
   }, [fetchYearData, setTitle, year]);
 
+  if (!user || user.role !== "admin") {
+    return <Navigate to="/" replace />;
+  }
+
   const fetchAdminOptions = async () => {
-    if (users.length && years.length) return;
-    const [usersRes, yearsRes] = await Promise.all([
-      API.get("/users"),
-      API.get("/years"),
-    ]);
-    setUsers(usersRes.data.filter((item) => item.active !== false));
-    setYears(yearsRes.data);
+    if (users.length && years.length) return true;
+
+    try {
+      const [usersResponse, yearsResponse] = await Promise.all([
+        API.get("/users"),
+        API.get("/years"),
+      ]);
+      setUsers(usersResponse.data.filter((item) => item.active !== false));
+      setYears(yearsResponse.data);
+      return true;
+    } catch (error) {
+      setToastMessage(
+        error.response?.data?.error ||
+          "Daten für die Bearbeitung konnten nicht geladen werden.",
+      );
+      return false;
+    }
   };
 
-  const handleDeleteEvening = async (eveningId) => {
-    const ok = window.confirm(
-      "Willst du diesen Abend wirklich löschen? Umfrage und Statistiken für dieses Jahr werden entsprechend aktualisiert.",
+  const openEditEvening = async (evening) => {
+    if (await fetchAdminOptions()) setEditEvening(evening);
+  };
+
+  const handleOpenClosePreview = async () => {
+    setCloseState({ loading: true, preview: null });
+    try {
+      const response = await API.get(`/years/${year}/close-preview`);
+      setCloseState({ loading: false, preview: response.data.preview });
+    } catch (error) {
+      setCloseState(null);
+      setToastMessage(
+        error.response?.data?.error ||
+          "Abschlussprüfung konnte nicht geladen werden.",
+      );
+    }
+  };
+
+  const handleCloseYear = async () => {
+    if (!closeState?.preview?.canClose || closing) return;
+
+    setClosing(true);
+    try {
+      const response = await API.post(`/years/${year}/close`);
+      setCloseState(null);
+      await fetchYearData();
+      setToastMessage(response.data.message || "Jahr abgeschlossen");
+    } catch (error) {
+      if (error.response?.data?.preview) {
+        setCloseState({
+          loading: false,
+          preview: error.response.data.preview,
+        });
+      }
+      setToastMessage(
+        error.response?.data?.error || "Jahr konnte nicht abgeschlossen werden.",
+      );
+    } finally {
+      setClosing(false);
+    }
+  };
+
+  const handleConfirmedAction = async () => {
+    if (!confirmAction || actionBusy) return;
+    const { type, evening } = confirmAction;
+
+    setActionBusy(true);
+    try {
+      if (type === "delete-year") {
+        const response = await API.delete(`/years/${year}`);
+        setToastMessage(response.data.message || "Jahr gelöscht");
+        setConfirmAction(null);
+        navigate("/admin/years", { replace: true });
+        return;
+      }
+
+      if (type === "delete-evening") {
+        await API.delete(`/evenings/${evening._id}`);
+        setToastMessage("Abend gelöscht");
+      } else {
+        await API.patch(`/evenings/${evening._id}/status`, { status: "offen" });
+        setToastMessage("Terminfixierung zurückgesetzt");
+      }
+
+      setConfirmAction(null);
+      await fetchYearData();
+    } catch (error) {
+      setToastMessage(
+        error.response?.data?.error || "Aktion konnte nicht ausgeführt werden.",
+      );
+    } finally {
+      setActionBusy(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="page-shell page-shell--compact year-detail-page">
+        <PageLoader
+          compact
+          message="Abende und Status werden vorbereitet."
+          title="Spieljahr wird geladen"
+        />
+      </div>
     );
-    if (!ok) return;
+  }
 
-    setDeletingId(eveningId);
-    setError("");
-
-    try {
-      await API.delete(`/evenings/${eveningId}`);
-      await fetchYearData();
-    } catch (err) {
-      setError(err?.response?.data?.error || "Fehler beim Löschen des Abends");
-    } finally {
-      setDeletingId(null);
-    }
-  };
-
-  const openEditEvening = async (abend) => {
-    try {
-      await fetchAdminOptions();
-      setEditEvening(abend);
-      setEditForm({
-        spieljahr: String(abend.spieljahr || year),
-        spielleiterId: abend.spielleiterRef?._id || "",
-        date: toSwissDateTimeInputValue(abend.date),
-      });
-      setError("");
-    } catch {
-      setError("Daten für Bearbeitung konnten nicht geladen werden");
-    }
-  };
-
-  const handleEditField = (field, value) => {
-    setEditForm((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleSaveEvening = async (event) => {
-    event.preventDefault();
-    if (!editEvening) return;
-
-    setSavingEdit(true);
-    setError("");
-    try {
-      await API.patch(`/evenings/${editEvening._id}`, {
-        spieljahr: Number(editForm.spieljahr),
-        spielleiterId: editForm.spielleiterId,
-        date: editForm.date ? swissDateTimeInputToIso(editForm.date) : null,
-      });
-      setEditEvening(null);
-      await fetchYearData();
-    } catch (err) {
-      setError(
-        err?.response?.data?.error || "Abend konnte nicht gespeichert werden",
-      );
-    } finally {
-      setSavingEdit(false);
-    }
-  };
-
-  const handleFixEvening = async (abend) => {
-    setFixEvening(abend);
-    setFixDate(toSwissDateTimeInputValue(abend.date));
-    setError("");
-  };
-
-  const handleSaveFixing = async (event) => {
-    event.preventDefault();
-    if (!fixEvening || !fixDate) return;
-
-    setSavingFix(true);
-    setError("");
-    try {
-      await API.patch(`/evenings/${fixEvening._id}/status`, {
-        status: "fixiert",
-        date: swissDateTimeInputToIso(fixDate),
-      });
-      setFixEvening(null);
-      setFixDate("");
-      await fetchYearData();
-    } catch (err) {
-      setError(
-        err?.response?.data?.error || "Abend konnte nicht fixiert werden",
-      );
-    } finally {
-      setSavingFix(false);
-    }
-  };
-
-  const handleResetFixing = async (abend) => {
-    const ok = window.confirm(
-      "Terminfixierung wirklich zurücksetzen? Das ist nur ohne erfasste Spiele möglich.",
+  if (loadError || !data) {
+    return (
+      <div className="page-shell page-shell--compact year-detail-page">
+        <Card className="year-detail-state" variant="muted">
+          <RefreshCw size={23} aria-hidden="true" />
+          <h2>Laden fehlgeschlagen</h2>
+          <p>{loadError || "Keine Jahresdaten gefunden."}</p>
+          <Button
+            leadingIcon={<RefreshCw size={17} />}
+            onClick={() => fetchYearData({ showLoader: true })}
+            size="sm"
+            variant="secondary"
+          >
+            Erneut laden
+          </Button>
+        </Card>
+      </div>
     );
-    if (!ok) return;
+  }
 
-    try {
-      await API.patch(`/evenings/${abend._id}/status`, { status: "offen" });
-      await fetchYearData();
-    } catch (err) {
-      setError(
-        err?.response?.data?.error ||
-          "Terminfixierung konnte nicht zurückgesetzt werden",
-      );
-    }
-  };
-
-  if (!user || user.role !== "admin") return <p>Kein Zugriff</p>;
-  if (loading) return <p>Lade Daten...</p>;
-  if (!data) return <p>Keine Daten gefunden.</p>;
-
-  const { year: yearObj, evenings } = data;
+  const { year: yearData, evenings } = data;
+  const summary = getYearSummary(evenings);
+  const confirmation = getConfirmationContent(confirmAction, year, evenings.length);
 
   return (
-    <div className="year-detail-page">
-      <div className="year-detail-top">
-        <div className="year-detail-top-left">
-          <h2 className="year-detail-title">Jahr {yearObj.year}</h2>
-
-          {yearObj.closed ? (
-            <span className="year-detail-pill year-detail-pill-closed">
-              <Info size={14} />
-              Abgeschlossen am{" "}
-              {formatSwissDate(yearObj.closedAt)}
-            </span>
-          ) : (
-            <span className="year-detail-pill year-detail-pill-open">
-              <Info size={14} />
-              Noch offen
-            </span>
-          )}
-        </div>
-
-        <button
-          className="button neutral year-detail-back"
-          onClick={() => navigate(-1)}
-        >
-          <ArrowLeft size={16} /> Zurück
-        </button>
-      </div>
-
-      {error && <div className="alert error year-detail-alert">{error}</div>}
-
-      {evenings.length === 0 ? (
-        <p className="year-detail-empty">Keine Abende in diesem Jahr.</p>
-      ) : (
-        <div className="year-detail-list">
-          {evenings.map((abend) => (
-            <div
-              key={abend._id}
-              className={`card year-detail-card status-${abend.status}`}
-              onClick={(event) => {
-                if (event.target.closest(".year-detail-actions")) return;
-                navigate(`/abende/${abend._id}`);
-              }}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") navigate(`/abende/${abend._id}`);
-              }}
-            >
-              <div className="year-detail-card-header">
-                <div className="year-detail-date">
-                  <CalendarDays size={16} />
-                  {abend.date
-                    ? formatSwissDate(abend.date, {
-                        weekday: "short",
-                        day: "2-digit",
-                        month: "short",
-                      })
-                    : "Datum offen"}
-                </div>
-
-                <span className={`badge-abende status-${abend.status}`}>
-                  {String(abend.status || "").toUpperCase()}
-                </span>
-              </div>
-
-              <div className="year-detail-meta">
-                <div className="year-detail-meta-item">
-                  <MapPinHouse size={16} />
-                  {abend.spielleiterRef?.displayName || "-"}
-                </div>
-
-                <div className="year-detail-meta-item">
-                  <Users size={16} />
-                  {abend.participantRefs?.length ?? 0} Teilnehmer
-                </div>
-
-                <div className="year-detail-meta-item">
-                  <Gamepad2 size={16} />
-                  {abend.games?.length ?? 0} Spiele
-                </div>
-              </div>
-
-              <div
-                className="year-detail-actions"
-                onClick={(event) => event.stopPropagation()}
-              >
-                {!yearObj.closed && (
-                  <>
-                    <button
-                      className="button neutral small"
-                      onClick={() => openEditEvening(abend)}
-                      title="Abend bearbeiten"
-                    >
-                      <Pencil size={16} />
-                      Bearbeiten
-                    </button>
-
-                    {abend.status === "offen" && (
-                      <button
-                        className="button primary small"
-                        onClick={() => handleFixEvening(abend)}
-                        title="Termin fixieren"
-                      >
-                        <Lock size={16} />
-                        Fixieren
-                      </button>
-                    )}
-
-                    {abend.status === "fixiert" && (
-                      <button
-                        className="button neutral small"
-                        onClick={() => handleResetFixing(abend)}
-                        title="Terminfixierung zurücksetzen"
-                      >
-                        <RotateCcw size={16} />
-                        Zurücksetzen
-                      </button>
-                    )}
-
-                    <button
-                      className="button danger small"
-                      onClick={() => handleDeleteEvening(abend._id)}
-                      disabled={deletingId === abend._id}
-                      title="Abend löschen"
-                    >
-                      <Trash2 size={16} />
-                      {deletingId === abend._id ? "Lösche..." : "Löschen"}
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
+    <div className="page-shell page-shell--compact year-detail-page">
+      {toastMessage && (
+        <Toast message={toastMessage} onClose={() => setToastMessage("")} />
       )}
 
-      {editEvening &&
-        createPortal(
-          <div className="modal-overlay">
-          <div className="modal">
-            <h2>Abend bearbeiten</h2>
-            <form className="modal-form" onSubmit={handleSaveEvening}>
-              <label>Spieljahr</label>
-              <select
-                className="input"
-                value={editForm.spieljahr}
-                onChange={(event) =>
-                  handleEditField("spieljahr", event.target.value)
-                }
-              >
-                {years.map((item) => (
-                  <option
-                    key={item._id}
-                    value={item.year}
-                    disabled={item.closed}
-                  >
-                    {item.year} {item.closed ? "(abgeschlossen)" : ""}
-                  </option>
-                ))}
-              </select>
+      <Button
+        className="year-detail-back"
+        leadingIcon={<ArrowLeft size={18} />}
+        onClick={() => navigate("/admin/years")}
+        size="sm"
+        variant="ghost"
+      >
+        Zurück
+      </Button>
 
-              <label>Spielleiter</label>
-              <select
-                className="input"
-                value={editForm.spielleiterId}
-                onChange={(event) =>
-                  handleEditField("spielleiterId", event.target.value)
-                }
-              >
-                <option value="">Bitte wählen</option>
-                {users.map((item) => (
-                  <option key={item._id} value={item._id}>
-                    {item.displayName} ({item.username})
-                  </option>
-                ))}
-              </select>
-
-              <label>Datum</label>
-              <input
-                className="input"
-                type="datetime-local"
-                value={editForm.date}
-                onChange={(event) =>
-                  handleEditField("date", event.target.value)
-                }
-              />
-
-              <div className="modal-actions">
-                <button
-                  type="button"
-                  className="button neutral"
-                  onClick={() => setEditEvening(null)}
-                  disabled={savingEdit}
-                >
-                  Abbrechen
-                </button>
-                <button
-                  className="button primary"
-                  type="submit"
-                  disabled={savingEdit}
-                >
-                  {savingEdit ? "Speichert..." : "Speichern"}
-                </button>
-              </div>
-            </form>
+      <Card
+        as="section"
+        className={`year-detail-summary year-detail-summary--${
+          yearData.closed ? "closed" : "open"
+        }`}
+        padding="md"
+      >
+        <div className="year-detail-summary__header">
+          <div>
+            <span>Spieljahr</span>
+            <h1>{yearData.year}</h1>
           </div>
-          </div>,
-          document.body,
+          <div className="year-detail-summary__badges">
+            <StatusBadge
+              label={yearData.closed ? "Abgeschlossen" : "Offen"}
+              tone={yearData.closed ? "success" : "warning"}
+            />
+            {yearData.isTestData && (
+              <StatusBadge label="Test" tone="warning" />
+            )}
+          </div>
+        </div>
+
+        {yearData.closedAt && (
+          <p className="year-detail-summary__closed-at">
+            <CalendarCheck2 size={16} aria-hidden="true" />
+            Abgeschlossen am {formatSwissDate(yearData.closedAt)}
+          </p>
         )}
 
-      {fixEvening &&
-        createPortal(
-          <div className="modal-overlay">
-          <div className="modal">
-            <h2>Termin fixieren</h2>
-            <form className="modal-form" onSubmit={handleSaveFixing}>
-              <label>Datum und Zeit</label>
-              <input
-                className="input"
-                type="datetime-local"
-                value={fixDate}
-                onChange={(event) => setFixDate(event.target.value)}
-                required
-              />
+        <div className="year-detail-metrics">
+          <Metric icon={<CalendarDays size={19} />} label="Abende" value={evenings.length} />
+          <Metric icon={<Users size={19} />} label="Teilnahmen" value={summary.participants} />
+          <Metric icon={<Gamepad2 size={19} />} label="Spiele" value={summary.games} />
+          <Metric icon={<Trophy size={19} />} label="Punkte" value={summary.points} />
+        </div>
 
-              <div className="modal-actions">
-                <button
-                  type="button"
-                  className="button neutral"
-                  onClick={() => {
-                    setFixEvening(null);
-                    setFixDate("");
-                  }}
-                  disabled={savingFix}
-                >
-                  Abbrechen
-                </button>
-                <button
-                  className="button primary"
-                  type="submit"
-                  disabled={savingFix || !fixDate}
-                >
-                  {savingFix ? "Fixiert..." : "Fixieren"}
-                </button>
-              </div>
-            </form>
+        {evenings.length > 0 && (
+          <div className="year-detail-statuses" aria-label="Status der Abende">
+            {Object.entries(summary.statusCounts)
+              .filter(([, count]) => count > 0)
+              .map(([status, count]) => (
+                <StatusBadge
+                  key={status}
+                  label={`${count} ${getStatusLabel(status)}`}
+                  showDot={false}
+                  tone={statusTone[status]}
+                />
+              ))}
           </div>
-          </div>,
-          document.body,
         )}
+
+        <div className="year-detail-summary__actions">
+          {!yearData.closed && (
+            <Button
+              leadingIcon={<CalendarCheck2 size={18} />}
+              onClick={handleOpenClosePreview}
+              size="sm"
+            >
+              Abschluss prüfen
+            </Button>
+          )}
+          <Button
+            leadingIcon={<Trash2 size={18} />}
+            onClick={() => setConfirmAction({ type: "delete-year" })}
+            size="sm"
+            variant="danger-ghost"
+          >
+            Jahr löschen
+          </Button>
+        </div>
+      </Card>
+
+      <section className="year-detail-section" aria-labelledby="year-evenings-title">
+        <div className="year-detail-section__heading">
+          <h2 id="year-evenings-title">Spieleabende</h2>
+          <span>{evenings.length}</span>
+        </div>
+
+        {evenings.length === 0 ? (
+          <Card className="year-detail-empty" padding="md" variant="muted">
+            <CalendarDays size={22} aria-hidden="true" />
+            <p>In diesem Jahr sind noch keine Abende vorhanden.</p>
+          </Card>
+        ) : (
+          <div className="year-detail-list">
+            {evenings.map((evening) => (
+              <EveningCard
+                actionLabel="Abend ansehen"
+                evening={evening}
+                footer={
+                  !yearData.closed ? (
+                    <EveningAdminActions
+                      evening={evening}
+                      onDelete={() =>
+                        setConfirmAction({ type: "delete-evening", evening })
+                      }
+                      onEdit={() => openEditEvening(evening)}
+                      onFix={() => setFixEvening(evening)}
+                      onReset={() =>
+                        setConfirmAction({ type: "reset-evening", evening })
+                      }
+                    />
+                  ) : null
+                }
+                key={evening._id}
+                onOpen={() => navigate(`/abende/${evening._id}`)}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {editEvening && (
+        <YearEveningModal
+          evening={editEvening}
+          onClose={() => setEditEvening(null)}
+          onSuccess={async (message) => {
+            await fetchYearData();
+            setToastMessage(message);
+          }}
+          users={users}
+          years={years}
+        />
+      )}
+
+      {fixEvening && (
+        <YearEveningModal
+          evening={fixEvening}
+          mode="fix"
+          onClose={() => setFixEvening(null)}
+          onSuccess={async (message) => {
+            await fetchYearData();
+            setToastMessage(message);
+          }}
+        />
+      )}
+
+      <YearCloseDialog
+        busy={closing}
+        loading={Boolean(closeState?.loading)}
+        onClose={() => setCloseState(null)}
+        onConfirm={handleCloseYear}
+        open={Boolean(closeState)}
+        preview={closeState?.preview}
+        year={year}
+      />
+
+      <ConfirmDialog
+        busy={actionBusy}
+        busyLabel={confirmation.busyLabel}
+        confirmLabel={confirmation.confirmLabel}
+        danger={confirmation.danger}
+        icon={confirmation.icon}
+        onCancel={() => setConfirmAction(null)}
+        onConfirm={handleConfirmedAction}
+        open={Boolean(confirmAction)}
+        title={confirmation.title}
+      >
+        <p>{confirmation.description}</p>
+      </ConfirmDialog>
     </div>
   );
+}
+
+function EveningAdminActions({ evening, onDelete, onEdit, onFix, onReset }) {
+  return (
+    <div className="year-detail-evening-actions">
+      <Button
+        aria-label="Abend bearbeiten"
+        iconOnly
+        onClick={onEdit}
+        size="sm"
+        title="Abend bearbeiten"
+        variant="secondary"
+      >
+        <Pencil size={18} />
+      </Button>
+      {evening.status === "offen" && (
+        <Button
+          aria-label="Termin fixieren"
+          iconOnly
+          onClick={onFix}
+          size="sm"
+          title="Termin fixieren"
+        >
+          <CalendarCheck2 size={18} />
+        </Button>
+      )}
+      {evening.status === "fixiert" && (
+        <Button
+          aria-label="Terminfixierung zurücksetzen"
+          iconOnly
+          onClick={onReset}
+          size="sm"
+          title="Terminfixierung zurücksetzen"
+          variant="secondary"
+        >
+          <RotateCcw size={18} />
+        </Button>
+      )}
+      <Button
+        aria-label="Abend löschen"
+        iconOnly
+        onClick={onDelete}
+        size="sm"
+        title="Abend löschen"
+        variant="danger-ghost"
+      >
+        <Trash2 size={18} />
+      </Button>
+    </div>
+  );
+}
+
+function Metric({ icon, label, value }) {
+  return (
+    <div className="year-detail-metric">
+      <span aria-hidden="true">{icon}</span>
+      <strong>{value}</strong>
+      <small>{label}</small>
+    </div>
+  );
+}
+
+function getYearSummary(evenings) {
+  return evenings.reduce(
+    (summary, evening) => {
+      summary.participants += evening.participantRefs?.length || 0;
+      summary.games += evening.games?.length || 0;
+      summary.points += Number(evening.totalPoints) || 0;
+      if (summary.statusCounts[evening.status] != null) {
+        summary.statusCounts[evening.status] += 1;
+      }
+      return summary;
+    },
+    {
+      participants: 0,
+      games: 0,
+      points: 0,
+      statusCounts: {
+        offen: 0,
+        fixiert: 0,
+        abgeschlossen: 0,
+        gesperrt: 0,
+      },
+    },
+  );
+}
+
+function getStatusLabel(status) {
+  const labels = {
+    offen: "offen",
+    fixiert: "fixiert",
+    abgeschlossen: "abgeschlossen",
+    gesperrt: "gesperrt",
+  };
+  return labels[status] || status;
+}
+
+function getConfirmationContent(action, year, eveningCount) {
+  if (action?.type === "delete-evening") {
+    return {
+      busyLabel: "Wird gelöscht …",
+      confirmLabel: "Abend löschen",
+      danger: true,
+      description:
+        "Der Abend, seine Umfrage und die zugehörigen Jahresstatistiken werden entfernt.",
+      icon: <Trash2 size={24} />,
+      title: "Abend löschen?",
+    };
+  }
+
+  if (action?.type === "reset-evening") {
+    return {
+      busyLabel: "Wird zurückgesetzt …",
+      confirmLabel: "Zurücksetzen",
+      danger: false,
+      description:
+        "Der Termin wird entfernt und eine vorhandene Abstimmung wieder geöffnet.",
+      icon: <RotateCcw size={24} />,
+      title: "Terminfixierung zurücksetzen?",
+    };
+  }
+
+  return {
+    busyLabel: "Wird gelöscht …",
+    confirmLabel: "Jahr löschen",
+    danger: true,
+    description: `Jahr ${year} und ${eveningCount} zugehörige${
+      eveningCount === 1 ? "r Abend" : " Abende"
+    } werden inklusive Umfragen, Statistiken und Gruppenfotos dauerhaft gelöscht.`,
+    icon: <Trash2 size={24} />,
+    title: `Jahr ${year} löschen?`,
+  };
 }

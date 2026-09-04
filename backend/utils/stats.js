@@ -38,7 +38,7 @@ function calculateEveningStats(evening) {
     let rawGameId = game.gameId?._id?.toString?.() || game.gameId?.toString?.();
 
     if (rawGameId && mongoose.Types.ObjectId.isValid(rawGameId)) {
-      gameCountMap[rawGameId] = 1;
+      gameCountMap[rawGameId] = (gameCountMap[rawGameId] || 0) + 1;
     }
 
     for (const score of game.scores || []) {
@@ -151,8 +151,6 @@ async function rebuildUserStatsForYear(year, options = {}) {
   ).sort({ date: 1, createdAt: 1 });
 
   await UserStat.deleteMany(modeFilter(isTestData, { spieljahr: year }));
-
-  if (isTestData) return;
 
   if (!evenings.length) return;
 
@@ -292,6 +290,9 @@ async function rebuildUserStatsForYear(year, options = {}) {
         filter: {
           userId: new mongoose.Types.ObjectId(userId),
           spieljahr: year,
+          ...(isTestData
+            ? { isTestData: true }
+            : { isTestData: { $ne: true } }),
         },
         update: {
           $set: {

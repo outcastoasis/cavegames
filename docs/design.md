@@ -470,6 +470,12 @@ accessible labels and tooltips. Never use browser `prompt` or `confirm` for
 administrative workflows; use focused form and confirmation dialogs with clear
 busy, error and destructive states.
 
+Year administration must show whether the current data scope is live or test,
+summarize evening states before exposing actions and use a dedicated closing
+preview. Closing remains unavailable until every evening is completed and its
+scores are valid. Deleting a year requires explicit confirmation that its game
+nights, polls, statistics and stored photos are removed with it.
+
 ## Avatars
 
 Profile images are useful because Cavegames represents a small private group.

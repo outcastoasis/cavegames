@@ -5,7 +5,6 @@ const yearSchema = new mongoose.Schema(
     year: {
       type: Number,
       required: true,
-      unique: true,
     },
     closed: {
       type: Boolean,
@@ -14,8 +13,15 @@ const yearSchema = new mongoose.Schema(
     closedAt: {
       type: Date,
     },
+    isTestData: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
   },
   { timestamps: true }
 );
+
+yearSchema.index({ year: 1, isTestData: 1 }, { unique: true });
 
 module.exports = mongoose.model("Year", yearSchema);

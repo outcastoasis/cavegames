@@ -154,13 +154,13 @@ exports.createEvening = async (req, res) => {
     }
 
     // Jahr prüfen
-    const year = await Year.findOne({ year: spieljahr });
+    const year = await Year.findOne(scopedFilter(req, { year: spieljahr }));
     if (!year) {
       return res.status(404).json({ error: "Spieljahr nicht gefunden." });
     }
 
     // Blockieren, falls Jahr abgeschlossen ist
-    if (!req.isTestMode && year.closed === true) {
+    if (year.closed === true) {
       return res.status(400).json({
         error:
           "Das gewählte Spieljahr ist bereits abgeschlossen. Es können keine neuen Abende erstellt werden.",
@@ -315,11 +315,11 @@ exports.updateEvening = async (req, res) => {
         return res.status(400).json({ error: "Ungültiges Spieljahr" });
       }
 
-      const year = await Year.findOne({ year: nextYear });
+      const year = await Year.findOne(scopedFilter(req, { year: nextYear }));
       if (!year) {
         return res.status(404).json({ error: "Spieljahr nicht gefunden" });
       }
-      if (!req.isTestMode && year.closed) {
+      if (year.closed) {
         return res.status(400).json({
           error: "Das gewählte Spieljahr ist bereits abgeschlossen.",
         });
@@ -457,7 +457,9 @@ exports.deleteEvening = async (req, res) => {
       return res.status(404).json({ error: "Abend nicht gefunden" });
     }
 
-    const yearDoc = await Year.findOne({ year: evening.spieljahr });
+    const yearDoc = await Year.findOne(
+      scopedFilter(req, { year: evening.spieljahr }),
+    );
     if (yearDoc?.closed) {
       return res.status(400).json({
         error: "Jahr ist abgeschlossen – Abend kann nicht gelöscht werden",
