@@ -3,6 +3,11 @@ import { createPortal } from "react-dom";
 import { CalendarPlus, MapPinHouse } from "lucide-react";
 import API from "../../services/api";
 import Button from "../ui/Button";
+import {
+  YEAR_STATUSES,
+  getYearStatus,
+  getYearStatusMeta,
+} from "../../utils/yearLifecycle";
 import "../../styles/components/EveningCreateModal.css";
 
 export default function EveningCreateModal({ onClose, onSuccess }) {
@@ -32,11 +37,13 @@ export default function EveningCreateModal({ onClose, onSuccess }) {
         const nextUsers = usersResponse.data.filter(
           (user) => user.active !== false,
         );
-        const firstOpenYear = nextYears.find((year) => !year.closed);
+        const activeYear = nextYears.find(
+          (year) => getYearStatus(year) === YEAR_STATUSES.ACTIVE,
+        );
 
         setYears(nextYears);
         setUsers(nextUsers);
-        setSelectedYear(firstOpenYear ? String(firstOpenYear.year) : "");
+        setSelectedYear(activeYear ? String(activeYear.year) : "");
       } catch (requestError) {
         console.error("Auswahldaten konnten nicht geladen werden:", requestError);
         if (active) setError("Jahre und Benutzer konnten nicht geladen werden.");
@@ -127,11 +134,18 @@ export default function EveningCreateModal({ onClose, onSuccess }) {
               value={selectedYear}
             >
               <option value="">Bitte wählen</option>
-              {years.map((year) => (
-                <option key={year._id} value={year.year} disabled={year.closed}>
-                  {year.year} {year.closed ? "(abgeschlossen)" : ""}
-                </option>
-              ))}
+              {years.map((year) => {
+                const status = getYearStatus(year);
+                return (
+                  <option
+                    disabled={status === YEAR_STATUSES.CLOSED}
+                    key={year._id}
+                    value={year.year}
+                  >
+                    {year.year} ({getYearStatusMeta(year).optionLabel})
+                  </option>
+                );
+              })}
             </select>
           </label>
 

@@ -476,6 +476,15 @@ preview. Closing remains unavailable until every evening is completed and its
 scores are valid. Deleting a year requires explicit confirmation that its game
 nights, polls, statistics and stored photos are removed with it.
 
+Treat the year lifecycle as `planned → active → closed`. Each live or test data
+scope may contain several planned years but at most one active year. Planned
+years allow game-night preparation, polls, voting, participation and date
+confirmation; games, scores and game-night completion require the active year.
+Closed years are read-only. Creating a year must not activate it implicitly,
+and activating or closing a year requires a deliberate administrative action.
+Use these labels only for year cards; game-night cards retain their independent
+event statuses.
+
 ## Avatars
 
 Profile images are useful because Cavegames represents a small private group.

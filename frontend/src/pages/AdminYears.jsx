@@ -5,6 +5,7 @@ import {
   CalendarDays,
   CheckCircle2,
   ChevronRight,
+  CirclePlay,
   Clock3,
   Plus,
   RefreshCw,
@@ -21,6 +22,11 @@ import { useAuth } from "../context/authState";
 import { useTestMode } from "../context/testMode";
 import API from "../services/api";
 import { formatSwissDate } from "../utils/swissDateTime";
+import {
+  YEAR_STATUSES,
+  getYearStatus,
+  getYearStatusMeta,
+} from "../utils/yearLifecycle";
 import "../styles/pages/AdminYears.css";
 
 const emptyStatusCounts = {
@@ -42,6 +48,8 @@ export default function AdminYears() {
   const [creating, setCreating] = useState(false);
   const [closeState, setCloseState] = useState(null);
   const [closing, setClosing] = useState(false);
+  const [activateTarget, setActivateTarget] = useState(null);
+  const [activating, setActivating] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
@@ -72,6 +80,20 @@ export default function AdminYears() {
     return <Navigate to="/" replace />;
   }
 
+  const hasActiveYear = years.some(
+    (year) => getYearStatus(year) === YEAR_STATUSES.ACTIVE,
+  );
+  const displayedYears = [...years].sort((first, second) => {
+    const priority = {
+      [YEAR_STATUSES.ACTIVE]: 0,
+      [YEAR_STATUSES.PLANNED]: 1,
+      [YEAR_STATUSES.CLOSED]: 2,
+    };
+    const statusDifference =
+      priority[getYearStatus(first)] - priority[getYearStatus(second)];
+    return statusDifference || second.year - first.year;
+  });
+
   const handleCreateYear = async (event) => {
     event.preventDefault();
     const parsedYear = Number(newYear);
@@ -85,13 +107,32 @@ export default function AdminYears() {
       await API.post("/years", { year: parsedYear });
       setNewYear("");
       await fetchYears();
-      setToastMessage(`Jahr ${parsedYear} angelegt`);
+      setToastMessage(`Jahr ${parsedYear} als geplant angelegt`);
     } catch (error) {
       setToastMessage(
         error.response?.data?.error || "Jahr konnte nicht erstellt werden.",
       );
     } finally {
       setCreating(false);
+    }
+  };
+
+  const handleActivateYear = async () => {
+    if (!activateTarget || activating) return;
+
+    setActivating(true);
+    try {
+      const response = await API.post(`/years/${activateTarget.year}/activate`);
+      setActivateTarget(null);
+      await fetchYears();
+      setToastMessage(response.data.message || "Jahr aktiviert");
+    } catch (error) {
+      setActivateTarget(null);
+      setToastMessage(
+        error.response?.data?.error || "Jahr konnte nicht aktiviert werden.",
+      );
+    } finally {
+      setActivating(false);
     }
   };
 
@@ -194,10 +235,22 @@ export default function AdminYears() {
             leadingIcon={<Plus size={18} />}
             type="submit"
           >
-            {creating ? "Wird angelegt …" : "Jahr anlegen"}
+            {creating ? "Wird angelegt …" : "Jahr planen"}
           </Button>
         </form>
       </Card>
+
+      {!loading &&
+        years.length > 0 &&
+        !hasActiveYear && (
+          <Card className="admin-years-current-notice" padding="sm" variant="muted">
+            <CirclePlay size={20} aria-hidden="true" />
+            <div>
+              <strong>Kein aktives Spieljahr</strong>
+              <span>Aktiviere ein geplantes Jahr für Spiele und Punkte.</span>
+            </div>
+          </Card>
+        )}
 
       {loading ? (
         <YearListSkeleton />
@@ -223,9 +276,11 @@ export default function AdminYears() {
         </Card>
       ) : (
         <div className="admin-years-list">
-          {years.map((year) => (
+          {displayedYears.map((year) => (
             <YearCard
+              activationBlocked={hasActiveYear}
               key={year._id}
+              onActivate={() => setActivateTarget(year)}
               onClose={() => handleOpenClosePreview(year.year)}
               onDelete={() => setDeleteTarget(year)}
               onOpen={() => navigate(`/admin/years/${year.year}`)}
@@ -246,6 +301,20 @@ export default function AdminYears() {
       />
 
       <ConfirmDialog
+        busy={activating}
+        busyLabel="Wird aktiviert …"
+        confirmLabel="Jahr aktivieren"
+        icon={<CirclePlay size={24} />}
+        onCancel={() => setActivateTarget(null)}
+        onConfirm={handleActivateYear}
+        open={Boolean(activateTarget)}
+        title={`Jahr ${activateTarget?.year || ""} aktivieren?`}
+      >
+        <p>Dieses Jahr wird zum aktuellen Spieljahr.</p>
+        <p>Danach können Spiele, Punkte und Abschlüsse erfasst werden.</p>
+      </ConfirmDialog>
+
+      <ConfirmDialog
         busy={deleting}
         busyLabel="Wird gelöscht …"
         confirmLabel="Jahr löschen"
@@ -262,22 +331,32 @@ export default function AdminYears() {
           dauerhaft gelöscht.
         </p>
         <p>Umfragen, Statistiken und Gruppenfotos dieser Abende sind enthalten.</p>
+        {getYearStatus(deleteTarget) === YEAR_STATUSES.ACTIVE && (
+          <p>Danach ist kein Spieljahr aktiv, bis ein geplantes Jahr aktiviert wird.</p>
+        )}
       </ConfirmDialog>
     </div>
   );
 }
 
-function YearCard({ onClose, onDelete, onOpen, year }) {
+function YearCard({
+  activationBlocked,
+  onActivate,
+  onClose,
+  onDelete,
+  onOpen,
+  year,
+}) {
   const counts = { ...emptyStatusCounts, ...year.statusCounts };
   const activeCount = counts.offen + counts.fixiert;
   const completedCount = counts.abgeschlossen + counts.gesperrt;
+  const yearStatus = getYearStatus(year);
+  const yearStatusMeta = getYearStatusMeta(year);
 
   return (
     <Card
       as="article"
-      className={`admin-year-card admin-year-card--${
-        year.closed ? "closed" : "open"
-      }`}
+      className={`admin-year-card admin-year-card--${yearStatus}`}
       padding="md"
     >
       <button
@@ -294,8 +373,8 @@ function YearCard({ onClose, onDelete, onOpen, year }) {
         </div>
         <div className="admin-year-card__header-end">
           <StatusBadge
-            label={year.closed ? "Abgeschlossen" : "Offen"}
-            tone={year.closed ? "success" : "warning"}
+            label={yearStatusMeta.label}
+            tone={yearStatusMeta.tone}
           />
           <ChevronRight
             aria-hidden="true"
@@ -329,10 +408,27 @@ function YearCard({ onClose, onDelete, onOpen, year }) {
 
       <div
         className={`admin-year-card__actions${
-          year.closed ? " admin-year-card__actions--closed" : ""
+          yearStatus === YEAR_STATUSES.CLOSED
+            ? " admin-year-card__actions--closed"
+            : ""
         }`}
       >
-        {!year.closed && (
+        {yearStatus === YEAR_STATUSES.PLANNED && (
+          <Button
+            disabled={activationBlocked}
+            leadingIcon={<CirclePlay size={18} />}
+            onClick={onActivate}
+            size="sm"
+            title={
+              activationBlocked
+                ? "Das aktive Jahr muss zuerst abgeschlossen werden"
+                : "Als aktuelles Spieljahr festlegen"
+            }
+          >
+            Aktivieren
+          </Button>
+        )}
+        {yearStatus === YEAR_STATUSES.ACTIVE && (
           <Button
             leadingIcon={<CalendarCheck2 size={18} />}
             onClick={onClose}

@@ -9,6 +9,11 @@ const {
 } = require("../utils/stats");
 const { scopedFilter } = require("../utils/testMode");
 const { validateYearClosing } = require("../utils/yearClosing");
+const {
+  YEAR_STATUSES,
+  canTransitionYear,
+  getYearStatus,
+} = require("../utils/yearLifecycle");
 
 function parseYear(value) {
   const year = Number(value);
@@ -77,6 +82,21 @@ exports.getYears = async (req, res) => {
   }
 };
 
+exports.getCurrentYear = async (req, res) => {
+  try {
+    const year = await Year.findOne(
+      scopedFilter(req, { status: YEAR_STATUSES.ACTIVE }),
+    ).lean();
+    if (!year) {
+      return res.status(404).json({ error: "Kein aktives Spieljahr festgelegt" });
+    }
+    return res.json(year);
+  } catch (error) {
+    console.error("Fehler beim Laden des aktiven Jahres:", error);
+    return res.status(500).json({ error: "Aktives Jahr konnte nicht geladen werden" });
+  }
+};
+
 exports.createYear = async (req, res) => {
   try {
     const year = parseYear(req.body.year);
@@ -91,6 +111,7 @@ exports.createYear = async (req, res) => {
 
     const newYear = await Year.create({
       year,
+      status: YEAR_STATUSES.PLANNED,
       isTestData: req.isTestMode,
     });
     return res.status(201).json(newYear);
@@ -103,6 +124,58 @@ exports.createYear = async (req, res) => {
   }
 };
 
+exports.activateYear = async (req, res) => {
+  try {
+    const year = parseYear(req.params.year);
+    if (!year) return res.status(400).json({ error: "Ungültiges Jahr" });
+
+    const yearDoc = await Year.findOne(getYearFilter(req, year));
+    if (!yearDoc) return res.status(404).json({ error: "Jahr nicht gefunden" });
+
+    const currentStatus = getYearStatus(yearDoc);
+    if (currentStatus === YEAR_STATUSES.ACTIVE) {
+      return res.json({ message: `Jahr ${year} ist bereits aktiv`, year: yearDoc });
+    }
+    if (!canTransitionYear(currentStatus, YEAR_STATUSES.ACTIVE)) {
+      return res.status(409).json({
+        error: "Abgeschlossene Jahre können nicht erneut aktiviert werden.",
+      });
+    }
+
+    const activeYear = await Year.findOne(
+      scopedFilter(req, {
+        status: YEAR_STATUSES.ACTIVE,
+        _id: { $ne: yearDoc._id },
+      }),
+    );
+    if (activeYear) {
+      return res.status(409).json({
+        code: "ACTIVE_YEAR_EXISTS",
+        error: `Jahr ${activeYear.year} ist bereits aktiv und muss zuerst abgeschlossen werden.`,
+        activeYear: activeYear.year,
+      });
+    }
+
+    yearDoc.status = YEAR_STATUSES.ACTIVE;
+    yearDoc.activatedAt = new Date();
+    yearDoc.closedAt = undefined;
+    await yearDoc.save();
+
+    return res.json({
+      message: `Jahr ${year} ist jetzt aktiv`,
+      year: yearDoc,
+    });
+  } catch (error) {
+    if (error?.code === 11000) {
+      return res.status(409).json({
+        error: "Es ist bereits ein anderes Spieljahr aktiv.",
+      });
+    }
+    console.error("Fehler beim Aktivieren des Jahres:", error);
+    return res.status(500).json({ error: "Jahr konnte nicht aktiviert werden" });
+  }
+};
+
 exports.getYearDetails = async (req, res) => {
   try {
     const year = parseYear(req.params.year);
@@ -111,11 +184,16 @@ exports.getYearDetails = async (req, res) => {
     const yearDoc = await Year.findOne(getYearFilter(req, year));
     if (!yearDoc) return res.status(404).json({ error: "Jahr nicht gefunden" });
 
-    const evenings = await Evening.find(scopedFilter(req, { spieljahr: year }))
-      .sort({ date: 1, createdAt: 1 })
-      .populate("spielleiterId", "displayName profileImageUrl")
-      .populate("participantIds", "displayName profileImageUrl")
-      .populate("games.gameId", "name");
+    const [evenings, activeYear] = await Promise.all([
+      Evening.find(scopedFilter(req, { spieljahr: year }))
+        .sort({ date: 1, createdAt: 1 })
+        .populate("spielleiterId", "displayName profileImageUrl")
+        .populate("participantIds", "displayName profileImageUrl")
+        .populate("games.gameId", "name"),
+      Year.findOne(
+        scopedFilter(req, { status: YEAR_STATUSES.ACTIVE }),
+      ).select("year"),
+    ]);
 
     const response = evenings.map((evening) => ({
       ...evening.toObject(),
@@ -123,7 +201,11 @@ exports.getYearDetails = async (req, res) => {
       participantRefs: evening.participantIds,
     }));
 
-    return res.json({ year: yearDoc, evenings: response });
+    return res.json({
+      year: yearDoc,
+      evenings: response,
+      activeYear: activeYear?.year || null,
+    });
   } catch (error) {
     console.error("Fehler beim Laden des Jahres:", error);
     return res.status(500).json({ error: "Fehler beim Laden des Jahres" });
@@ -137,8 +219,13 @@ exports.getYearClosePreview = async (req, res) => {
 
     const yearDoc = await Year.findOne(getYearFilter(req, year));
     if (!yearDoc) return res.status(404).json({ error: "Jahr nicht gefunden" });
-    if (yearDoc.closed) {
-      return res.status(400).json({ error: "Jahr ist bereits abgeschlossen" });
+    if (getYearStatus(yearDoc) !== YEAR_STATUSES.ACTIVE) {
+      return res.status(409).json({
+        error:
+          getYearStatus(yearDoc) === YEAR_STATUSES.CLOSED
+            ? "Jahr ist bereits abgeschlossen"
+            : "Nur das aktive Jahr kann abgeschlossen werden.",
+      });
     }
 
     const evenings = await loadClosingEvenings(req, year);
@@ -164,8 +251,13 @@ exports.closeYear = async (req, res) => {
 
     const yearDoc = await Year.findOne(getYearFilter(req, year));
     if (!yearDoc) return res.status(404).json({ error: "Jahr nicht gefunden" });
-    if (yearDoc.closed) {
-      return res.status(400).json({ error: "Jahr ist bereits abgeschlossen" });
+    if (getYearStatus(yearDoc) !== YEAR_STATUSES.ACTIVE) {
+      return res.status(409).json({
+        error:
+          getYearStatus(yearDoc) === YEAR_STATUSES.CLOSED
+            ? "Jahr ist bereits abgeschlossen"
+            : "Nur das aktive Jahr kann abgeschlossen werden.",
+      });
     }
 
     const evenings = await loadClosingEvenings(req, year);
@@ -192,7 +284,7 @@ exports.closeYear = async (req, res) => {
 
     await rebuildUserStatsForYear(year, { isTestData: req.isTestMode });
 
-    yearDoc.closed = true;
+    yearDoc.status = YEAR_STATUSES.CLOSED;
     yearDoc.closedAt = new Date();
     await yearDoc.save();
 

@@ -35,6 +35,7 @@ import {
   swissDateTimeInputToIso,
   toSwissDateTimeInputValue,
 } from "../utils/swissDateTime";
+import { YEAR_STATUSES } from "../utils/yearLifecycle";
 
 const toId = (value) => String(value?._id ?? value ?? "");
 
@@ -417,8 +418,13 @@ export default function AbendDetail() {
   const hasRecordedGames = (abend.games?.length || 0) > 0;
   const backTarget = abend.status === "gesperrt" ? "/historie" : "/abende";
   const isGesperrt = abend.status === "gesperrt";
+  const isYearActive = abend.yearStatus
+    ? abend.yearStatus === YEAR_STATUSES.ACTIVE
+    : !isGesperrt;
+  const isYearWritable = abend.yearStatus !== YEAR_STATUSES.CLOSED;
   const canEditDate = isPrivileged && isFixiert;
   const canEditScores =
+    isYearActive &&
     !isGesperrt &&
     ((isAdmin && (isFixiert || isAbgeschlossen)) ||
       (isSpielleiter && isFixiert));
@@ -428,18 +434,24 @@ export default function AbendDetail() {
     getSwissDateKey(abend.date) === getSwissDateKey(new Date());
 
   const canAddGame =
-    !isGesperrt && ((isAdmin && isFixiert) || (isSpielleiter && isFixiert));
+    isYearActive &&
+    !isGesperrt &&
+    ((isAdmin && isFixiert) || (isSpielleiter && isFixiert));
 
   const canDeleteGame =
+    isYearActive &&
     !isGesperrt &&
     ((isAdmin && (isFixiert || isAbgeschlossen)) ||
       (isSpielleiter && isFixiert));
-  const canRecalculateStats = isPrivileged && (isAbgeschlossen || isGesperrt);
+  const canRecalculateStats =
+    isYearActive && isPrivileged && isAbgeschlossen;
   const canEditPhoto =
+    isYearActive &&
     isPrivileged &&
-    (isFixiert || isAbgeschlossen || (isAdmin && isGesperrt));
+    (isFixiert || isAbgeschlossen);
   const canDownloadPhoto = isAdmin || isTeilnehmer;
-  const canFinishEvening = (isSpielleiter || isAdmin) && isFixiert;
+  const canFinishEvening =
+    isYearActive && (isSpielleiter || isAdmin) && isFixiert;
   const hasCompletionActions = canFinishEvening || canRecalculateStats;
 
   const formattedDate = abend.date
@@ -552,7 +564,7 @@ export default function AbendDetail() {
           </div>
         </Card>
 
-        {isFixiert && !isToday && !hasRecordedGames && (
+        {isYearWritable && isFixiert && !isToday && !hasRecordedGames && (
           <Card
             as="section"
             aria-label="Teilnahme"
@@ -738,7 +750,7 @@ export default function AbendDetail() {
                       />
                     )}
 
-                    {isPrivileged && isFixiert && !isHost && (
+                    {isYearWritable && isPrivileged && isFixiert && !isHost && (
                       <Button
                         aria-label={`${participant.displayName} entfernen`}
                         className="abenddetail-participant-remove"
@@ -760,7 +772,7 @@ export default function AbendDetail() {
             <p className="abenddetail-muted">Noch keine Teilnehmer.</p>
           )}
 
-          {isPrivileged && isFixiert && (
+          {isYearWritable && isPrivileged && isFixiert && (
             <div className="abenddetail-addparticipant">
               <label className="abenddetail-addparticipant-label">
                 Weitere Person hinzufügen

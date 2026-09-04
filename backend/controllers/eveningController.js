@@ -17,6 +17,12 @@ const Poll = require("../models/Poll");
 const User = require("../models/User");
 const { scopedFilter } = require("../utils/testMode");
 const {
+  YEAR_STATUSES,
+  allowsGameplay,
+  allowsPlanning,
+  getYearStatus,
+} = require("../utils/yearLifecycle");
+const {
   addParticipantAndScores,
   getParticipantScoreSummary,
   hasRecordedGames,
@@ -36,6 +42,30 @@ const {
 } = require("../utils/eveningPhoto");
 
 const STAT_FINAL_STATUSES = new Set(["abgeschlossen", "gesperrt"]);
+
+async function requireEveningYear(req, res, evening, { activeOnly = false } = {}) {
+  const year = await Year.findOne(
+    scopedFilter(req, { year: evening.spieljahr }),
+  );
+  if (!year) {
+    res.status(409).json({ error: "Zugehöriges Spieljahr nicht gefunden." });
+    return null;
+  }
+
+  if (activeOnly ? !allowsGameplay(year) : !allowsPlanning(year)) {
+    const status = getYearStatus(year);
+    res.status(409).json({
+      code: activeOnly ? "YEAR_NOT_ACTIVE" : "YEAR_NOT_WRITABLE",
+      error:
+        status === YEAR_STATUSES.CLOSED
+          ? "Das Spieljahr ist abgeschlossen und kann nicht mehr verändert werden."
+          : "Diese Aktion ist erst möglich, wenn das Spieljahr aktiv ist.",
+    });
+    return null;
+  }
+
+  return year;
+}
 
 function parseEveningLocation(value) {
   if (value == null || value === "") return { value: null };
@@ -123,10 +153,19 @@ exports.getEvenings = async (req, res) => {
       .populate("participantIds", "displayName profileImageUrl")
       .sort({ date: -1 });
 
+    const yearNumbers = [...new Set(evenings.map((evening) => evening.spieljahr))];
+    const years = await Year.find(
+      scopedFilter(req, { year: { $in: yearNumbers } }),
+    ).select("year status");
+    const yearStatusByNumber = new Map(
+      years.map((year) => [year.year, getYearStatus(year)]),
+    );
+
     // Einheitliches Frontend-Mapping
     const response = evenings.map((e) => ({
       ...e.toObject(),
       ...getEveningPhotoResponseFields(e),
+      yearStatus: yearStatusByNumber.get(e.spieljahr) || null,
       spielleiterRef: e.spielleiterId,
       participantRefs: e.participantIds,
     }));
@@ -159,9 +198,9 @@ exports.createEvening = async (req, res) => {
       return res.status(404).json({ error: "Spieljahr nicht gefunden." });
     }
 
-    // Blockieren, falls Jahr abgeschlossen ist
-    if (year.closed === true) {
-      return res.status(400).json({
+    // Geplante und aktive Jahre dürfen vorbereitet werden.
+    if (!allowsPlanning(year)) {
+      return res.status(409).json({
         error:
           "Das gewählte Spieljahr ist bereits abgeschlossen. Es können keine neuen Abende erstellt werden.",
       });
@@ -197,6 +236,7 @@ exports.createEvening = async (req, res) => {
     const response = {
       ...populated.toObject(),
       ...getEveningPhotoResponseFields(populated),
+      yearStatus: getYearStatus(year),
       spielleiterRef: populated.spielleiterId,
       participantRefs: populated.participantIds,
     };
@@ -236,6 +276,9 @@ exports.getEveningById = async (req, res) => {
     if (!evening) {
       return res.status(404).json({ error: "Abend nicht gefunden" });
     }
+    const eveningYear = await Year.findOne(
+      scopedFilter(req, { year: evening.spieljahr }),
+    ).select("status");
     // Falls Statistiken fehlen (alte Daten), on-the-fly berechnen
     if (!evening.playerPoints || evening.playerPoints.length === 0) {
       const calc = calculateEveningStats(evening);
@@ -252,6 +295,7 @@ exports.getEveningById = async (req, res) => {
     const response = {
       ...evening.toObject(),
       ...getEveningPhotoResponseFields(evening),
+      yearStatus: eveningYear ? getYearStatus(eveningYear) : null,
       spielleiterRef: evening.spielleiterId,
       participantRefs: evening.participantIds,
 
@@ -303,6 +347,8 @@ exports.updateEvening = async (req, res) => {
     if (!evening)
       return res.status(404).json({ error: "Abend nicht gefunden" });
 
+    if (!(await requireEveningYear(req, res, evening))) return;
+
     const oldYear = evening.spieljahr;
     const oldDate = evening.date?.getTime?.() || null;
     const oldLocation = evening.location || null;
@@ -319,9 +365,18 @@ exports.updateEvening = async (req, res) => {
       if (!year) {
         return res.status(404).json({ error: "Spieljahr nicht gefunden" });
       }
-      if (year.closed) {
-        return res.status(400).json({
+      if (!allowsPlanning(year)) {
+        return res.status(409).json({
           error: "Das gewählte Spieljahr ist bereits abgeschlossen.",
+        });
+      }
+      if (
+        getYearStatus(year) === YEAR_STATUSES.PLANNED &&
+        (evening.games.length > 0 || STAT_FINAL_STATUSES.has(evening.status))
+      ) {
+        return res.status(409).json({
+          error:
+            "Abende mit Spielen oder Resultaten können nicht in ein geplantes Jahr verschoben werden.",
         });
       }
 
@@ -389,10 +444,14 @@ exports.updateEvening = async (req, res) => {
     )
       .populate("spielleiterId", "displayName profileImageUrl")
       .populate("participantIds", "displayName profileImageUrl");
+    const updatedYear = await Year.findOne(
+      scopedFilter(req, { year: updated.spieljahr }),
+    ).select("status");
 
     const response = {
       ...updated.toObject(),
       ...getEveningPhotoResponseFields(updated),
+      yearStatus: updatedYear ? getYearStatus(updatedYear) : null,
       spielleiterRef: updated.spielleiterId,
       participantRefs: updated.participantIds,
     };
@@ -457,14 +516,7 @@ exports.deleteEvening = async (req, res) => {
       return res.status(404).json({ error: "Abend nicht gefunden" });
     }
 
-    const yearDoc = await Year.findOne(
-      scopedFilter(req, { year: evening.spieljahr }),
-    );
-    if (yearDoc?.closed) {
-      return res.status(400).json({
-        error: "Jahr ist abgeschlossen – Abend kann nicht gelöscht werden",
-      });
-    }
+    if (!(await requireEveningYear(req, res, evening))) return;
 
     // 1) Poll löschen (robust über eveningId)
     const poll = await Poll.findOneAndDelete(
@@ -526,6 +578,17 @@ exports.changeEveningStatus = async (req, res) => {
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ error: "Ungültiger Status" });
     }
+
+    if (status === "gesperrt") {
+      return res.status(409).json({
+        error: "Abende werden ausschliesslich durch den Jahresabschluss gesperrt.",
+      });
+    }
+
+    const statusYear = await requireEveningYear(req, res, evening, {
+      activeOnly: status === "abgeschlossen",
+    });
+    if (!statusYear) return;
 
     // Logs verhindern Rückschritt nach unten (optional)
     if (oldStatus === "abgeschlossen" && status === "fixiert") {
@@ -598,6 +661,7 @@ exports.changeEveningStatus = async (req, res) => {
     const response = {
       ...updated.toObject(),
       ...getEveningPhotoResponseFields(updated),
+      yearStatus: getYearStatus(statusYear),
       spielleiterRef: updated.spielleiterId,
       participantRefs: updated.participantIds,
     };
@@ -654,6 +718,8 @@ exports.addParticipant = async (req, res) => {
     if (!evening) {
       return res.status(404).json({ error: "Abend nicht gefunden" });
     }
+
+    if (!(await requireEveningYear(req, res, evening))) return;
 
     if (evening.status === "gesperrt") {
       return res.status(400).json({
@@ -754,6 +820,8 @@ exports.removeParticipant = async (req, res) => {
     if (!evening) {
       return res.status(404).json({ error: "Abend nicht gefunden" });
     }
+
+    if (!(await requireEveningYear(req, res, evening))) return;
 
     if (evening.status === "gesperrt") {
       return res.status(400).json({
@@ -881,6 +949,9 @@ exports.addEveningGame = async (req, res) => {
       return res.status(404).json({ error: "Abend nicht gefunden" });
     }
 
+    if (!(await requireEveningYear(req, res, evening, { activeOnly: true })))
+      return;
+
     if (evening.status === "abgeschlossen" && req.user.role !== "admin") {
       return res.status(400).json({
         error: "Abend ist abgeschlossen – Hinzufügen nicht erlaubt",
@@ -920,6 +991,9 @@ exports.updateEveningGame = async (req, res) => {
     if (!evening) {
       return res.status(404).json({ error: "Abend nicht gefunden" });
     }
+
+    if (!(await requireEveningYear(req, res, evening, { activeOnly: true })))
+      return;
 
     if (evening.status === "abgeschlossen" && req.user.role !== "admin") {
       return res
@@ -962,6 +1036,9 @@ exports.deleteEveningGame = async (req, res) => {
     if (!evening) {
       return res.status(404).json({ error: "Abend nicht gefunden" });
     }
+
+    if (!(await requireEveningYear(req, res, evening, { activeOnly: true })))
+      return;
 
     if (evening.status === "abgeschlossen" && req.user.role !== "admin") {
       return res
@@ -1013,6 +1090,9 @@ exports.recalculateEveningStats = async (req, res) => {
     if (!evening) {
       return res.status(404).json({ error: "Abend nicht gefunden" });
     }
+
+    if (!(await requireEveningYear(req, res, evening, { activeOnly: true })))
+      return;
 
     // Abendstatistik neu berechnen
     const stats = calculateEveningStats(evening);
@@ -1079,6 +1159,8 @@ exports.uploadGroupPhoto = async (req, res) => {
           "Abendfotos können nur bei fixierten oder abgeschlossenen Abenden geändert werden. Bei gesperrten Abenden ist dies nur als Admin möglich.",
       });
     }
+    if (!(await requireEveningYear(req, res, evening, { activeOnly: true })))
+      return;
 
     const confirmsReplacement =
       req.body?.confirmReplacement === true ||
@@ -1165,6 +1247,8 @@ exports.deleteGroupPhoto = async (req, res) => {
           "Abendfotos können nur bei fixierten oder abgeschlossenen Abenden gelöscht werden. Bei gesperrten Abenden ist dies nur als Admin möglich.",
       });
     }
+    if (!(await requireEveningYear(req, res, evening, { activeOnly: true })))
+      return;
     if (!evening.groupPhotoPublicId && !evening.groupPhotoUrl) {
       return res.status(404).json({ error: "Kein Abendfoto vorhanden." });
     }

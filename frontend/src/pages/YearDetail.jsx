@@ -10,6 +10,7 @@ import {
   CalendarCheck2,
   CalendarDays,
   CheckCircle2,
+  CirclePlay,
   Gamepad2,
   Pencil,
   RefreshCw,
@@ -30,6 +31,11 @@ import Toast from "../components/ui/Toast";
 import { useAuth } from "../context/authState";
 import API from "../services/api";
 import { formatSwissDate } from "../utils/swissDateTime";
+import {
+  YEAR_STATUSES,
+  getYearStatus,
+  getYearStatusMeta,
+} from "../utils/yearLifecycle";
 import "../styles/pages/YearDetail.css";
 
 const statusTone = {
@@ -145,6 +151,31 @@ export default function YearDetail() {
     }
   };
 
+  const handleActivateYear = async () => {
+    if (actionBusy) return;
+
+    if (data?.activeYear && Number(data.activeYear) !== Number(year)) {
+      setToastMessage(
+        `Jahr ${data.activeYear} ist bereits aktiv und muss zuerst abgeschlossen werden.`,
+      );
+      return;
+    }
+
+    setActionBusy(true);
+    try {
+      const response = await API.post(`/years/${year}/activate`);
+      await fetchYearData();
+      setToastMessage(response.data.message || "Jahr aktiviert");
+    } catch (error) {
+      setToastMessage(
+        error.response?.data?.error || "Jahr konnte nicht aktiviert werden.",
+      );
+      await fetchYearData();
+    } finally {
+      setActionBusy(false);
+    }
+  };
+
   const handleConfirmedAction = async () => {
     if (!confirmAction || actionBusy) return;
     const { type, evening } = confirmAction;
@@ -211,8 +242,19 @@ export default function YearDetail() {
   }
 
   const { year: yearData, evenings } = data;
+  const yearStatus = getYearStatus(yearData);
+  const yearStatusMeta = getYearStatusMeta(yearData);
+  const blockingActiveYear =
+    data.activeYear && Number(data.activeYear) !== Number(yearData.year)
+      ? data.activeYear
+      : null;
   const summary = getYearSummary(evenings);
-  const confirmation = getConfirmationContent(confirmAction, year, evenings.length);
+  const confirmation = getConfirmationContent(
+    confirmAction,
+    year,
+    evenings.length,
+    yearStatus,
+  );
 
   return (
     <div className="page-shell page-shell--compact year-detail-page">
@@ -232,9 +274,7 @@ export default function YearDetail() {
 
       <Card
         as="section"
-        className={`year-detail-summary year-detail-summary--${
-          yearData.closed ? "closed" : "open"
-        }`}
+        className={`year-detail-summary year-detail-summary--${yearStatus}`}
         padding="md"
       >
         <div className="year-detail-summary__header">
@@ -244,8 +284,8 @@ export default function YearDetail() {
           </div>
           <div className="year-detail-summary__badges">
             <StatusBadge
-              label={yearData.closed ? "Abgeschlossen" : "Offen"}
-              tone={yearData.closed ? "success" : "warning"}
+              label={yearStatusMeta.label}
+              tone={yearStatusMeta.tone}
             />
             {yearData.isTestData && (
               <StatusBadge label="Test" tone="warning" />
@@ -253,7 +293,14 @@ export default function YearDetail() {
           </div>
         </div>
 
-        {yearData.closedAt && (
+        {yearStatus === YEAR_STATUSES.ACTIVE && yearData.activatedAt && (
+          <p className="year-detail-summary__lifecycle-date">
+            <CirclePlay size={16} aria-hidden="true" />
+            Aktiv seit {formatSwissDate(yearData.activatedAt)}
+          </p>
+        )}
+
+        {yearStatus === YEAR_STATUSES.CLOSED && yearData.closedAt && (
           <p className="year-detail-summary__closed-at">
             <CalendarCheck2 size={16} aria-hidden="true" />
             Abgeschlossen am {formatSwissDate(yearData.closedAt)}
@@ -283,7 +330,27 @@ export default function YearDetail() {
         )}
 
         <div className="year-detail-summary__actions">
-          {!yearData.closed && (
+          {yearStatus === YEAR_STATUSES.PLANNED && (
+            <div className="year-detail-summary__activation">
+              <Button
+                aria-describedby={
+                  blockingActiveYear ? "year-activation-blocked" : undefined
+                }
+                disabled={Boolean(blockingActiveYear) || actionBusy}
+                leadingIcon={<CirclePlay size={18} />}
+                onClick={handleActivateYear}
+                size="sm"
+              >
+                {actionBusy ? "Wird aktiviert …" : "Jahr aktivieren"}
+              </Button>
+              {blockingActiveYear && (
+                <span id="year-activation-blocked">
+                  Jahr {blockingActiveYear} ist bereits aktiv.
+                </span>
+              )}
+            </div>
+          )}
+          {yearStatus === YEAR_STATUSES.ACTIVE && (
             <Button
               leadingIcon={<CalendarCheck2 size={18} />}
               onClick={handleOpenClosePreview}
@@ -321,7 +388,7 @@ export default function YearDetail() {
                 actionLabel="Abend ansehen"
                 evening={evening}
                 footer={
-                  !yearData.closed ? (
+                  yearStatus !== YEAR_STATUSES.CLOSED ? (
                     <EveningAdminActions
                       evening={evening}
                       onDelete={() =>
@@ -490,7 +557,7 @@ function getStatusLabel(status) {
   return labels[status] || status;
 }
 
-function getConfirmationContent(action, year, eveningCount) {
+function getConfirmationContent(action, year, eveningCount, yearStatus) {
   if (action?.type === "delete-evening") {
     return {
       busyLabel: "Wird gelöscht …",
@@ -521,7 +588,11 @@ function getConfirmationContent(action, year, eveningCount) {
     danger: true,
     description: `Jahr ${year} und ${eveningCount} zugehörige${
       eveningCount === 1 ? "r Abend" : " Abende"
-    } werden inklusive Umfragen, Statistiken und Gruppenfotos dauerhaft gelöscht.`,
+    } werden inklusive Umfragen, Statistiken und Gruppenfotos dauerhaft gelöscht.${
+      yearStatus === YEAR_STATUSES.ACTIVE
+        ? " Danach ist kein Spieljahr aktiv, bis ein geplantes Jahr aktiviert wird."
+        : ""
+    }`,
     icon: <Trash2 size={24} />,
     title: `Jahr ${year} löschen?`,
   };

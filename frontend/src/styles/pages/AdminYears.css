@@ -69,6 +69,35 @@
   opacity: 0.55;
 }
 
+.admin-years-current-notice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--color-text-secondary);
+}
+
+.admin-years-current-notice > svg {
+  flex: 0 0 auto;
+  color: var(--color-primary);
+}
+
+.admin-years-current-notice > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.admin-years-current-notice strong {
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+}
+
+.admin-years-current-notice span {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
 .admin-years-list {
   display: flex;
   flex-direction: column;
@@ -82,7 +111,7 @@
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: start;
   gap: var(--space-4);
-  border-left: 3px solid var(--color-warning);
+  border-left: 3px solid var(--color-border-strong);
 }
 
 .admin-year-card__open {
@@ -103,6 +132,10 @@
 
 .admin-year-card__open:active {
   background: var(--color-primary-soft);
+}
+
+.admin-year-card--active {
+  border-left-color: var(--color-primary);
 }
 
 .admin-year-card--closed {

@@ -2,11 +2,40 @@
 
 const Poll = require("../models/Poll");
 const Evening = require("../models/Evening");
+const Year = require("../models/Year");
 const { scopedFilter } = require("../utils/testMode");
+const { allowsPlanning, getYearStatusLabel } = require("../utils/yearLifecycle");
 const {
   sendPollCreatedNotification,
   sendPollFinalizedNotification,
 } = require("../services/pushNotificationService");
+
+async function requirePollYear(req, res, eveningId) {
+  const evening = await Evening.findOne(
+    scopedFilter(req, { _id: eveningId }),
+  );
+  if (!evening) {
+    res.status(404).json({ error: "Abend nicht gefunden" });
+    return null;
+  }
+
+  const year = await Year.findOne(
+    scopedFilter(req, { year: evening.spieljahr }),
+  );
+  if (!year) {
+    res.status(409).json({ error: "Zugehöriges Spieljahr nicht gefunden." });
+    return null;
+  }
+  if (!allowsPlanning(year)) {
+    res.status(409).json({
+      code: "YEAR_NOT_WRITABLE",
+      error: `Das Spieljahr ist ${getYearStatusLabel(year.status)} und kann nicht mehr verändert werden.`,
+    });
+    return null;
+  }
+
+  return evening;
+}
 
 // 🟢 Umfrage erstellen
 exports.createPoll = async (req, res) => {
@@ -22,6 +51,9 @@ exports.createPoll = async (req, res) => {
   }
 
   try {
+    const evening = await requirePollYear(req, res, eveningId);
+    if (!evening) return;
+
     const existing = await Poll.findOne(scopedFilter(req, { eveningId }));
     if (existing) {
       return res.status(409).json({
@@ -37,13 +69,11 @@ exports.createPoll = async (req, res) => {
       isTestData: req.isTestMode,
     });
 
-    const evening = await Evening.findOneAndUpdate(
+    const linkResult = await Evening.updateOne(
       scopedFilter(req, { _id: eveningId }),
       { pollId: poll._id },
-      { new: true },
     );
-
-    if (!evening) {
+    if (linkResult.matchedCount === 0) {
       await Poll.deleteOne({ _id: poll._id });
       return res.status(404).json({ error: "Abend nicht gefunden" });
     }
@@ -109,6 +139,8 @@ exports.votePoll = async (req, res) => {
       });
     }
 
+    if (!(await requirePollYear(req, res, poll.eveningId))) return;
+
     // Bisherige Stimmen entfernen
     poll.options.forEach((opt) => {
       opt.votes = opt.votes.filter((v) => v.toString() !== userId.toString());
@@ -148,6 +180,8 @@ exports.finalizePoll = async (req, res) => {
         details: "Finalisierung nicht möglich.",
       });
     }
+
+    if (!(await requirePollYear(req, res, poll.eveningId))) return;
 
     poll.finalizedOption = finalizedDateValue;
     await poll.save();
@@ -195,7 +229,7 @@ exports.finalizePoll = async (req, res) => {
 // ❌ Umfrage löschen
 exports.deletePoll = async (req, res) => {
   try {
-    const poll = await Poll.findOneAndDelete(
+    const poll = await Poll.findOne(
       scopedFilter(req, { _id: req.params.id }),
     );
     if (!poll) {
@@ -204,6 +238,10 @@ exports.deletePoll = async (req, res) => {
         details: "Löschen nicht möglich.",
       });
     }
+
+    if (!(await requirePollYear(req, res, poll.eveningId))) return;
+
+    await Poll.deleteOne(scopedFilter(req, { _id: poll._id }));
 
     await Evening.findOneAndUpdate(scopedFilter(req, { _id: poll.eveningId }), {
       pollId: null,
@@ -234,6 +272,7 @@ exports.reopenPoll = async (req, res) => {
     if (!evening) {
       return res.status(404).json({ error: "Abend nicht gefunden" });
     }
+    if (!(await requirePollYear(req, res, evening._id))) return;
     if (evening.games.length > 0) {
       return res.status(400).json({
         error:

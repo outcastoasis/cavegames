@@ -7,6 +7,11 @@ import {
   toSwissDateTimeInputValue,
 } from "../../utils/swissDateTime";
 import Button from "../ui/Button";
+import {
+  YEAR_STATUSES,
+  getYearStatus,
+  getYearStatusMeta,
+} from "../../utils/yearLifecycle";
 import "../../styles/components/YearEveningModal.css";
 
 export default function YearEveningModal({
@@ -133,15 +138,25 @@ export default function YearEveningModal({
                   required
                   value={form.spieljahr}
                 >
-                  {years.map((year) => (
-                    <option
-                      disabled={year.closed}
-                      key={year._id}
-                      value={year.year}
-                    >
-                      {year.year} {year.closed ? "(abgeschlossen)" : ""}
-                    </option>
-                  ))}
+                  {years.map((year) => {
+                    const status = getYearStatus(year);
+                    const cannotMoveResultsToPlanned =
+                      status === YEAR_STATUSES.PLANNED &&
+                      ((evening.games?.length || 0) > 0 ||
+                        ["abgeschlossen", "gesperrt"].includes(evening.status));
+                    return (
+                      <option
+                        disabled={
+                          status === YEAR_STATUSES.CLOSED ||
+                          cannotMoveResultsToPlanned
+                        }
+                        key={year._id}
+                        value={year.year}
+                      >
+                        {year.year} ({getYearStatusMeta(year).optionLabel})
+                      </option>
+                    );
+                  })}
                 </select>
               </Field>
 

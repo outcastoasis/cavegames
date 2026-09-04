@@ -5,6 +5,7 @@ const User = require("../models/User");
 const UserStat = require("../models/UserStat");
 const Year = require("../models/Year");
 const { ensureTestUsers } = require("../utils/testUsers");
+const { YEAR_STATUSES } = require("../utils/yearLifecycle");
 
 exports.resetTestEveningData = async (req, res) => {
   try {
@@ -14,9 +15,19 @@ exports.resetTestEveningData = async (req, res) => {
       UserStat.deleteMany({ isTestData: true }),
       Year.updateMany(
         { isTestData: true },
-        { $set: { closed: false }, $unset: { closedAt: "" } },
+        {
+          $set: { status: YEAR_STATUSES.PLANNED },
+          $unset: { activatedAt: "", closedAt: "" },
+        },
       ),
     ]);
+
+    const latestYear = await Year.findOne({ isTestData: true }).sort({ year: -1 });
+    if (latestYear) {
+      latestYear.status = YEAR_STATUSES.ACTIVE;
+      latestYear.activatedAt = new Date();
+      await latestYear.save();
+    }
 
     res.json({ message: "Testabend-Daten wurden gelöscht" });
   } catch (err) {

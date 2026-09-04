@@ -2,7 +2,9 @@ const express = require("express");
 const router = express.Router();
 const {
   getYears,
+  getCurrentYear,
   createYear,
+  activateYear,
   getYearDetails,
   getYearClosePreview,
   closeYear,
@@ -16,10 +18,12 @@ router.use(checkAuth);
 
 // 🔓 Für alle Spieler sichtbar
 router.get("/", getYears);
+router.get("/current", getCurrentYear);
 router.get("/:year", getYearDetails);
 
 // 🔒 Nur Admin
 router.post("/", checkRole("admin"), createYear);
+router.post("/:year/activate", checkRole("admin"), activateYear);
 router.get("/:year/close-preview", checkRole("admin"), getYearClosePreview);
 router.post("/:year/close", checkRole("admin"), closeYear);
 router.delete("/:year", checkRole("admin"), deleteYear);

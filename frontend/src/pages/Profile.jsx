@@ -37,6 +37,7 @@ import { SkeletonBlock } from "../components/ui/Skeleton";
 import Switch from "../components/ui/Switch";
 import Toast from "../components/ui/Toast";
 import { formatSwissDate } from "../utils/swissDateTime";
+import { YEAR_STATUSES, getYearStatus } from "../utils/yearLifecycle";
 import "../styles/pages/Profile.css";
 
 const YEAR_CHART_OPTIONS = [
@@ -167,10 +168,16 @@ export default function Profile() {
 
     try {
       const response = await API.get("/years");
-      const years = response.data
+      const statisticalYears = response.data.filter(
+        (item) => getYearStatus(item) !== YEAR_STATUSES.PLANNED,
+      );
+      const years = statisticalYears
         .map((item) => item.year)
         .sort((a, b) => b - a);
-      const initialYear = years[0] || null;
+      const activeYear = statisticalYears.find(
+        (item) => getYearStatus(item) === YEAR_STATUSES.ACTIVE,
+      );
+      const initialYear = activeYear?.year || years[0] || null;
 
       setYearList(years);
       setSelectedYear(initialYear);
