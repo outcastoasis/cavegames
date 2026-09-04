@@ -8,6 +8,7 @@ import {
   Users,
 } from "lucide-react";
 import StatusBadge from "../ui/StatusBadge";
+import ProfileImagePreview from "../ui/ProfileImagePreview";
 import {
   formatSwissDate,
   formatSwissTime,
@@ -136,6 +137,7 @@ export default function EveningCard({
       <div className="evening-card__details">
         <LocationSummary
           imageUrl={host?.profileImageUrl}
+          name={host?.displayName}
           value={location}
         />
         <QuickFacts
@@ -152,13 +154,20 @@ export default function EveningCard({
             <div className="evening-card__winners">
               {winners.map((winner) => (
                 <div className="evening-card__winner" key={winner._id}>
-                  <span className="evening-card__winner-avatar" aria-hidden="true">
-                    {winner.profileImageUrl ? (
-                      <img src={winner.profileImageUrl} alt="" />
-                    ) : (
+                  {winner.profileImageUrl ? (
+                    <ProfileImagePreview
+                      className="evening-card__winner-avatar"
+                      name={winner.displayName}
+                      src={winner.profileImageUrl}
+                    />
+                  ) : (
+                    <span
+                      className="evening-card__winner-avatar"
+                      aria-hidden="true"
+                    >
                       <UserRound size={18} />
-                    )}
-                  </span>
+                    </span>
+                  )}
                   <strong>
                     {winner.displayName}
                     {String(winner._id) === String(currentUserId) ? " (Du)" : ""}
@@ -196,16 +205,20 @@ export default function EveningCard({
   );
 }
 
-function LocationSummary({ imageUrl, value }) {
+function LocationSummary({ imageUrl, name, value }) {
   return (
     <div className="evening-card__location">
-      <span className="evening-card__avatar" aria-hidden="true">
-        {imageUrl ? (
-          <img src={imageUrl} alt="" />
-        ) : (
+      {imageUrl ? (
+        <ProfileImagePreview
+          className="evening-card__avatar"
+          name={name}
+          src={imageUrl}
+        />
+      ) : (
+        <span className="evening-card__avatar" aria-hidden="true">
           <UserRound size={20} />
-        )}
-      </span>
+        </span>
+      )}
       <span className="evening-card__location-copy">
         <small>Ort</small>
         <strong>{value}</strong>

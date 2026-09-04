@@ -26,6 +26,7 @@ import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 import ConfirmDialog from "../components/ui/ConfirmDialog";
 import StatusBadge from "../components/ui/StatusBadge";
+import ProfileImagePreview from "../components/ui/ProfileImagePreview";
 import ParticipationControl from "../components/evenings/ParticipationControl";
 import EveningPhotoSection from "../components/EveningPhotoSection";
 import {
@@ -636,15 +637,11 @@ export default function AbendDetail() {
                 return (
                   <li key={p.userId} className="abenddetail-rank-item">
                     <span className="abenddetail-rank-place">{p.place}.</span>
-                    <img
+                    <ProfileImagePreview
                       className="abenddetail-rank-avatar"
                       src={userRef?.profileImageUrl || defaultAvatar}
-                      alt=""
-                      loading="lazy"
-                      referrerPolicy="no-referrer"
-                      onError={(event) => {
-                        event.currentTarget.src = defaultAvatar;
-                      }}
+                      fallbackSrc={defaultAvatar}
+                      name={userRef?.displayName || "Unbekannt"}
                     />
                     <span className="abenddetail-rank-name">
                       {userRef?.displayName || "?"}
@@ -738,15 +735,11 @@ export default function AbendDetail() {
                       isHost ? "abenddetail-participant-pill--host" : ""
                     }`}
                   >
-                    <img
+                    <ProfileImagePreview
                       className="abenddetail-participant-avatar"
                       src={participant.profileImageUrl || defaultAvatar}
-                      alt=""
-                      loading="lazy"
-                      referrerPolicy="no-referrer"
-                      onError={(event) => {
-                        event.currentTarget.src = defaultAvatar;
-                      }}
+                      fallbackSrc={defaultAvatar}
+                      name={participant.displayName}
                     />
 
                     <span className="abenddetail-participant-name">
